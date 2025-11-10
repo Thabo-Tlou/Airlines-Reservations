@@ -13,6 +13,8 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
+<?import javafx.scene.shape.Arc?>
+<?import javafx.scene.shape.Circle?>
 
 <AnchorPane prefHeight="600.0" prefWidth="900.0" xmlns="http://javafx.com/javafx/20.0.2" xmlns:fx="http://javafx.com/fxml/1" fx:controller="groupassingment.airlinesreservations.controllers.LoginController">
     <children>
@@ -67,7 +69,7 @@
                                     <HBox prefHeight="100.0" prefWidth="200.0" spacing="130.0">
                                         <children>
                                             <Button fx:id="signInButton" mnemonicParsing="false" prefHeight="47.0" prefWidth="118.0" styleClass="btn_logn" text="Sign In" onAction="#handleLogin" />
-                                            <Button fx:id="createAccountButton" mnemonicParsing="false" prefHeight="47.0" prefWidth="115.0" style="-fx-border-radius: 8px;" styleClass="btn_signup2" stylesheets="@../../styles/LogInStyles.css" text="Create Account" />
+                                            <Button fx:id="createAccountButton" mnemonicParsing="false" prefHeight="47.0" prefWidth="115.0" styleClass="btn_signup2" stylesheets="@../../styles/LogInStyles.css" text="Create Account" onAction="#handleCreateAccount" />
                                         </children>
                                     </HBox>
 
@@ -100,6 +102,33 @@
                                 <Label fx:id="statusLabel" styleClass="status_label" text="" />
                             </children>
                         </VBox>
+
+                        <!-- Loading Spinner (initially hidden) -->
+                        <StackPane fx:id="spinnerContainer" styleClass="spinner-container" visible="false"
+                                   AnchorPane.bottomAnchor="0.0"
+                                   AnchorPane.leftAnchor="0.0"
+                                   AnchorPane.rightAnchor="0.0"
+                                   AnchorPane.topAnchor="0.0">
+                            <children>
+                                <VBox alignment="CENTER" spacing="20.0">
+                                    <StackPane styleClass="circular-spinner">
+                                        <children>
+                                            <Circle fx:id="trackCircle" radius="30.0" fill="transparent" stroke="#e0e0e0" strokeWidth="2.0" />
+                                            <Arc fx:id="progressArc" centerX="0.0" centerY="0.0" radiusX="30.0" radiusY="30.0"
+                                                 startAngle="0.0" length="0.0" stroke="#272838" strokeWidth="3.0"
+                                                 strokeLineCap="ROUND" type="OPEN" fill="transparent" />
+
+                                            <ImageView fx:id="planeIcon" fitHeight="20.0" fitWidth="20.0" styleClass="plane-icon">
+                                                <image>
+                                                    <Image url="@../../images/logo2.png" />
+                                                </image>
+                                            </ImageView>
+                                        </children>
+                                    </StackPane>
+                                    <Label fx:id="loadingText" styleClass="loading-text" text="Signing you in..." />
+                                </VBox>
+                            </children>
+                        </StackPane>
                     </children>
                 </AnchorPane>
             </center>

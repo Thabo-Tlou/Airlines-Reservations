@@ -42,7 +42,7 @@
                                 <Insets top="10.0" />
                             </VBox.margin>
                         </HBox>
-                  <Separator prefHeight="14.0" prefWidth="231.0" />
+                        <Separator prefHeight="14.0" prefWidth="231.0" />
 
                         <HBox prefHeight="38.0" prefWidth="199.0" styleClass="active" stylesheets="@../../styles/Dashboard.css">
                             <children>
@@ -55,9 +55,9 @@
                                     </HBox.margin>
                                 </ImageView>
                                 <Button mnemonicParsing="false" styleClass="btn_dashboard" text="Dashboard">
-                           <HBox.margin>
-                              <Insets top="3.0" />
-                           </HBox.margin></Button>
+                                    <HBox.margin>
+                                        <Insets top="3.0" />
+                                    </HBox.margin></Button>
                             </children>
                             <VBox.margin>
                                 <Insets right="30.0" />
@@ -74,10 +74,10 @@
                                         <Insets left="10.0" top="12.0" />
                                     </HBox.margin>
                                 </ImageView>
-                                <Button mnemonicParsing="false" styleClass="btn_dashboard" stylesheets="@../../styles/Dashboard.css" text="Reservation">
-                           <HBox.margin>
-                              <Insets top="3.0" />
-                           </HBox.margin></Button>
+                                <Button mnemonicParsing="false" onAction="#handleReservationView" styleClass="btn_dashboard" stylesheets="@../../styles/Dashboard.css" text="Reservation">
+                                    <HBox.margin>
+                                        <Insets top="3.0" />
+                                    </HBox.margin></Button>
                             </children>
                             <VBox.margin>
                                 <Insets right="30.0" />
@@ -95,9 +95,9 @@
                                     </HBox.margin>
                                 </ImageView>
                                 <Button mnemonicParsing="false" styleClass="btn_dashboard" stylesheets="@../../styles/Dashboard.css" text="Feedback">
-                           <HBox.margin>
-                              <Insets top="3.0" />
-                           </HBox.margin></Button>
+                                    <HBox.margin>
+                                        <Insets top="3.0" />
+                                    </HBox.margin></Button>
                             </children>
                             <VBox.margin>
                                 <Insets right="30.0" />
@@ -115,9 +115,9 @@
                                     </HBox.margin>
                                 </ImageView>
                                 <Button mnemonicParsing="false" styleClass="btn_dashboard" text="Manage Reservations">
-                           <HBox.margin>
-                              <Insets top="3.0" />
-                           </HBox.margin></Button>
+                                    <HBox.margin>
+                                        <Insets top="3.0" />
+                                    </HBox.margin></Button>
                             </children>
                             <VBox.margin>
                                 <Insets right="30.0" />
@@ -137,9 +137,9 @@
                                     </HBox.margin>
                                 </ImageView>
                                 <Button mnemonicParsing="false" styleClass="btn_dashboard" stylesheets="@../../styles/Dashboard.css" text="Support">
-                           <HBox.margin>
-                              <Insets top="3.0" />
-                           </HBox.margin></Button>
+                                    <HBox.margin>
+                                        <Insets top="3.0" />
+                                    </HBox.margin></Button>
                             </children>
                             <VBox.margin>
                                 <Insets right="30.0" />
@@ -157,9 +157,9 @@
                                     </HBox.margin>
                                 </ImageView>
                                 <Button mnemonicParsing="false" styleClass="btn_dashboard" stylesheets="@../../styles/Dashboard.css" text="Settings">
-                           <HBox.margin>
-                              <Insets top="3.0" />
-                           </HBox.margin></Button>
+                                    <HBox.margin>
+                                        <Insets top="3.0" />
+                                    </HBox.margin></Button>
                             </children>
                             <VBox.margin>
                                 <Insets right="30.0" />
@@ -176,10 +176,10 @@
                                         <Insets left="10.0" top="12.0" />
                                     </HBox.margin>
                                 </ImageView>
-                                <Button mnemonicParsing="false" styleClass="btn_dashboard" stylesheets="@../../styles/Dashboard.css" text="Logout">
-                           <HBox.margin>
-                              <Insets top="3.0" />
-                           </HBox.margin></Button>
+                                <Button mnemonicParsing="false" onAction="#handleLogout" styleClass="btn_dashboard" stylesheets="@../../styles/Dashboard.css" text="Logout">
+                                    <HBox.margin>
+                                        <Insets top="3.0" />
+                                    </HBox.margin></Button>
                             </children>
                             <VBox.margin>
                                 <Insets right="30.0" />
@@ -201,7 +201,7 @@
                         <!-- Search Bar -->
                         <HBox prefHeight="43.0" prefWidth="620.0" styleClass="Search_bar" stylesheets="@../../styles/Dashboard.css">
                             <children>
-                                <Label styleClass="welcome-text" stylesheets="@../../styles/Dashboard.css" text="Welcome Mr Thabo!">
+                                <Label fx:id="welcomeLabel" styleClass="welcome-text" stylesheets="@../../styles/Dashboard.css" text="Welcome Mr Thabo!">
                                     <HBox.margin>
                                         <Insets left="20.0" top="5.0" />
                                     </HBox.margin>
@@ -221,9 +221,9 @@
                                     </HBox.margin>
                                 </TextField>
                             </children>
-                     <VBox.margin>
-                        <Insets left="12.0" right="12.0" />
-                     </VBox.margin>
+                            <VBox.margin>
+                                <Insets left="12.0" right="12.0" />
+                            </VBox.margin>
                         </HBox>
 
                         <!-- Statistics Cards -->
@@ -266,9 +266,9 @@
                                     </padding>
                                 </VBox>
                             </children>
-                     <VBox.margin>
-                        <Insets left="12.0" right="12.0" />
-                     </VBox.margin>
+                            <VBox.margin>
+                                <Insets left="12.0" right="12.0" />
+                            </VBox.margin>
                         </HBox>
 
                         <!-- Main Content Area -->
@@ -295,13 +295,13 @@
                                                                 <VBox spacing="5.0">
                                                                     <children>
                                                                         <Label styleClass="form-label" text="From" />
-                                                                        <ComboBox prefWidth="120.0" promptText="Select origin" styleClass="combo-box" />
+                                                                        <ComboBox fx:id="originComboBox" prefWidth="120.0" promptText="Select origin" styleClass="combo-box" />
                                                                     </children>
                                                                 </VBox>
                                                                 <VBox spacing="5.0">
                                                                     <children>
                                                                         <Label styleClass="form-label" text="To" />
-                                                                        <ComboBox prefWidth="120.0" promptText="Select destination" styleClass="combo-box" />
+                                                                        <ComboBox fx:id="destinationComboBox" prefWidth="120.0" promptText="Select destination" styleClass="combo-box" />
                                                                     </children>
                                                                 </VBox>
                                                             </children>
@@ -311,18 +311,18 @@
                                                                 <VBox spacing="5.0">
                                                                     <children>
                                                                         <Label styleClass="form-label" text="Date" />
-                                                                        <ComboBox prefHeight="39.0" prefWidth="158.0" promptText="Select date" styleClass="combo-box" />
+                                                                        <ComboBox fx:id="dateComboBox" prefHeight="39.0" prefWidth="158.0" promptText="Select date" styleClass="combo-box" />
                                                                     </children>
                                                                 </VBox>
                                                                 <VBox spacing="5.0">
                                                                     <children>
                                                                         <Label prefHeight="17.0" prefWidth="90.0" styleClass="form-label" text="Passengers" />
-                                                                        <Spinner prefHeight="36.0" prefWidth="86.0" styleClass="spinner" />
+                                                                        <Spinner fx:id="passengerSpinner" prefHeight="36.0" prefWidth="86.0" styleClass="spinner" />
                                                                     </children>
                                                                 </VBox>
                                                             </children>
                                                         </HBox>
-                                                        <Button mnemonicParsing="false" styleClass="book-button" text="Book Flight">
+                                                        <Button fx:id="bookFlightButton" mnemonicParsing="false" onAction="#handleBookFlight" styleClass="book-button" text="Book Flight">
                                                             <VBox.margin>
                                                                 <Insets left="63.0" top="50.0" />
                                                             </VBox.margin>
@@ -404,14 +404,14 @@
                                             </padding>
                                         </VBox>
                                     </children>
-                           <HBox.margin>
-                              <Insets right="12.0" />
-                           </HBox.margin>
+                                    <HBox.margin>
+                                        <Insets right="12.0" />
+                                    </HBox.margin>
                                 </VBox>
                             </children>
-                     <VBox.margin>
-                        <Insets left="12.0" />
-                     </VBox.margin>
+                            <VBox.margin>
+                                <Insets left="12.0" />
+                            </VBox.margin>
                         </HBox>
 
                         <!-- Profile Card -->
@@ -427,18 +427,18 @@
                                 </ImageView>
                                 <VBox spacing="5.0">
                                     <children>
-                                        <Label styleClass="profile-name" text="Thabo Moloi" />
-                                        <Label styleClass="profile-email" text="thabo.moloi@email.com" />
-                                        <Label styleClass="profile-flights" text="Next Flight: JNB &amp;#8594; CPT | Nov 20, 2025 | 08:00 AM" />
+                                        <Label fx:id="profileNameLabel" styleClass="profile-name" text="Thabo Moloi" />
+                                        <Label fx:id="profileEmailLabel" styleClass="profile-email" text="thabo.moloi@email.com" />
+                                        <Label styleClass="profile-flights" text="Next Flight: JNB &#8594; CPT | Nov 20, 2025 | 08:00 AM" />
                                     </children>
                                     <padding>
                                         <Insets left="15.0" top="10.0" />
                                     </padding>
                                 </VBox>
                             </children>
-                     <VBox.margin>
-                        <Insets left="12.0" right="12.0" />
-                     </VBox.margin>
+                            <VBox.margin>
+                                <Insets left="12.0" right="12.0" />
+                            </VBox.margin>
                         </HBox>
                     </children>
                 </VBox>

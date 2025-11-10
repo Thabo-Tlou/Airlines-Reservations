@@ -6,15 +6,15 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.shape.Arc;
 import javafx.scene.shape.Circle;
-import javafx.scene.image.ImageView;
 import javafx.stage.Stage;
-import org.json.JSONObject;
 import javafx.animation.*;
 import javafx.util.Duration;
+import org.json.JSONObject;
 
 import java.io.IOException;
 
@@ -44,11 +44,14 @@ public class SignUpController {
     }
 
     private void setupCircularAnimation() {
-        // Animation for the plane moving around the circle
+        if (planeIcon == null || progressArc == null) {
+            System.err.println("WARNING: Animation elements missing; skipping setup.");
+            return;
+        }
+
         planeAnimation = new Timeline();
         planeAnimation.setCycleCount(Timeline.INDEFINITE);
 
-        // Create keyframes for circular motion
         for (int i = 0; i <= 360; i += 15) {
             double angle = Math.toRadians(i);
             double radius = 30.0;
@@ -59,53 +62,37 @@ public class SignUpController {
                     Duration.millis(i * 20),
                     new KeyValue(planeIcon.translateXProperty(), x),
                     new KeyValue(planeIcon.translateYProperty(), y),
-                    new KeyValue(planeIcon.rotateProperty(), i + 90) // Point plane in direction of travel
+                    new KeyValue(planeIcon.rotateProperty(), i + 90)
             );
             planeAnimation.getKeyFrames().add(keyFrame);
         }
 
-        // Animation for the progress arc
         progressAnimation = new Timeline();
         progressAnimation.setCycleCount(Timeline.INDEFINITE);
-
-        KeyFrame progressStart = new KeyFrame(Duration.ZERO,
-                new KeyValue(progressArc.lengthProperty(), 0)
-        );
-        KeyFrame progressEnd = new KeyFrame(Duration.seconds(2),
-                new KeyValue(progressArc.lengthProperty(), 360)
-        );
-        progressAnimation.getKeyFrames().addAll(progressStart, progressEnd);
+        KeyFrame start = new KeyFrame(Duration.ZERO, new KeyValue(progressArc.lengthProperty(), 0));
+        KeyFrame end = new KeyFrame(Duration.seconds(2), new KeyValue(progressArc.lengthProperty(), 360));
+        progressAnimation.getKeyFrames().addAll(start, end);
     }
 
     private void showLoading(String message) {
         Platform.runLater(() -> {
-            loadingText.setText(message);
-            spinnerContainer.setVisible(true);
-            signupContainerRight.getStyleClass().add("form-loading");
+            if (loadingText != null) loadingText.setText(message);
+            if (spinnerContainer != null) spinnerContainer.setVisible(true);
+            if (signupContainerRight != null && !signupContainerRight.getStyleClass().contains("form-loading"))
+                signupContainerRight.getStyleClass().add("form-loading");
 
-            // Reset and start animations
-            progressArc.setLength(0);
-            planeIcon.setTranslateX(0);
-            planeIcon.setTranslateY(-30); // Start at top of circle
-            planeIcon.setRotate(0);
-
-            planeAnimation.play();
-            progressAnimation.play();
+            if (planeAnimation != null) planeAnimation.play();
+            if (progressAnimation != null) progressAnimation.play();
         });
     }
 
     private void hideLoading() {
         Platform.runLater(() -> {
-            spinnerContainer.setVisible(false);
-            signupContainerRight.getStyleClass().remove("form-loading");
+            if (spinnerContainer != null) spinnerContainer.setVisible(false);
+            if (signupContainerRight != null) signupContainerRight.getStyleClass().remove("form-loading");
 
-            // Stop animations
-            if (planeAnimation != null) {
-                planeAnimation.stop();
-            }
-            if (progressAnimation != null) {
-                progressAnimation.stop();
-            }
+            if (planeAnimation != null) planeAnimation.stop();
+            if (progressAnimation != null) progressAnimation.stop();
         });
     }
 
@@ -118,73 +105,52 @@ public class SignUpController {
         String password = passwordField.getText();
         String confirmPassword = confirmPasswordField.getText();
 
-        // 1. Basic validation
         if (firstName.isEmpty() || lastName.isEmpty() || email.isEmpty() || password.isEmpty()) {
             showAlert(Alert.AlertType.WARNING, "Validation Error", "Please fill all required fields.");
             return;
         }
-
         if (!password.equals(confirmPassword)) {
             showAlert(Alert.AlertType.WARNING, "Validation Error", "Passwords do not match!");
             return;
         }
 
         showLoading("Creating your account...");
+        System.out.println("LOG: Signing up " + email);
 
-        System.out.println("LOG: Starting Supabase signUp for email: " + email);
-
-        // 2. Create user account on Supabase Auth
         supabase.signUp(email, password).thenAccept(response -> {
             int status = response.statusCode();
             String body = response.body();
 
-            System.out.println("LOG: Supabase Auth Response Status: " + status);
-
             if (status == 200 || status == 201) {
-                System.out.println("LOG: Auth successful. Proceeding to passenger insert.");
-                Platform.runLater(() -> loadingText.setText("Setting up your profile..."));
-
-                // 3. Auth successful, insert passenger info into your Supabase table
+                // Insert passenger info
                 supabase.insertPassenger(firstName, lastName, email, phone)
                         .thenAccept(insertResponse -> {
-                            System.out.println("LOG: Passenger Insert Status: " + insertResponse.statusCode());
-                            if (insertResponse.statusCode() == 201 || insertResponse.statusCode() == 204) {
-                                Platform.runLater(() -> {
-                                    hideLoading();
-                                    showAlert(Alert.AlertType.INFORMATION, "Success", "Account created successfully! Welcome aboard.");
-                                    // Optionally navigate to login after successful signup
-                                    // navigateToLogin();
-                                });
-                            } else {
-                                System.err.println("ERROR: Insert failed body: " + insertResponse.body());
-                                Platform.runLater(() -> {
-                                    hideLoading();
-                                    showAlert(Alert.AlertType.ERROR, "Insert Failed", "Account created but data insert failed: " + insertResponse.body());
-                                });
-                            }
-                        })
-                        .exceptionally(ex -> {
-                            System.err.println("ERROR: Exception during passenger insert attempt:");
+                            Platform.runLater(() -> {
+                                hideLoading();
+                                if (insertResponse.statusCode() == 201 || insertResponse.statusCode() == 204) {
+                                    showAlert(Alert.AlertType.INFORMATION, "Success", "Account created successfully!");
+                                    navigateToDashboard();
+                                } else {
+                                    showAlert(Alert.AlertType.ERROR, "Error", "Account created but failed to save info.");
+                                }
+                            });
+                        }).exceptionally(ex -> {
                             ex.printStackTrace();
                             Platform.runLater(() -> {
                                 hideLoading();
-                                showAlert(Alert.AlertType.ERROR, "Error", "Error saving passenger info: " + ex.getMessage());
+                                showAlert(Alert.AlertType.ERROR, "Error", "Failed to save passenger info: " + ex.getMessage());
                             });
                             return null;
                         });
-
             } else {
-                // 4. Handle Supabase Auth error
                 try {
                     JSONObject errorJson = new JSONObject(body);
                     String errorMsg = errorJson.optString("msg", body);
-                    System.err.println("ERROR: Supabase Auth failed (Status: " + status + "): " + errorMsg);
                     Platform.runLater(() -> {
                         hideLoading();
                         showAlert(Alert.AlertType.ERROR, "Signup Failed", errorMsg);
                     });
                 } catch (Exception e) {
-                    System.err.println("ERROR: Failed to parse Supabase Auth error body.");
                     e.printStackTrace();
                     Platform.runLater(() -> {
                         hideLoading();
@@ -193,7 +159,6 @@ public class SignUpController {
                 }
             }
         }).exceptionally(ex -> {
-            System.err.println("FATAL ERROR: Network connection failed during signUp attempt.");
             ex.printStackTrace();
             Platform.runLater(() -> {
                 hideLoading();
@@ -206,11 +171,9 @@ public class SignUpController {
     @FXML
     private void handleBackToLogin() {
         showLoading("Returning to login...");
-
-        // Use a thread to simulate loading and then navigate
         new Thread(() -> {
             try {
-                Thread.sleep(1000); // Short delay for smooth UX
+                Thread.sleep(500);
                 Platform.runLater(() -> {
                     hideLoading();
                     navigateToLogin();
@@ -218,7 +181,7 @@ public class SignUpController {
             } catch (InterruptedException e) {
                 Platform.runLater(() -> {
                     hideLoading();
-                    navigateToLogin(); // Navigate even if interrupted
+                    navigateToLogin();
                 });
             }
         }).start();
@@ -226,33 +189,37 @@ public class SignUpController {
 
     private void navigateToLogin() {
         try {
-            // Get the current stage
-            Stage currentStage = (Stage) signUpButton.getScene().getWindow();
-
-            // Load the login FXML
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/groupassingment/airlinesreservations/LogIn.fxml"));
-            Parent loginRoot = loader.load();
-
-            // Create new scene
-            Scene loginScene = new Scene(loginRoot);
-
-            // Set the scene on current stage
-            currentStage.setScene(loginScene);
-            currentStage.setTitle("Bokamoso Airlines - Login");
-            currentStage.centerOnScreen();
-
+            Stage stage = (Stage) signUpButton.getScene().getWindow();
+            Parent loginRoot = new FXMLLoader(getClass().getResource("/groupassingment/airlinesreservations/Login.fxml")).load();
+            stage.setScene(new Scene(loginRoot));
+            stage.setTitle("Bokamoso Airlines - Login");
+            stage.centerOnScreen();
         } catch (IOException e) {
-            System.err.println("ERROR: Failed to load login screen: " + e.getMessage());
             e.printStackTrace();
-            showAlert(Alert.AlertType.ERROR, "Navigation Error", "Unable to load login screen. Please try again.");
+            showAlert(Alert.AlertType.ERROR, "Navigation Error", "Unable to load login screen.");
+        }
+    }
+
+    private void navigateToDashboard() {
+        try {
+            Stage stage = (Stage) signUpButton.getScene().getWindow();
+            Parent dashboardRoot = new FXMLLoader(getClass().getResource("/groupassingment/airlinesreservations/Dashboard.fxml")).load();
+            stage.setScene(new Scene(dashboardRoot));
+            stage.setTitle("Bokamoso Airlines - Dashboard");
+            stage.centerOnScreen();
+        } catch (IOException e) {
+            e.printStackTrace();
+            showAlert(Alert.AlertType.ERROR, "Navigation Error", "Unable to load dashboard.");
         }
     }
 
     private void showAlert(Alert.AlertType type, String title, String content) {
-        Alert alert = new Alert(type);
-        alert.setTitle(title);
-        alert.setHeaderText(null);
-        alert.setContentText(content);
-        alert.showAndWait();
+        Platform.runLater(() -> {
+            Alert alert = new Alert(type);
+            alert.setTitle(title);
+            alert.setHeaderText(null);
+            alert.setContentText(content);
+            alert.showAndWait();
+        });
     }
 }
