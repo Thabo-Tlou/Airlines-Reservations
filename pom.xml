@@ -4,8 +4,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>groupAssingment</groupId>
-    <artifactId>AirlinesReservations</artifactId>
+    <groupId>groupassignment</groupId> <artifactId>AirlinesReservations</artifactId>
     <version>1.0-SNAPSHOT</version>
     <name>Airlines Reservations</name>
 
@@ -25,6 +24,11 @@
             <artifactId>javafx-fxml</artifactId>
             <version>21.0.6</version>
         </dependency>
+
+        <dependency>
+            <groupId>org.json</groupId>
+            <artifactId>json</artifactId>
+            <version>20250517</version> </dependency>
 
         <dependency>
             <groupId>org.junit.jupiter</groupId>
@@ -57,11 +61,10 @@
                 <version>0.0.8</version>
                 <executions>
                     <execution>
-                        <!-- Default configuration for running with: mvn clean javafx:run -->
                         <id>default-cli</id>
                         <configuration>
                             <mainClass>
-                                groupassingment.airlinesreservations/groupassingment.airlinesreservations.HelloApplication
+                                groupassignment.airlinesreservations/groupassignment.airlinesreservations.HelloApplication
                             </mainClass>
                             <launcher>app</launcher>
                             <jlinkZipName>app</jlinkZipName>

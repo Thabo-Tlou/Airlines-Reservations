@@ -1,14 +1,191 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import java.lang.*?>
-<?import java.util.*?>
-<?import javafx.scene.*?>
-<?import javafx.scene.control.*?>
-<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.PasswordField?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.shape.Arc?>
+<?import javafx.scene.shape.Circle?>
 
-<AnchorPane xmlns="http://javafx.com/javafx"
-            xmlns:fx="http://javafx.com/fxml"
-            fx:controller="$CONTROLLER_NAME$"
-            prefHeight="400.0" prefWidth="600.0" >
+<AnchorPane maxHeight="600.0" maxWidth="900.0" prefHeight="600.0" prefWidth="900.0"
+            stylesheets="@../../styles/SignUpStyles.css"
+            xmlns="http://javafx.com/javafx/20.0.2"
+            xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="groupassingment.airlinesreservations.controllers.SignUpController">
 
+    <children>
+        <BorderPane prefHeight="600.0" prefWidth="900.0"
+                    AnchorPane.bottomAnchor="0.0"
+                    AnchorPane.leftAnchor="0.0"
+                    AnchorPane.rightAnchor="0.0"
+                    AnchorPane.topAnchor="0.0">
+
+            <left>
+                <StackPane prefHeight="600.0" prefWidth="440.0">
+                    <children>
+                        <ImageView fitHeight="650.0" fitWidth="440.0" preserveRatio="false">
+                            <image>
+                                <Image url="@../../images/plane.gif" />
+                            </image>
+                        </ImageView>
+
+                        <VBox alignment="TOP_CENTER" spacing="15.0" styleClass="overlay_container" StackPane.alignment="TOP_CENTER">
+                            <padding>
+                                <Insets top="40.0" />
+                            </padding>
+                            <children>
+                                <Label styleClass="overlay_text" text="Join" />
+                                <Label styleClass="overlay_text_bold" text="Bokamoso Airlines" />
+                                <Label styleClass="overlay_text" text="Start your journey with us" />
+                            </children>
+                        </VBox>
+                    </children>
+                </StackPane>
+            </left>
+
+            <center>
+                <AnchorPane styleClass="comp_container">
+                    <children>
+                        <VBox alignment="TOP_CENTER" prefHeight="650.0" prefWidth="460.0" spacing="5.0"
+                              styleClass="signup_container_right"
+                              AnchorPane.bottomAnchor="0.0"
+                              AnchorPane.leftAnchor="0.0"
+                              AnchorPane.rightAnchor="0.0"
+                              AnchorPane.topAnchor="0.0">
+
+                            <padding>
+                                <Insets left="50.0" right="50.0" top="40.0" />
+                            </padding>
+
+                            <children>
+
+                                <VBox alignment="CENTER_LEFT" spacing="8.0" styleClass="form_section">
+                                    <Label styleClass="lbl_signup" text="Create Account" />
+                                    <Label styleClass="welcome_text" text="Join Bokamoso Airlines today" />
+                                </VBox>
+
+                                <HBox alignment="CENTER_LEFT" spacing="15.0" styleClass="name_fields_container">
+                                    <VBox spacing="8.0" styleClass="form_section">
+                                        <Label styleClass="lbl_email_pass" text="First Name" />
+                                        <TextField fx:id="firstNameField" prefHeight="27.0" promptText="First name" styleClass="name_field" />
+                                    </VBox>
+                                    <VBox spacing="8.0" styleClass="form_section">
+                                        <Label styleClass="lbl_email_pass" text="Last Name" />
+                                        <TextField fx:id="lastNameField" promptText="Last name" styleClass="name_field" />
+                                    </VBox>
+                                </HBox>
+
+                                <VBox spacing="8.0" styleClass="form_section">
+                                    <Label styleClass="lbl_email_pass" text="Email Address" />
+                                    <TextField fx:id="emailField" prefHeight="28.0" prefWidth="360.0" promptText="Enter your email" styleClass="txt_fields" />
+                                </VBox>
+
+                                <VBox spacing="8.0" styleClass="form_section">
+                                    <Label styleClass="lbl_email_pass" text="Phone Number" />
+                                    <TextField fx:id="phoneField" promptText="+1 (555) 123-4567" styleClass="txt_fields" />
+                                </VBox>
+
+                                <VBox spacing="8.0" styleClass="form_section">
+                                    <Label styleClass="lbl_email_pass" text="Password" />
+                                    <PasswordField fx:id="passwordField" promptText="Create a password" styleClass="txt_fields" />
+                                </VBox>
+
+                                <VBox spacing="8.0" styleClass="form_section">
+                                    <Label styleClass="lbl_email_pass" text="Confirm Password" />
+                                    <PasswordField fx:id="confirmPasswordField" promptText="Confirm your password" styleClass="txt_fields" />
+                                </VBox>
+
+                                <VBox prefHeight="211.0" prefWidth="360.0" spacing="5.0" styleClass="buttons_container">
+
+                                    <HBox prefHeight="100.0" prefWidth="360.0" spacing="130.0">
+                                        <children>
+                                            <Button fx:id="signUpButton" mnemonicParsing="false"
+                                                    prefHeight="47.0" prefWidth="118.0"
+                                                    styleClass="btn_signup_primary"
+                                                    text="Sign Up"
+                                                    onAction="#handleSignUp">
+                                                <HBox.margin>
+                                                    <Insets />
+                                                </HBox.margin>
+                                            </Button>
+
+                                            <Button fx:id="backToLoginButton" mnemonicParsing="false"
+                                                    prefHeight="47.0" prefWidth="115.0"
+                                                    styleClass="btn_signup_secondary"
+                                                    text="Back to Login"
+                                                    onAction="#handleBackToLogin"/>
+                                        </children>
+                                    </HBox>
+
+                                    <HBox alignment="CENTER" spacing="10.0">
+                                        <Separator prefWidth="150.0" styleClass="divider" />
+                                        <Label prefHeight="20.0" prefWidth="157.0" styleClass="welcome_text" text="or sign up with" />
+                                        <Separator prefWidth="150.0" styleClass="divider" />
+                                    </HBox>
+
+                                    <HBox alignment="CENTER" spacing="30.0">
+                                        <ImageView fitHeight="40.0" fitWidth="40.0" styleClass="social_icon">
+                                            <image>
+                                                <Image url="@../../images/google-icon.png" />
+                                            </image>
+                                        </ImageView>
+                                        <ImageView fitHeight="40.0" fitWidth="40.0" styleClass="social_icon">
+                                            <image>
+                                                <Image url="@../../images/facebook-icon.png" />
+                                            </image>
+                                        </ImageView>
+                                        <ImageView fitHeight="40.0" fitWidth="40.0" styleClass="social_icon">
+                                            <image>
+                                                <Image url="@../../images/apple-icon.png" />
+                                            </image>
+                                        </ImageView>
+                                    </HBox>
+
+                                    <HBox alignment="CENTER" spacing="5.0">
+                                        <Label fx:id="statusLabel" styleClass="status_label" text="" />
+                                    </HBox>
+
+                                </VBox>
+                            </children>
+                        </VBox>
+
+                        <!-- Loading Spinner (initially hidden) -->
+                        <StackPane fx:id="spinnerContainer" styleClass="spinner-container" visible="false"
+                                   AnchorPane.bottomAnchor="0.0"
+                                   AnchorPane.leftAnchor="0.0"
+                                   AnchorPane.rightAnchor="0.0"
+                                   AnchorPane.topAnchor="0.0">
+                            <children>
+                                <VBox alignment="CENTER" spacing="20.0">
+                                    <StackPane styleClass="circular-spinner">
+                                        <children>
+                                            <Circle fx:id="trackCircle" radius="30.0" fill="transparent" stroke="#e0e0e0" strokeWidth="2.0" />
+                                            <Arc fx:id="progressArc" centerX="0.0" centerY="0.0" radiusX="30.0" radiusY="30.0"
+                                                 startAngle="0.0" length="0.0" stroke="#272838" strokeWidth="3.0"
+                                                 strokeLineCap="ROUND" type="OPEN" fill="transparent" />
+                                            <ImageView fx:id="planeIcon" fitHeight="20.0" fitWidth="20.0" styleClass="plane-icon">
+                                                <image>
+                                                    <Image url="@../../images/logo2.png" />
+                                                </image>
+                                            </ImageView>
+                                        </children>
+                                    </StackPane>
+                                    <Label fx:id="loadingText" styleClass="loading-text" text="Signing you up..." />
+                                </VBox>
+                            </children>
+                        </StackPane>
+                    </children>
+                </AnchorPane>
+            </center>
+        </BorderPane>
+    </children>
 </AnchorPane>

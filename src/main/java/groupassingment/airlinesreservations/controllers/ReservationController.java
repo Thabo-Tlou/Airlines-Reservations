@@ -1,4 +1,4 @@
-package PACKAGE_NAME;
+package groupassingment.airlinesreservations.controllers;
 
 public class ReservationController {
 }

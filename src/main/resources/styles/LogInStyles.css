@@ -1,0 +1,173 @@
+.root {
+    -fx-font-family: "Segoe UI", Arial, sans-serif;
+}
+
+.comp_container {
+    -fx-background-color: linear-gradient(to bottom right, #272838, #283593, #3949ab);
+}
+
+.lbl_comp_name, .lbl_comp_name2 {
+    -fx-text-fill: #FFEC9F;
+    -fx-font-weight: bold;
+    -fx-font-size: 20px;
+}
+
+/* Overlay text on GIF */
+.overlay_container {
+    -fx-background-color: rgba(0, 0, 0, 0.4);
+    -fx-background-radius: 10;
+    -fx-padding: 20;
+}
+
+.overlay_text {
+    -fx-text-fill: white;
+    -fx-font-size: 24px;
+    -fx-font-weight: 300;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.8), 10, 0, 2, 2);
+}
+
+.overlay_text_bold {
+    -fx-text-fill: #FFEC9F;
+    -fx-font-size: 32px;
+    -fx-font-weight: 700;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.8), 15, 0, 3, 3);
+}
+
+.login_container_right {
+    -fx-background-color: white;
+    -fx-background-radius: 20 0 0 20;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.3), 20, 0, 0, 0);
+}
+
+.lbl_login {
+    -fx-text-fill: #272838;
+    -fx-font-weight: 700;
+    -fx-font-size: 32px;
+}
+
+.lbl_email_pass {
+    -fx-text-fill: #272838;
+    -fx-font-weight: 600;
+    -fx-font-size: 14px;
+}
+
+.txt_fields {
+    -fx-background-color: #f5f7ff;
+    -fx-border-color: #c5cae9;
+    -fx-border-radius: 8px;
+    -fx-background-radius: 8px;
+    -fx-padding: 12;
+    -fx-font-size: 14px;
+    -fx-pref-height: 45px;
+}
+
+.txt_fields:focused {
+    -fx-border-color: #272838;
+    -fx-border-width: 2px;
+    -fx-effect: dropshadow(three-pass-box, rgba(57, 73, 171, 0.2), 10, 0, 0, 0);
+}
+
+.btn_logn {
+    -fx-background-color: linear-gradient(to right, #464866, #171e52);
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-font-size: 16px;
+    -fx-background-radius: 8px;
+    -fx-pref-height: 50px;
+    -fx-cursor: hand;
+    -fx-effect: dropshadow(three-pass-box, rgba(57, 73, 171, 0.3), 10, 0, 0, 2);
+}
+
+.btn_logn:hover {
+    -fx-background-color: linear-gradient(to right, #272838, #151b54);
+    -fx-effect: dropshadow(three-pass-box, rgba(57, 73, 171, 0.5), 15, 0, 0, 4);
+    -fx-translate-y: -1px;
+}
+
+.btn_logn:pressed {
+    -fx-background-color: linear-gradient(to right, #272838, #0d1137);
+    -fx-translate-y: 0px;
+}
+
+.btn_signup {
+    -fx-background-color: transparent;
+    -fx-text-fill: #272838;
+    -fx-font-weight: bold;
+    -fx-font-size: 14px;
+    -fx-border-color: transparent;
+    -fx-cursor: hand;
+    -fx-underline: false;
+    -fx-padding: 5;
+}
+
+.btn_signup2 {
+    -fx-background-color: transparent;
+    -fx-text-fill: #272838;
+    -fx-font-weight: bold;
+    -fx-font-size: 14px;
+    -fx-border-color: #272838;
+    -fx-cursor: hand;
+    -fx-underline: false;
+    -fx-padding: 5;
+    -fx-background-radius: 8px;
+}
+
+.btn_signup:hover {
+    -fx-text-fill: #272838;
+    -fx-underline: true;
+}
+
+.welcome_text {
+    -fx-text-fill: #666;
+    -fx-font-size: 14px;
+    -fx-font-weight: normal;
+}
+
+.divider {
+    -fx-background-color: #e0e0e0;
+    -fx-pref-height: 1px;
+}
+
+.social_icon {
+    -fx-cursor: hand;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 5, 0, 0, 1);
+}
+
+.social_icon:hover {
+    -fx-scale-x: 1.1;
+    -fx-scale-y: 1.1;
+}
+
+/* ===== LOADING SPINNER STYLES ===== */
+.spinner-container {
+    -fx-alignment: center;
+    -fx-spacing: 10px;
+    -fx-padding: 20px;
+    -fx-background-color: rgba(255, 255, 255, 0.95);
+    -fx-background-radius: 15px;
+}
+
+.circular-spinner {
+    -fx-background-color: transparent;
+}
+
+.plane-icon {
+    -fx-effect: dropshadow(three-pass-box, rgba(39, 40, 56, 0.4), 5, 0, 1, 1);
+}
+
+.loading-text {
+    -fx-text-fill: #272838;
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+}
+
+/* Hide form when loading */
+.form-loading .login_container_right {
+    -fx-opacity: 0.6;
+}
+
+.form-loading .txt_fields,
+.form-loading .btn_logn,
+.form-loading .btn_signup2 {
+    -fx-disabled: true;
+}

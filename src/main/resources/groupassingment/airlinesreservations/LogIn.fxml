@@ -1,14 +1,108 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import java.lang.*?>
-<?import java.util.*?>
-<?import javafx.scene.*?>
-<?import javafx.scene.control.*?>
-<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.PasswordField?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
 
-<AnchorPane xmlns="http://javafx.com/javafx"
-            xmlns:fx="http://javafx.com/fxml"
-            fx:controller="$CONTROLLER_NAME$"
-            prefHeight="400.0" prefWidth="600.0" >
+<AnchorPane prefHeight="600.0" prefWidth="900.0" xmlns="http://javafx.com/javafx/20.0.2" xmlns:fx="http://javafx.com/fxml/1" fx:controller="groupassingment.airlinesreservations.controllers.LoginController">
+    <children>
+        <BorderPane prefHeight="600.0" prefWidth="900.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+            <left>
+                <StackPane prefHeight="600.0" prefWidth="440.0">
+                    <children>
+                        <ImageView fitHeight="600.0" fitWidth="440.0" preserveRatio="false">
+                            <image>
+                                <Image url="@../../images/plane.gif" />
+                            </image>
+                        </ImageView>
+                        <VBox alignment="TOP_CENTER" spacing="15.0" styleClass="overlay_container" StackPane.alignment="TOP_CENTER">
+                            <padding>
+                                <Insets top="40.0" />
+                            </padding>
+                            <children>
+                                <Label styleClass="overlay_text" stylesheets="@../../styles/LogInStyles.css" text="Welcome to" />
+                                <Label styleClass="overlay_text_bold" stylesheets="@../../styles/LogInStyles.css" text="Bokamoso Airlines" />
+                                <Label styleClass="overlay_text" stylesheets="@../../styles/LogInStyles.css" />
+                            </children>
+                        </VBox>
+                    </children>
+                </StackPane>
+            </left>
+            <center>
+                <AnchorPane styleClass="comp_container" stylesheets="@../../styles/LogInStyles.css">
+                    <children>
+                        <VBox alignment="TOP_CENTER" prefHeight="600.0" prefWidth="460.0" spacing="20.0" styleClass="login_container_right" stylesheets="@../../styles/LogInStyles.css" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                            <padding>
+                                <Insets left="50.0" right="50.0" top="60.0" />
+                            </padding>
+                            <children>
+                                <VBox alignment="CENTER" spacing="10.0">
+                                    <Label styleClass="lbl_login" text="Welcome Back" />
+                                    <Label styleClass="welcome_text" text="Sign in to your account" />
+                                </VBox>
 
+                                <VBox spacing="15.0">
+                                    <Label styleClass="lbl_email_pass" text="Email Address" />
+                                    <TextField fx:id="emailField" promptText="Enter your email" styleClass="txt_fields" />
+
+                                    <Label styleClass="lbl_email_pass" text="Password" />
+                                    <PasswordField fx:id="passwordField" promptText="Enter your password" styleClass="txt_fields" />
+
+                                    <HBox alignment="CENTER_RIGHT" prefWidth="360.0">
+                                        <Button styleClass="btn_signup" stylesheets="@../../styles/LogInStyles.css" text="Forgot Password?" />
+                                    </HBox>
+                                </VBox>
+
+                                <VBox prefHeight="211.0" prefWidth="360.0" spacing="20.0">
+                                    <HBox prefHeight="100.0" prefWidth="200.0" spacing="130.0">
+                                        <children>
+                                            <Button fx:id="signInButton" mnemonicParsing="false" prefHeight="47.0" prefWidth="118.0" styleClass="btn_logn" text="Sign In" onAction="#handleLogin" />
+                                            <Button fx:id="createAccountButton" mnemonicParsing="false" prefHeight="47.0" prefWidth="115.0" style="-fx-border-radius: 8px;" styleClass="btn_signup2" stylesheets="@../../styles/LogInStyles.css" text="Create Account" />
+                                        </children>
+                                    </HBox>
+
+                                    <HBox alignment="CENTER" spacing="10.0">
+                                        <Separator prefWidth="150.0" styleClass="divider" />
+                                        <Label prefHeight="20.0" prefWidth="157.0" styleClass="welcome_text" text="or continue with" />
+                                        <Separator prefWidth="150.0" styleClass="divider" />
+                                    </HBox>
+
+                                    <HBox alignment="CENTER" spacing="30.0">
+                                        <ImageView fitHeight="40.0" fitWidth="40.0" styleClass="social_icon">
+                                            <image>
+                                                <Image url="@../../images/google-icon.png" />
+                                            </image>
+                                        </ImageView>
+                                        <ImageView fitHeight="40.0" fitWidth="40.0" styleClass="social_icon">
+                                            <image>
+                                                <Image url="@../../images/facebook-icon.png" />
+                                            </image>
+                                        </ImageView>
+                                        <ImageView fitHeight="40.0" fitWidth="40.0" styleClass="social_icon">
+                                            <image>
+                                                <Image url="@../../images/apple-icon.png" />
+                                            </image>
+                                        </ImageView>
+                                    </HBox>
+
+                                    <HBox alignment="CENTER" spacing="5.0" />
+                                </VBox>
+                                <Label fx:id="statusLabel" styleClass="status_label" text="" />
+                            </children>
+                        </VBox>
+                    </children>
+                </AnchorPane>
+            </center>
+        </BorderPane>
+    </children>
 </AnchorPane>
