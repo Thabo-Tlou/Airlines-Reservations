@@ -1,6 +1,7 @@
 package groupassingment.airlinesreservations.controllers;
 
 import javafx.animation.*;
+//import javafx.fxml.FXML;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
@@ -26,7 +27,8 @@ public class WelcomeController implements Initializable {
     @FXML private Circle floatingOrb1;
     @FXML private Circle floatingOrb2;
     @FXML private Circle floatingOrb3;
-    @FXML private StackPane rootPane;
+    @FXML
+    private StackPane rootPane;
 
     @FXML private ProgressIndicator spinner;
 

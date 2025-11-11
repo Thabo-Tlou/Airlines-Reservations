@@ -12,12 +12,10 @@ public class SupabaseService {
     private static final String SUPABASE_URL = "https://mikkxbspbhuwbczttopo.supabase.co";
     private static final String SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1pa2t4YnNwYmh1d2JjenR0b3BvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI3NTA4NzgsImV4cCI6MjA3ODMyNjg3OH0.W0Yt5oKK15D3dpQ_F23WjHQgSLcNLMuV64032f9cTxA";
 
-    // Reusable HTTP client
     private static final HttpClient client = HttpClient.newHttpClient();
 
-    /**
-     * Register a new user using Supabase Auth API
-     */
+    // ---------------- AUTH ----------------
+
     public CompletableFuture<HttpResponse<String>> signUp(String email, String password) {
         JSONObject body = new JSONObject();
         body.put("email", email);
@@ -33,9 +31,6 @@ public class SupabaseService {
         return client.sendAsync(request, HttpResponse.BodyHandlers.ofString());
     }
 
-    /**
-     * Log in an existing user
-     */
     public CompletableFuture<HttpResponse<String>> login(String email, String password) {
         JSONObject body = new JSONObject();
         body.put("email", email);
@@ -51,9 +46,8 @@ public class SupabaseService {
         return client.sendAsync(request, HttpResponse.BodyHandlers.ofString());
     }
 
-    /**
-     * Insert a passenger record into the Supabase table "passenger_info"
-     */
+    // ---------------- PASSENGERS ----------------
+
     public CompletableFuture<HttpResponse<String>> insertPassenger(
             String firstName, String lastName, String email, String phone) {
 
@@ -68,18 +62,30 @@ public class SupabaseService {
                 .header("apikey", SUPABASE_KEY)
                 .header("Authorization", "Bearer " + SUPABASE_KEY)
                 .header("Content-Type", "application/json")
-                .header("Prefer", "return=minimal") // tells Supabase not to echo data back
+                .header("Prefer", "return=minimal")
                 .POST(HttpRequest.BodyPublishers.ofString("[" + passenger.toString() + "]"))
                 .build();
 
         return client.sendAsync(request, HttpResponse.BodyHandlers.ofString());
     }
 
-    /**
-     * Retrieve passenger info by email
-     */
     public CompletableFuture<HttpResponse<String>> getPassengerByEmail(String email) {
         String url = SUPABASE_URL + "/rest/v1/passenger_info?email=eq." + email;
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(url))
+                .header("apikey", SUPABASE_KEY)
+                .header("Authorization", "Bearer " + SUPABASE_KEY)
+                .header("Content-Type", "application/json")
+                .GET()
+                .build();
+
+        return client.sendAsync(request, HttpResponse.BodyHandlers.ofString());
+    }
+
+    // ---------------- AIRPORTS ----------------
+
+    public CompletableFuture<HttpResponse<String>> getAirports() {
+        String url = SUPABASE_URL + "/rest/v1/Airport%20Tables";
 
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(url))
@@ -87,6 +93,37 @@ public class SupabaseService {
                 .header("Authorization", "Bearer " + SUPABASE_KEY)
                 .header("Content-Type", "application/json")
                 .GET()
+                .build();
+
+        return client.sendAsync(request, HttpResponse.BodyHandlers.ofString());
+    }
+
+    // ---------------- FLIGHTS ----------------
+
+    public CompletableFuture<HttpResponse<String>> getFlights() {
+        String url = SUPABASE_URL + "/rest/v1/Flights%20Table";
+
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(url))
+                .header("apikey", SUPABASE_KEY)
+                .header("Authorization", "Bearer " + SUPABASE_KEY)
+                .header("Content-Type", "application/json")
+                .GET()
+                .build();
+
+        return client.sendAsync(request, HttpResponse.BodyHandlers.ofString());
+    }
+
+    // ---------------- FLIGHT BOOKINGS ----------------
+
+    public CompletableFuture<HttpResponse<String>> insertFlightBooking(JSONObject bookingData) {
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(SUPABASE_URL + "/rest/v1/Flight%20bookings"))
+                .header("apikey", SUPABASE_KEY)
+                .header("Authorization", "Bearer " + SUPABASE_KEY)
+                .header("Content-Type", "application/json")
+                .header("Prefer", "return=minimal")
+                .POST(HttpRequest.BodyPublishers.ofString("[" + bookingData.toString() + "]"))
                 .build();
 
         return client.sendAsync(request, HttpResponse.BodyHandlers.ofString());
