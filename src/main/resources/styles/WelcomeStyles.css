@@ -1,45 +1,46 @@
+/* Root Color Variables */
+.root {
+    -dark-bg: #272838;
+    -gold: #F2B418;
+    -gold-hover: #e0a416;
+    -white: #FFFFFF;
+    -text-gray: #C5CAE9;
+    -shadow-light: rgba(0,0,0,0.1);
+    -shadow-medium: rgba(0,0,0,0.25);
+}
 
+/* Container & Background */
 .welcome-container {
     -fx-background-color: transparent;
 }
 
 .background-gradient {
     -fx-fill: linear-gradient(to bottom right, #272838, #1a1f38, #0f1429);
-    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.6), 40, 0, 0, 10);
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.4), 50, 0, 0, 20);
+    -fx-arc-width: 0;
+    -fx-arc-height: 0;
 }
 
-.floating-orb-1 {
-    -fx-fill: radial-gradient(center 50% 50%, radius 70%, rgba(242, 180, 24, 0.15), transparent);
-    -fx-translate-x: 200;
-    -fx-translate-y: 150;
-    -fx-effect: dropshadow(three-pass-box, rgba(242, 180, 24, 0.3), 40, 0, 0, 0);
+/* Floating Orbs */
+.floating-orb-1, .floating-orb-2, .floating-orb-3 {
+    -fx-blend-mode: overlay;
+    -fx-opacity: 0.15;
+    -fx-effect: gaussianblur(30);
+    -fx-translate-z: 1;
 }
 
-.floating-orb-2 {
-    -fx-fill: radial-gradient(center 50% 50%, radius 60%, rgba(57, 73, 171, 0.12), transparent);
-    -fx-translate-x: -180;
-    -fx-translate-y: 300;
-    -fx-effect: dropshadow(three-pass-box, rgba(57, 73, 171, 0.2), 35, 0, 0, 0);
-}
-
-.floating-orb-3 {
-    -fx-fill: radial-gradient(center 50% 50%, radius 50%, rgba(255, 255, 255, 0.08), transparent);
-    -fx-translate-x: 300;
-    -fx-translate-y: 400;
-    -fx-effect: dropshadow(three-pass-box, rgba(255, 255, 255, 0.15), 30, 0, 0, 0);
-}
-
+/* Main Content */
 .main-content {
-    -fx-padding: 80px 0px 60px 0px;
+    -fx-padding: 80px 40px 60px 40px;
 }
 
 /* Brand Section */
 .brand-section {
-    -fx-padding: 0px 0px 20px 0px;
+    -fx-padding: 0 0 25px 0;
 }
 
 .logo-container {
-    -fx-effect: dropshadow(three-pass-box, rgba(242, 180, 24, 0.4), 25, 0, 0, 0);
+    -fx-effect: dropshadow(three-pass-box, rgba(242, 180, 24, 0.4), 30, 0, 0, 0);
 }
 
 .logo-background {
@@ -49,60 +50,42 @@
 }
 
 .logo-image {
-    -fx-effect: dropshadow(three-pass-box, rgba(242, 180, 24, 0.6), 15, 0, 0, 0);
+    -fx-effect: dropshadow(three-pass-box, rgba(242, 180, 24, 0.5), 20, 0, 0, 0);
 }
 
-.brand-text {
-    -fx-padding: 10px 0px 0px 0px;
-}
-
+/* Brand Text */
 .brand-title {
     -fx-text-fill: #F2B418;
-    -fx-font-size: 56px;
+    -fx-font-size: 58px;
     -fx-font-weight: bold;
-    -fx-effect: dropshadow(three-pass-box, rgba(242, 180, 24, 0.4), 12, 0, 2, 2);
+    -fx-effect: dropshadow(three-pass-box, rgba(242, 180, 24, 0.35), 12, 0, 2, 2);
 }
 
 .brand-subtitle {
     -fx-text-fill: #FFFFFF;
     -fx-font-size: 32px;
-    -fx-font-weight: bold;
-    -fx-effect: dropshadow(three-pass-box, rgba(255, 255, 255, 0.3), 8, 0, 2, 2);
+    -fx-font-weight: 600;
+    -fx-effect: dropshadow(three-pass-box, rgba(255,255,255,0.25), 10, 0, 2, 2);
 }
 
 .brand-tagline {
-    -fx-text-fill: #E0E0E0;
-    -fx-font-size: 16px;
-    -fx-font-weight: 300;
-    -fx-font-style: italic;
-    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.3), 4, 0, 1, 1);
-}
-
-/* Welcome Section */
-.welcome-section {
-    -fx-padding: 20px 0px 0px 0px;
-}
-
-.welcome-title {
-    -fx-text-fill: #FFFFFF;
-    -fx-font-size: 28px;
-    -fx-font-weight: 600;
-    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.3), 6, 0, 2, 2);
-}
-
-.welcome-subtitle {
     -fx-text-fill: #C5CAE9;
     -fx-font-size: 16px;
     -fx-font-weight: 300;
+    -fx-font-style: italic;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.2), 4, 0, 1, 1);
+}
+
+/* Welcome Section */
+.welcome-subtitle {
+    -fx-text-fill: #C5CAE9;
+    -fx-font-size: 18px;
+    -fx-font-weight: 300;
     -fx-text-alignment: center;
-    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.2), 3, 0, 1, 1);
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.2), 2, 0, 1, 1);
 }
 
-/* Action Section */
-.action-section {
-    -fx-padding: 30px 0px 0px 0px;
-}
-
+/* Buttons */
 .btn-primary {
     -fx-background-color: linear-gradient(to bottom, #F2B418, #e0a416);
     -fx-text-fill: #272838;
@@ -112,22 +95,15 @@
     -fx-pref-width: 280px;
     -fx-pref-height: 50px;
     -fx-cursor: hand;
-    -fx-effect: dropshadow(three-pass-box, rgba(242, 180, 24, 0.5), 15, 0, 0, 4);
+    -fx-effect: dropshadow(three-pass-box, rgba(242,180,24,0.6), 15, 0, 0, 4);
 }
 
 .btn-primary:hover {
     -fx-background-color: linear-gradient(to bottom, #ffc107, #e0a416);
-    -fx-effect: dropshadow(three-pass-box, rgba(242, 180, 24, 0.7), 20, 0, 0, 6);
+    -fx-effect: dropshadow(three-pass-box, rgba(242,180,24,0.7), 20, 0, 0, 6);
     -fx-scale-x: 1.05;
     -fx-scale-y: 1.05;
     -fx-translate-y: -2px;
-}
-
-.btn-primary:pressed {
-    -fx-background-color: linear-gradient(to bottom, #c89514, #b8860b);
-    -fx-scale-x: 0.98;
-    -fx-scale-y: 0.98;
-    -fx-translate-y: 0px;
 }
 
 .btn-secondary {
@@ -138,58 +114,107 @@
     -fx-border-color: #FFFFFF;
     -fx-border-width: 2px;
     -fx-border-radius: 25px;
-    -fx-background-radius: 25px;
     -fx-pref-width: 280px;
     -fx-pref-height: 50px;
     -fx-cursor: hand;
-    -fx-effect: dropshadow(three-pass-box, rgba(255, 255, 255, 0.2), 10, 0, 0, 2);
+    -fx-effect: dropshadow(three-pass-box, rgba(255,255,255,0.2), 10, 0, 0, 2);
 }
 
 .btn-secondary:hover {
-    -fx-background-color: rgba(255, 255, 255, 0.1);
+    -fx-background-color: rgba(255,255,255,0.1);
     -fx-text-fill: #F2B418;
     -fx-border-color: #F2B418;
-    -fx-effect: dropshadow(three-pass-box, rgba(242, 180, 24, 0.4), 15, 0, 0, 4);
     -fx-scale-x: 1.05;
     -fx-scale-y: 1.05;
     -fx-translate-y: -2px;
 }
 
-.btn-secondary:pressed {
-    -fx-background-color: rgba(242, 180, 24, 0.2);
-    -fx-scale-x: 0.98;
-    -fx-scale-y: 0.98;
-    -fx-translate-y: 0px;
-}
-
-/* Footer Section */
+/* Footer */
 .footer-section {
-    -fx-padding: 50px 0px 0px 0px;
-}
-
-.footer-text {
-    -fx-text-fill: #C5CAE9;
-    -fx-font-size: 14px;
-    -fx-font-weight: 300;
-    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.2), 3, 0, 1, 1);
+    -fx-padding: 40px 0 0 0;
 }
 
 .footer-copyright {
     -fx-text-fill: #9FA8DA;
     -fx-font-size: 12px;
     -fx-font-weight: 300;
-    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.2), 2, 0, 1, 1);
 }
 
-/* Spinner Styles */
-.progress-indicator {
+/* Spinner */
+.spinner-glow {
     -fx-progress-color: #F2B418;
+    -fx-effect: dropshadow(three-pass-box, rgba(242,180,24,0.6), 20, 0, 0, 0);
+}
+.root {
+    -dark-bg: #272838;
+    -gold: #F2B418;
+    -gold-hover: #e0a416;
+    -white: #FFFFFF;
+    -text-gray: #C5CAE9;
+    -shadow-light: rgba(0,0,0,0.1);
+    -shadow-medium: rgba(0,0,0,0.25);
 }
 
-.progress-indicator .indicator {
-    -fx-background-color: #272838;
+/* Background & Container */
+.welcome-container {
+    -fx-background-color: transparent;
 }
 
-.progress-indicator .spinner {
-    -fx-background-color:#272838;
+.background-gradient {
+    -fx-fill: linear-gradient(to bottom right, #272838, #1a1f38, #0f1429);
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.4), 50, 0, 0, 20);
+}
+
+/* Floating Orbs */
+.floating-orb-1, .floating-orb-2, .floating-orb-3 {
+    -fx-blend-mode: overlay;
+    -fx-opacity: 0.15;
+    -fx-effect: gaussianblur(30);
+}
+
+/* Left GIF/Image Viewer */
+.image-viewer-container {
+    -fx-padding: 30px;
+    -fx-background-radius: 20px;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.4), 25, 0, 0, 10);
+}
+
+.gif-viewer {
+    -fx-background-radius: 20px;
+    -fx-effect: dropshadow(three-pass-box, rgba(242,180,24,0.5), 20, 0, 0, 0);
+}
+
+/* Main Content Styling */
+.brand-title { -fx-text-fill: #F2B418; -fx-font-size: 58px; -fx-font-weight: bold; }
+.brand-subtitle { -fx-text-fill: #FFFFFF; -fx-font-size: 32px; -fx-font-weight: 600; }
+.brand-tagline { -fx-text-fill: #C5CAE9; -fx-font-size: 16px; -fx-font-style: italic; }
+.welcome-subtitle { -fx-text-fill: #C5CAE9; -fx-font-size: 18px; }
+
+/* Buttons */
+.btn-primary {
+    -fx-background-color: linear-gradient(to bottom, #F2B418, #e0a416);
+    -fx-text-fill: #272838;
+    -fx-font-weight: bold;
+    -fx-background-radius: 25px;
+    -fx-pref-width: 280px;
+    -fx-pref-height: 50px;
+    -fx-effect: dropshadow(three-pass-box, rgba(242,180,24,0.6), 15, 0, 0, 4);
+}
+.btn-primary:hover { -fx-scale-x: 1.05; -fx-scale-y: 1.05; }
+
+.btn-secondary {
+    -fx-background-color: transparent;
+    -fx-text-fill: #FFFFFF;
+    -fx-border-color: #FFFFFF;
+    -fx-border-width: 2px;
+    -fx-border-radius: 25px;
+    -fx-pref-width: 280px;
+    -fx-pref-height: 50px;
+    -fx-cursor: hand;
+}
+
+/* Spinner Glow */
+.spinner-glow {
+    -fx-progress-color: #F2B418;
+    -fx-effect: dropshadow(three-pass-box, rgba(242,180,24,0.6), 20, 0, 0, 0);
 }

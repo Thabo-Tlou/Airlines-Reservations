@@ -300,3 +300,53 @@
 .form-loading .btn_signup_secondary {
     -fx-disabled: true;
 }
+
+/* General background and padding for the entire dialog */
+.dialog-pane.custom-alert {
+    -fx-background-color: #334155; /* Slate-700 background */
+    -fx-border-color: #0d9488; /* Teal-600 border */
+    -fx-border-width: 3px;
+    -fx-border-radius: 8px;
+    -fx-padding: 20px;
+    -fx-font-family: "System"; /* Use your desired font */
+}
+
+/* Header/Title bar (where the icon is) */
+.dialog-pane.custom-alert > .header-panel {
+    -fx-background-color: #334155;
+    -fx-padding: 0 0 10px 0; /* Add space below the icon */
+}
+
+/* Text content area */
+.dialog-pane.custom-alert .content {
+    -fx-text-fill: #f8fafc; /* Light text for dark background */
+    -fx-font-size: 14px;
+    -fx-padding: 10px 0;
+}
+
+/* OK button styling */
+.dialog-pane.custom-alert .button {
+    -fx-background-color: #0d9488; /* Teal button */
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-cursor: hand;
+    -fx-padding: 8px 20px;
+    -fx-background-radius: 6px;
+}
+
+.dialog-pane.custom-alert .button:hover {
+    -fx-background-color: #0f766e; /* Darker teal on hover */
+}
+
+/* Styling for specific alert types (e.g., Error/Warning icons) */
+.dialog-pane.custom-alert .graphic {
+    -fx-icon-color: #fde047; /* Yellow icon for Warning */
+}
+
+.dialog-pane.custom-alert.error .graphic {
+    -fx-icon-color: #f87171; /* Red icon for Error */
+}
+
+.dialog-pane.custom-alert.information .graphic {
+    -fx-icon-color: #38bdf8; /* Blue icon for Info */
+}

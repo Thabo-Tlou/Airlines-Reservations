@@ -111,11 +111,30 @@ public class LoginController {
             String body = response.body();
 
             if (status == 200) {
-                Platform.runLater(() -> {
-                    hideLoading();
-                    statusLabel.setText("Login successful! Redirecting...");
-                    navigateToDashboard();
-                });
+                // Parse the response body to get user data and the access token
+                try {
+                    JSONObject authResponse = new JSONObject(body);
+
+                    JSONObject user = authResponse.getJSONObject("user");
+                    String userEmail = user.getString("email");
+                    String userId = user.getString("id");
+                    String userToken = authResponse.getString("access_token"); // 💡 RETRIEVE TOKEN
+
+                    Platform.runLater(() -> {
+                        hideLoading();
+                        statusLabel.setText("Login successful! Redirecting...");
+                        // CRITICAL HANDOFF: Pass all three pieces of data
+                        navigateToDashboard(userEmail, userId, userToken);
+                    });
+                } catch (Exception e) {
+                    System.err.println("Failed to parse Supabase login response: " + e.getMessage());
+                    Platform.runLater(() -> {
+                        hideLoading();
+                        statusLabel.setText("Login failed: Error reading user data.");
+                        showAlert(Alert.AlertType.ERROR, "Login Failed", "Failed to process user session data.");
+                    });
+                }
+
             } else {
                 Platform.runLater(() -> {
                     hideLoading();
@@ -135,11 +154,21 @@ public class LoginController {
         });
     }
 
-    private void navigateToDashboard() {
+    /**
+     * FIX: Updated to accept user details AND the JWT token and pass them to the DashboardController.
+     */
+    private void navigateToDashboard(String userEmail, String userId, String userToken) {
         try {
             Stage stage = (Stage) signInButton.getScene().getWindow();
+
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/groupassingment/airlinesreservations/Dashboard.fxml"));
             Parent root = loader.load();
+
+            DashboardController dashboardController = loader.getController();
+
+            // CRITICAL HANDOFF: Initialize the dashboard with the user data and token
+            dashboardController.initializeUserData(userEmail, userId, userToken);
+
             Scene scene = new Scene(root);
             stage.setScene(scene);
             stage.setTitle("Bokamoso Airlines - Dashboard");

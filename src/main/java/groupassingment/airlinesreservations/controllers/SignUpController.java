@@ -17,6 +17,7 @@ import javafx.util.Duration;
 import org.json.JSONObject;
 
 import java.io.IOException;
+import java.util.Objects;
 
 public class SignUpController {
 
@@ -122,27 +123,75 @@ public class SignUpController {
             String body = response.body();
 
             if (status == 200 || status == 201) {
-                // Insert passenger info
-                supabase.insertPassenger(firstName, lastName, email, phone)
-                        .thenAccept(insertResponse -> {
-                            Platform.runLater(() -> {
-                                hideLoading();
-                                if (insertResponse.statusCode() == 201 || insertResponse.statusCode() == 204) {
-                                    showAlert(Alert.AlertType.INFORMATION, "Success", "Account created successfully!");
-                                    navigateToDashboard();
-                                } else {
-                                    showAlert(Alert.AlertType.ERROR, "Error", "Account created but failed to save info.");
+                // Step 1: Account created. Now, immediately log in to get the JWT.
+                System.out.println("LOG: Signup successful. Logging in to get JWT...");
+                showLoading("Securing your session...");
+
+                // CRITICAL FIX: CHAIN LOGIN TO GET TOKEN
+                supabase.login(email, password)
+                        .thenAccept(loginResponse -> {
+                            if (loginResponse.statusCode() == 200) {
+                                try {
+                                    JSONObject authResponse = new JSONObject(loginResponse.body());
+                                    JSONObject user = authResponse.getJSONObject("user");
+
+                                    String userId = user.getString("id"); // ⬅️ 1. Retrieve the userId
+                                    String userToken = authResponse.getString("access_token");
+
+                                    // Step 2: Use the JWT and userId to insert passenger info securely.
+                                    showLoading("Saving profile data...");
+
+                                    // ⬅️ 2. Pass all 6 arguments, including userId
+                                    supabase.insertPassenger(firstName, lastName, email, phone, userId, userToken)
+                                            .thenAccept(insertResponse -> {
+                                                Platform.runLater(() -> {
+                                                    hideLoading();
+                                                    if (insertResponse.statusCode() == 201 || insertResponse.statusCode() == 204) {
+                                                        showAlert(Alert.AlertType.INFORMATION, "Success", "Account created successfully! Welcome.");
+                                                        // Step 3: Navigate to dashboard with the token.
+                                                        navigateToDashboard(email, userId, userToken);
+                                                    } else {
+                                                        // Failed to insert passenger info (e.g., 403 RLS error)
+                                                        showAlert(Alert.AlertType.ERROR, "Error", "Account created but failed to save profile info securely. Status: " + insertResponse.statusCode());
+                                                        // Still navigate, as the user is authenticated
+                                                        navigateToDashboard(email, userId, userToken);
+                                                    }
+                                                });
+                                            }).exceptionally(ex -> {
+                                                ex.printStackTrace();
+                                                Platform.runLater(() -> {
+                                                    hideLoading();
+                                                    showAlert(Alert.AlertType.ERROR, "Error", "Failed to save passenger info: " + ex.getMessage());
+                                                });
+                                                return null;
+                                            });
+
+                                } catch (Exception e) {
+                                    System.err.println("LOG: Failed to parse login response after signup: " + e.getMessage());
+                                    Platform.runLater(() -> {
+                                        hideLoading();
+                                        showAlert(Alert.AlertType.ERROR, "Signup Failed", "Session error. Please log in manually.");
+                                        navigateToLogin();
+                                    });
                                 }
-                            });
+                            } else {
+                                System.err.println("LOG: Login failed after signup. Status: " + loginResponse.statusCode());
+                                Platform.runLater(() -> {
+                                    hideLoading();
+                                    showAlert(Alert.AlertType.WARNING, "Success", "Account created. Please log in now.");
+                                    navigateToLogin();
+                                });
+                            }
                         }).exceptionally(ex -> {
                             ex.printStackTrace();
                             Platform.runLater(() -> {
                                 hideLoading();
-                                showAlert(Alert.AlertType.ERROR, "Error", "Failed to save passenger info: " + ex.getMessage());
+                                showAlert(Alert.AlertType.ERROR, "Network Error", "Login attempt failed after signup: " + ex.getMessage());
                             });
                             return null;
                         });
             } else {
+                // Handle initial signup errors
                 try {
                     JSONObject errorJson = new JSONObject(body);
                     String errorMsg = errorJson.optString("msg", body);
@@ -200,11 +249,20 @@ public class SignUpController {
         }
     }
 
-    private void navigateToDashboard() {
+    private void navigateToDashboard(String userEmail, String userId, String userToken) {
         try {
             Stage stage = (Stage) signUpButton.getScene().getWindow();
-            Parent dashboardRoot = new FXMLLoader(getClass().getResource("/groupassingment/airlinesreservations/Dashboard.fxml")).load();
-            stage.setScene(new Scene(dashboardRoot));
+
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/groupassingment/airlinesreservations/Dashboard.fxml"));
+            Parent root = loader.load();
+
+            DashboardController dashboardController = loader.getController();
+
+            // CRITICAL HANDOFF: Initialize the dashboard with the user data and token
+            dashboardController.initializeUserData(userEmail, userId, userToken);
+
+            Scene scene = new Scene(root);
+            stage.setScene(scene);
             stage.setTitle("Bokamoso Airlines - Dashboard");
             stage.centerOnScreen();
         } catch (IOException e) {
@@ -219,6 +277,23 @@ public class SignUpController {
             alert.setTitle(title);
             alert.setHeaderText(null);
             alert.setContentText(content);
+
+            // Get the DialogPane and apply custom CSS
+            DialogPane dialogPane = alert.getDialogPane();
+
+            // 1. Add a custom style class for specific styling
+            dialogPane.getStyleClass().add("custom-alert");
+
+            // 2. Load the application's main CSS file
+            String cssPath = "/styles/SignUpStyles.css";
+
+            try {
+                String cssUrl = Objects.requireNonNull(getClass().getResource(cssPath)).toExternalForm();
+                dialogPane.getStylesheets().add(cssUrl);
+            } catch (NullPointerException e) {
+                System.err.println("WARNING: Could not load CSS file at " + cssPath + ". Alert will be unstyled.");
+            }
+
             alert.showAndWait();
         });
     }
