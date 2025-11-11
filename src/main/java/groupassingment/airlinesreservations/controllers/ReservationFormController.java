@@ -1,4 +1,4 @@
-package groupassingment.airlinesreservations;
+package groupassingment.airlinesreservations.controllers;
 
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
