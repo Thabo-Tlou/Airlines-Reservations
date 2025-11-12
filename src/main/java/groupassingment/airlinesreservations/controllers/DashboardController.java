@@ -1,8 +1,13 @@
 package groupassingment.airlinesreservations.controllers;
 
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.application.Platform;
+import javafx.stage.Stage;
+import java.io.IOException;
 import java.util.concurrent.CompletableFuture;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -13,7 +18,7 @@ import java.util.Map;
 
 public class DashboardController {
 
-    // Existing FXML elements
+    // Existing FXML elements (Main Content)
     @FXML private Label welcomeLabel;
     @FXML private Label profileNameLabel;
     @FXML private Label profileEmailLabel;
@@ -24,7 +29,7 @@ public class DashboardController {
     @FXML private Button bookFlightButton;
     @FXML private TextField searchField;
 
-    // New FXML elements for enhanced UI
+    // New FXML elements for enhanced UI (Stats)
     @FXML private Label totalBookingsLabel;
     @FXML private Label completedFlightsLabel;
     @FXML private Label upcomingFlightsLabel;
@@ -41,6 +46,15 @@ public class DashboardController {
     @FXML private Label loyaltyPointsLabel;
     @FXML private Label memberSinceLabel;
     @FXML private Label bookingCountLabel;
+
+    // FXML elements for Sidebar Navigation Buttons (NEWLY ADDED)
+    @FXML private Button btn_dashboard;
+    @FXML private Button btn_reservation;
+    @FXML private Button btn_manage_reservations; // Using the ID from your latest instruction
+    @FXML private Button btn_feedback;
+    @FXML private Button btn_support;
+    @FXML private Button btn_settings;
+
 
     private String currentUserEmail;
     private String currentUserId;
@@ -83,6 +97,14 @@ public class DashboardController {
         destinationComboBox.valueProperty().addListener((obs, oldVal, newVal) -> updatePriceCalculation());
         passengerSpinner.valueProperty().addListener((obs, oldVal, newVal) -> updatePriceCalculation());
         dateComboBox.valueProperty().addListener((obs, oldVal, newVal) -> updateBookingSummary());
+
+        // Navigation button handlers (NEWLY ADDED)
+        if (btn_dashboard != null) btn_dashboard.setOnAction(event -> handleViewDashboard());
+        if (btn_reservation != null) btn_reservation.setOnAction(event -> handleViewReservation());
+        if (btn_manage_reservations != null) btn_manage_reservations.setOnAction(event -> handleViewManageReservations());
+        if (btn_feedback != null) btn_feedback.setOnAction(event -> handleViewFeedback());
+        if (btn_support != null) btn_support.setOnAction(event -> handleViewSupport());
+        if (btn_settings != null) btn_settings.setOnAction(event -> handleViewSettings());
     }
 
     private void showDefaultState() {
@@ -326,15 +348,15 @@ public class DashboardController {
     // ---------------- USER STATISTICS ----------------
 
     private void loadUserStatistics() {
-        if (currentUserEmail == null) {
-            System.out.println("No user logged in, skipping statistics load");
+        if (currentUserEmail == null || currentUserToken == null) {
+            System.out.println("No user or token logged in, skipping statistics load");
             return;
         }
 
         System.out.println("Loading user statistics for: " + currentUserEmail);
 
-        // NOTE: Keeping the original call here, which assumes RLS on FlightBookings is permissive or uses user_email filtering.
-        supabaseService.getUserBookings(currentUserEmail)
+        // 🔑 FIX: Corrected call to pass the currentUserToken for RLS compliance
+        supabaseService.getUserBookings(currentUserEmail, currentUserToken)
                 .thenAccept(response -> {
                     System.out.println("User statistics response - Status: " + response.statusCode());
 
@@ -425,6 +447,7 @@ public class DashboardController {
 
     /**
      * FIX: Updated to accept and store the user token for authenticated database calls.
+     * CRITICAL FIX APPLIED: The userToken is now trimmed to remove whitespace that breaks the JWT format.
      */
     public void initializeUserData(String userEmail, String userId, String userToken) {
         System.out.println("=== INITIALIZING USER DATA ===");
@@ -433,7 +456,8 @@ public class DashboardController {
 
         this.currentUserEmail = userEmail;
         this.currentUserId = userId;
-        this.currentUserToken = userToken; // 💡 STORE THE TOKEN
+        // 🔑 CRITICAL FIX: Trim the token immediately upon receiving it
+        this.currentUserToken = userToken != null ? userToken.trim() : null;
 
         Platform.runLater(() -> {
             welcomeLabel.setText("Welcome back!");
@@ -616,7 +640,7 @@ public class DashboardController {
         return s.substring(0, 1).toUpperCase() + s.substring(1).toLowerCase();
     }
 
-    // ---------------- BOOKING ----------------
+    // ---------------- BOOKING (FROM MAIN DASHBOARD) ----------------
 
     @FXML
     private void handleBookFlight() {
@@ -706,13 +730,125 @@ public class DashboardController {
         });
     }
 
+    // ---------------- NAVIGATION HANDLERS ----------------
+
+    /**
+     * Helper to load a new FXML file and replace the current scene.
+     */
+    private void loadAndSwitchScene(String fxmlPath, String title, Object controllerInstance) {
+        try {
+            // Use one of the buttons to get the current stage
+            Stage stage = (Stage) btn_dashboard.getScene().getWindow();
+
+            FXMLLoader loader = new FXMLLoader(getClass().getResource(fxmlPath));
+
+            // If a controller instance is passed, set it. Otherwise, rely on FXML to create one.
+            if (controllerInstance != null) {
+                loader.setController(controllerInstance);
+            }
+
+            Parent root = loader.load();
+            Scene scene = new Scene(root);
+            stage.setScene(scene);
+            stage.setTitle("Bokamoso Airlines - " + title);
+            stage.centerOnScreen();
+        } catch (IOException e) {
+            e.printStackTrace();
+            showAlert("Navigation Error", "Unable to load " + title + " view: " + e.getMessage());
+        } catch (NullPointerException e) {
+            // Handle case where button might be null during testing, or scene is not attached.
+            e.printStackTrace();
+            showAlert("Navigation Error", "Error accessing the main window. Ensure the FXML is correctly loaded.");
+        }
+    }
+
+    /**
+     * Navigates back to the main Dashboard view.
+     */
     @FXML
-    private void handleReservationView() {
+    private void handleViewDashboard() {
+        // Since this controller IS the Dashboard, reloading it essentially means
+        // replacing the current scene with the dashboard FXML again.
+        // We assume Dashboard.fxml is located in the same package root as the controllers.
+        loadAndSwitchScene("/groupassingment/airlinesreservations/Dashboard.fxml", "Dashboard", null);
+        // Note: For a real app, you would swap a pane, not the entire scene,
+        // but for this structure, scene replacement is the most reliable method.
+    }
+
+    /**
+     * Navigates to the New Reservation form and passes session data.
+     */
+    @FXML
+    private void handleViewReservation() {
         if (currentUserEmail == null) {
-            showAlert("Login Required", "Please log in to view your bookings.");
+            showAlert("Login Required", "Please log in to make a new reservation.");
             return;
         }
-        showAlert("My Bookings", "Booking management feature coming soon!\n\nYou have access to view all your bookings here, " + currentUserName + "!");
+
+        try {
+            Stage stage = (Stage) btn_reservation.getScene().getWindow();
+
+            // Load the FXML using the user-specified file name: Reservation-Form.fxml
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/groupassingment/airlinesreservations/Reservation-Form.fxml"));
+            Parent root = loader.load();
+
+            // Get the controller and pass the session data
+            ReservationFormController reservationController = loader.getController();
+
+            // NOTE: The token is already trimmed in initializeUserData() of this DashboardController,
+            // but we pass the clean token on to the next controller.
+            reservationController.initializeSessionData(currentUserToken, currentUserId, currentUserEmail);
+
+            // Switch the scene
+            Scene scene = new Scene(root);
+            stage.setScene(scene);
+            stage.setTitle("Bokamoso Airlines - New Reservation");
+            stage.centerOnScreen();
+        } catch (IOException e) {
+            e.printStackTrace();
+            showAlert("Navigation Error", "Unable to load New Reservation view. Check that Reservation-Form.fxml exists: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Placeholder for Manage Reservations view.
+     */
+    @FXML
+    private void handleViewManageReservations() {
+        loadAndSwitchScene("/groupassingment/airlinesreservations/ManageReservations.fxml", "Manage Reservations", null);
+    }
+
+    /**
+     * Placeholder for Feedback view.
+     */
+    @FXML
+    private void handleViewFeedback() {
+        showAlert("Feature Coming Soon", "The Feedback section is where you can share your experience with Bokamoso Airlines.");
+        loadAndSwitchScene("/groupassingment/airlinesreservations/Feedback.fxml", "Feedback", null);
+    }
+
+    /**
+     * Placeholder for Support view.
+     */
+    @FXML
+    private void handleViewSupport() {
+        showAlert("Feature Coming Soon", "Access our support resources and contact us for assistance here.");
+        loadAndSwitchScene("/groupassingment/airlinesreservations/Support.fxml", "Support", null);
+    }
+
+    /**
+     * Placeholder for Settings view.
+     */
+    @FXML
+    private void handleViewSettings() {
+        showAlert("Feature Coming Soon", "Settings will allow you to update your profile and preferences.");
+        loadAndSwitchScene("/groupassingment/airlinesreservations/Settings.fxml", "Settings", null);
+    }
+
+    @FXML
+    private void handleReservationView() {
+        // This old placeholder is replaced by handleViewManageReservations for consistency
+        handleViewManageReservations();
     }
 
     @FXML
@@ -727,7 +863,21 @@ public class DashboardController {
         showDefaultState();
         clearBookingForm();
 
-        showAlert("Goodbye!", "Logged out successfully!\n\nThank you for using Bokamoso Airlines, " + userName + "!");
+        // Redirect back to the login screen
+        try {
+            Stage stage = (Stage) (btn_dashboard != null ? btn_dashboard : bookFlightButton).getScene().getWindow();
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/groupassingment/airlinesreservations/Login.fxml"));
+            Parent root = loader.load();
+            Scene scene = new Scene(root);
+            stage.setScene(scene);
+            stage.setTitle("Bokamoso Airlines - Login");
+            stage.centerOnScreen();
+
+            showAlert("Goodbye!", "Logged out successfully!\n\nThank you for using Bokamoso Airlines, " + userName + "!");
+        } catch (IOException e) {
+            e.printStackTrace();
+            showAlert("Logout Error", "Unable to load login screen.");
+        }
     }
 
     private void showAlert(String title, String message) {

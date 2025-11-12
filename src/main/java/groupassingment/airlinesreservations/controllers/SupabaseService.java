@@ -18,7 +18,7 @@ public class SupabaseService {
             .build();
 
     // ---------------- AUTH ----------------
-    // ... (signUp and login methods are correct)
+
     public CompletableFuture<HttpResponse<String>> signUp(String email, String password) {
         JSONObject body = new JSONObject();
         body.put("email", email);
@@ -82,7 +82,7 @@ public class SupabaseService {
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(url))
                 .header("apikey", SUPABASE_KEY)
-                .header("Authorization", "Bearer " + userAuthToken) // 💡 USING USER TOKEN
+                .header("Authorization", "Bearer " + userAuthToken)
                 .header("Content-Type", "application/json")
                 .GET()
                 .build();
@@ -90,14 +90,50 @@ public class SupabaseService {
         return client.sendAsync(request, HttpResponse.BodyHandlers.ofString());
     }
 
+
+    // ---------------- CUSTOMERS ----------------
+
+    /**
+     * Inserts a new customer record into the 'customers' table.
+     * CRITICAL: Assumes the 'user_id' column has been added to the SQL schema.
+     */
+    public CompletableFuture<HttpResponse<String>> insertCustomer(
+            String name, String idNum, String address, String email, String phone, String concess,
+            String userId, // User ID for RLS linkage in payload
+            String userAuthToken) { // JWT for Authorization header
+
+        JSONObject customer = new JSONObject();
+        customer.put("name", name);
+        customer.put("id_num", idNum);
+        customer.put("address", address);
+        customer.put("email", email);
+        customer.put("phone", phone);
+        customer.put("concess", concess);
+        customer.put("user_id", userId); // Added to payload for RLS
+
+        String url = SUPABASE_URL + "/rest/v1/customers"; // Target the 'customers' table
+
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(url))
+                .header("apikey", SUPABASE_KEY)
+                .header("Authorization", "Bearer " + userAuthToken) // Correctly uses the JWT
+                .header("Content-Type", "application/json")
+                .header("Prefer", "return=representation")
+                .POST(HttpRequest.BodyPublishers.ofString("[" + customer.toString() + "]")) // Supabase expects an array of objects
+                .build();
+
+        return client.sendAsync(request, HttpResponse.BodyHandlers.ofString());
+    }
+
+
     // ---------------- AIRPORTS ----------------
-    // ... (getAirports is correct)
+
     public CompletableFuture<HttpResponse<String>> getAirports() {
         String url = SUPABASE_URL + "/rest/v1/airports?select=airport_code,airport_name,city,country";
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(url))
                 .header("apikey", SUPABASE_KEY)
-                .header("Authorization", "Bearer " + SUPABASE_KEY)
+                .header("Authorization", "Bearer " + SUPABASE_KEY) // Airports are public, so service key is fine
                 .header("Content-Type", "application/json")
                 .GET()
                 .build();
@@ -107,13 +143,13 @@ public class SupabaseService {
 
 
     // ---------------- FLIGHTS ----------------
-    // ... (getFlights is correct)
+
     public CompletableFuture<HttpResponse<String>> getFlights() {
         String url = SUPABASE_URL + "/rest/v1/flights?select=*";
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(url))
                 .header("apikey", SUPABASE_KEY)
-                .header("Authorization", "Bearer " + SUPABASE_KEY)
+                .header("Authorization", "Bearer " + SUPABASE_KEY) // Flights are public
                 .header("Content-Type", "application/json")
                 .GET()
                 .build();
@@ -127,7 +163,6 @@ public class SupabaseService {
     public CompletableFuture<HttpResponse<String>> insertFlightBooking(
             JSONObject bookingData, String userAuthToken) {
 
-        //  endpoint casing to lower-case snake_case (flight_bookings)
         String url = SUPABASE_URL + "/rest/v1/flight_bookings";
 
         HttpRequest request = HttpRequest.newBuilder()
@@ -142,15 +177,17 @@ public class SupabaseService {
         return client.sendAsync(request, HttpResponse.BodyHandlers.ofString());
     }
 
-    // ... (getUserBookings is correct, though ideally it would use userAuthToken)
-    public CompletableFuture<HttpResponse<String>> getUserBookings(String userEmail) {
-        // Endpoint casing to lower-case snake_case (flight_bookings)
+    /**
+     * 🔑 FIX: Signature changed to accept the userAuthToken and used for RLS.
+     * You will need to update the calling code in DashboardController to pass the token.
+     */
+    public CompletableFuture<HttpResponse<String>> getUserBookings(String userEmail, String userAuthToken) {
         String url = SUPABASE_URL + "/rest/v1/flight_bookings?user_email=eq." + userEmail;
 
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(url))
                 .header("apikey", SUPABASE_KEY)
-                .header("Authorization", "Bearer " + SUPABASE_KEY)
+                .header("Authorization", "Bearer " + userAuthToken) // ⬅️ FIX APPLIED
                 .header("Content-Type", "application/json")
                 .GET()
                 .build();
@@ -158,9 +195,8 @@ public class SupabaseService {
         return client.sendAsync(request, HttpResponse.BodyHandlers.ofString());
     }
 
-
     // ---------------- CONNECTION TEST ----------------
-    // ... (testConnection is correct)
+
     public CompletableFuture<Boolean> testConnection() {
         String testUrl = SUPABASE_URL + "/rest/v1/";
         HttpRequest request = HttpRequest.newBuilder()

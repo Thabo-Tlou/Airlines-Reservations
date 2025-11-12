@@ -118,12 +118,17 @@ public class LoginController {
                     JSONObject user = authResponse.getJSONObject("user");
                     String userEmail = user.getString("email");
                     String userId = user.getString("id");
-                    String userToken = authResponse.getString("access_token"); // 💡 RETRIEVE TOKEN
+
+                    // 🔑 CRITICAL FIX: Trim the access token to remove potential surrounding whitespace
+                    String userToken = authResponse.getString("access_token").trim();
+
+                    // *** CRITICAL FIX: Save the session data globally ***
+                    SessionManager.setSessionData(userToken, userId, userEmail);
 
                     Platform.runLater(() -> {
                         hideLoading();
                         statusLabel.setText("Login successful! Redirecting...");
-                        // CRITICAL HANDOFF: Pass all three pieces of data
+                        // Hand off to the Dashboard Controller
                         navigateToDashboard(userEmail, userId, userToken);
                     });
                 } catch (Exception e) {
@@ -155,7 +160,7 @@ public class LoginController {
     }
 
     /**
-     * FIX: Updated to accept user details AND the JWT token and pass them to the DashboardController.
+     * Updated to accept user details AND the JWT token and pass them to the DashboardController.
      */
     private void navigateToDashboard(String userEmail, String userId, String userToken) {
         try {
@@ -167,6 +172,7 @@ public class LoginController {
             DashboardController dashboardController = loader.getController();
 
             // CRITICAL HANDOFF: Initialize the dashboard with the user data and token
+            // This is the direct injection method, but SessionManager now acts as the safety net.
             dashboardController.initializeUserData(userEmail, userId, userToken);
 
             Scene scene = new Scene(root);
