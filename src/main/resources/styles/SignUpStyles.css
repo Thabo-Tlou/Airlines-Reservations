@@ -317,9 +317,8 @@
     -fx-padding: 0 0 10px 0; /* Add space below the icon */
 }
 
-/* Text content area */
 .dialog-pane.custom-alert .content {
-    -fx-text-fill: #f8fafc; /* Light text for dark background */
+    -fx-text-fill: #f8fafc;
     -fx-font-size: 14px;
     -fx-padding: 10px 0;
 }
