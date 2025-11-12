@@ -10,7 +10,7 @@
 }
 
 .lbl_logo3 {
-    -fx-font-size: 24px;
+    -fx-font-size: 14px;
         -fx-font-weight: bold;
         -fx-text-fill: #ffffff;
 }
@@ -53,8 +53,8 @@
 
 .txt_enter {
     -fx-background-color: #bfbfbf38;
-    -fx-border-color: #e0e0e0;
-    -fx-border-width: 0px 0px 2px 0px;
+    -fx-border-color: #1a237e;
+    -fx-border-width: 2px;
     -fx-border-radius: 12px;
     -fx-background-radius: 12px 12px 8px 8px;
     -fx-padding: 12px 8px 8px 8px;
@@ -191,20 +191,47 @@
     }
 
 .btn_reserve {
-    -fx-background-color: linear-gradient(to bottom, #F2B418, #e0a416);
-    -fx-text-fill: #272838;
+    -fx-background-color: green;
+    -fx-text-fill: white;
     -fx-font-weight: bold;
     -fx-font-size: 16px;
-    -fx-padding: 15px 35px;
+    -fx-padding: 10px 25px;
     -fx-background-radius: 8px;
     -fx-border-radius: 8px;
     -fx-border-color: transparent;
     -fx-border-width: 0px;
     -fx-cursor: hand;
-    -fx-effect: dropshadow(gaussian, rgba(242, 180, 24, 0.4), 8, 0.3, 0, 3);
+    -fx-effect: dropshadow(gaussian, rgba(242, 180, 24, 0.2), 8, 0.3, 0, 3);
     -fx-font-family: "Segoe UI", "System", sans-serif;
     -fx-letter-spacing: 0.5px;
     -fx-transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.btn_print_ticket{
+    -fx-background-color: rgba(242, 180, 24);
+        -fx-text-fill: #272838;
+        -fx-font-weight: bold;
+        -fx-font-size: 16px;
+        -fx-padding: 10px 25px;
+        -fx-background-radius: 8px;
+        -fx-border-radius: 8px;
+        -fx-border-color: transparent;
+        -fx-border-width: 0px;
+        -fx-cursor: hand;
+        -fx-effect: dropshadow(gaussian, rgba(242, 180, 24, 0.4), 8, 0.3, 0, 3);
+        -fx-font-family: "Segoe UI", "System", sans-serif;
+        -fx-letter-spacing: 0.5px;
+        -fx-transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+
+.btn_print_ticket:hover {
+    -fx-background-color: linear-gradient(to bottom, #ffc107, #F2B418);
+    -fx-text-fill: #1a1a1a;
+    -fx-effect: dropshadow(gaussian, rgba(242, 180, 24, 0.6), 12, 0.4, 0, 5);
+    -fx-scale-x: 1.05;
+    -fx-scale-y: 1.05;
+    -fx-translate-y: -1px;
 }
 
 .btn_reserve:hover {
@@ -244,4 +271,11 @@
     -fx-background-color: linear-gradient(to bottom, #4CAF50, #45a049);
     -fx-text-fill: white;
     -fx-effect: dropshadow(gaussian, rgba(76, 175, 80, 0.4), 8, 0.3, 0, 3);
+}
+
+.combo-boxes {
+    -fx-background-color: transparent;
+    -fx-border-color: #1a237e;
+    -fx-border-width: 2px;
+    -fx-border-radius: 10px;
 }
