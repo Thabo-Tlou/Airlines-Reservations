@@ -52,10 +52,6 @@ public class SupabaseService {
 
     // ---------------- PASSENGERS ----------------
 
-    /**
-     * FIX: Updated to accept userId and add it to the JSON payload.
-     * This is required for the RLS policy (auth.uid() = user_id) to pass.
-     */
     public CompletableFuture<HttpResponse<String>> insertPassenger(
             String firstName, String lastName, String email, String phone, String userId, String userAuthToken) {
 
@@ -64,7 +60,7 @@ public class SupabaseService {
         passenger.put("last_name", lastName);
         passenger.put("email", email);
         passenger.put("phone", phone);
-        passenger.put("user_id", userId); // ⬅️ CRITICAL FIX
+        passenger.put("user_id", userId);
 
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(SUPABASE_URL + "/rest/v1/passenger_info"))
@@ -79,7 +75,7 @@ public class SupabaseService {
     }
 
     /**
-     * FIX: Updated to accept and use the userAuthToken for authenticated retrieval.
+     * Updated to accept and use the userAuthToken for authenticated retrieval.
      */
     public CompletableFuture<HttpResponse<String>> getPassengerByEmail(String email, String userAuthToken) {
         String url = SUPABASE_URL + "/rest/v1/passenger_info?email=eq." + email;
@@ -131,7 +127,7 @@ public class SupabaseService {
     public CompletableFuture<HttpResponse<String>> insertFlightBooking(
             JSONObject bookingData, String userAuthToken) {
 
-        // ✅ FIX APPLIED: Changed endpoint casing to lower-case snake_case (flight_bookings)
+        //  endpoint casing to lower-case snake_case (flight_bookings)
         String url = SUPABASE_URL + "/rest/v1/flight_bookings";
 
         HttpRequest request = HttpRequest.newBuilder()
@@ -148,7 +144,7 @@ public class SupabaseService {
 
     // ... (getUserBookings is correct, though ideally it would use userAuthToken)
     public CompletableFuture<HttpResponse<String>> getUserBookings(String userEmail) {
-        // ✅ FIX APPLIED: Changed endpoint casing to lower-case snake_case (flight_bookings)
+        // Endpoint casing to lower-case snake_case (flight_bookings)
         String url = SUPABASE_URL + "/rest/v1/flight_bookings?user_email=eq." + userEmail;
 
         HttpRequest request = HttpRequest.newBuilder()
