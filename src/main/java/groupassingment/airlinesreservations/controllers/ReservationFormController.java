@@ -1,6 +1,6 @@
 package groupassingment.airlinesreservations.controllers;
 
-import groupassingment.airlinesreservations.models.DatabaseHandler;
+import groupassingment.airlinesreservations.controllers.DatabaseHandler;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
