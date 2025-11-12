@@ -12,60 +12,68 @@
 <?import javafx.scene.shape.Circle?>
 <?import javafx.scene.shape.Rectangle?>
 
-<AnchorPane prefHeight="600.0" prefWidth="900.0"
-            xmlns="http://javafx.com/javafx/20.0.2"
-            xmlns:fx="http://javafx.com/fxml/1"
-            fx:controller="groupassingment.airlinesreservations.controllers.WelcomeController">
+<AnchorPane prefHeight="600.0" prefWidth="900.0" xmlns="http://javafx.com/javafx/20.0.2" xmlns:fx="http://javafx.com/fxml/1" fx:controller="groupassingment.airlinesreservations.controllers.WelcomeController">
 
     <children>
-        <BorderPane prefHeight="600.0" prefWidth="900.0"
-                    AnchorPane.bottomAnchor="0.0"
-                    AnchorPane.leftAnchor="0.0"
-                    AnchorPane.rightAnchor="0.0"
-                    AnchorPane.topAnchor="0.0">
+        <BorderPane prefHeight="600.0" prefWidth="900.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
 
-            <center>
-                <StackPane fx:id="rootPane" prefHeight="600.0" prefWidth="900.0" styleClass="welcome-container">
+            <!-- LEFT IMAGE/GIF VIEWER -->
+            <left>
+                <StackPane fx:id="gifContainer" prefWidth="400.0" styleClass="image-viewer-container">
                     <children>
-                        <Rectangle fill="#272838" height="600.0" width="900.0" styleClass="background-gradient" />
+                        <Rectangle arcHeight="20" arcWidth="20" fill="#1a1f38" />
+                        <ImageView fx:id="gifViewer" fitHeight="599.0" fitWidth="400.0" styleClass="gif-viewer">
+                     <image>
+                        <Image url="@../../images/plane2.gif" />
+                     </image></ImageView>
+                    </children>
+                </StackPane>
+            </left>
+
+            <!-- RIGHT MAIN CONTENT -->
+            <center>
+                <StackPane fx:id="rootPane" prefHeight="600.0" prefWidth="500.0" styleClass="welcome-container">
+                    <children>
+                        <Rectangle fill="#272838" height="600.0" styleClass="background-gradient" width="500.0" />
+
+                        <!-- Floating Orbs -->
                         <Circle fx:id="floatingOrb1" fill="#272838" radius="120.0" styleClass="floating-orb-1" />
                         <Circle fx:id="floatingOrb2" fill="#272838" radius="80.0" styleClass="floating-orb-2" />
                         <Circle fx:id="floatingOrb3" fill="#272838" radius="60.0" styleClass="floating-orb-3" />
 
-                        <VBox alignment="CENTER" spacing="20.0" styleClass="main-content">
-                            <children>
-                                <VBox alignment="CENTER" spacing="5.0" styleClass="brand-section" stylesheets="@../../styles/WelcomeStyles.css">
-                                    <StackPane prefHeight="83.0" prefWidth="900.0" styleClass="logo-container">
-                                        <Circle radius="53.0" styleClass="logo-background" />
-                                        <ImageView fitHeight="150.0" fitWidth="106.0" preserveRatio="true" styleClass="logo-image">
-                                            <image>
-                                                <Image url="@../../images/logo2.png" />
-                                            </image>
-                                        </ImageView>
-                                    </StackPane>
-                                    <VBox alignment="CENTER" spacing="5.0" styleClass="brand-text">
-                                        <Label styleClass="brand-title" text="Bokamoso" />
-                                        <Label styleClass="brand-subtitle" text="Airlines" />
-                                    </VBox>
-                                    <Label styleClass="brand-tagline" stylesheets="@../../styles/WelcomeStyles.css" text="Where Dreams Take Flight" />
+                        <!-- Right-side Content -->
+                        <VBox alignment="CENTER" spacing="25.0" styleClass="main-content">
+                            <VBox alignment="CENTER" spacing="10.0" styleClass="brand-section">
+                                <StackPane prefHeight="100.0" prefWidth="500.0" styleClass="logo-container">
+                                    <Circle radius="55.0" styleClass="logo-background" />
+                                    <ImageView fitHeight="140.0" fitWidth="100.0" preserveRatio="true" styleClass="logo-image">
+                                        <image>
+                                            <Image url="@../../images/logo2.png" />
+                                        </image>
+                                    </ImageView>
+                                </StackPane>
+                                <VBox alignment="CENTER" spacing="5.0" styleClass="brand-text">
+                                    <Label styleClass="brand-title" stylesheets="@../../styles/WelcomeStyles.css" text="Bokamoso" />
+                                    <Label styleClass="brand-subtitle" stylesheets="@../../styles/WelcomeStyles.css" text="Airlines" />
                                 </VBox>
+                                <Label styleClass="brand-tagline" stylesheets="@../../styles/WelcomeStyles.css" text="Where Dreams Take Flight" />
+                            </VBox>
 
-                                <VBox alignment="CENTER" spacing="10.0" styleClass="welcome-section">
-                                    <Label styleClass="welcome-subtitle" stylesheets="@../../styles/WelcomeStyles.css" text="Begin your journey with Africa's premier airline" />
-                                </VBox>
+                            <VBox alignment="CENTER" spacing="8.0" styleClass="welcome-section">
+                                <Label styleClass="welcome-subtitle" stylesheets="@../../styles/WelcomeStyles.css" text="Begin your journey with Africa's premier airline" />
+                            </VBox>
 
-                                <VBox alignment="CENTER" spacing="10.0" styleClass="action-section">
-                                    <Button fx:id="loginButton" mnemonicParsing="false" onAction="#handleLogin" styleClass="btn-primary" stylesheets="@../../styles/WelcomeStyles.css" text="Login to Your Account" />
-                                    <Button fx:id="signupButton" mnemonicParsing="false" onAction="#handleSignUp" styleClass="btn-secondary" stylesheets="@../../styles/WelcomeStyles.css" text="Create New Account" />
-                                </VBox>
+                            <VBox alignment="CENTER" spacing="15.0" styleClass="action-section">
+                                <Button fx:id="loginButton" mnemonicParsing="false" onAction="#handleLogin" styleClass="btn-primary" stylesheets="@../../styles/WelcomeStyles.css" text="Login to Your Account" />
+                                <Button fx:id="signupButton" mnemonicParsing="false" onAction="#handleSignUp" styleClass="btn-secondary" stylesheets="@../../styles/WelcomeStyles.css" text="Create New Account" />
+                            </VBox>
 
-                                <VBox alignment="CENTER" spacing="10.0" styleClass="footer-section">
-                                    <Label styleClass="footer-copyright" stylesheets="@../../styles/WelcomeStyles.css" text="© 2024 Bokamoso Airlines. All Rights Reserved." />
-                                </VBox>
-                            </children>
+                            <VBox alignment="CENTER" spacing="10.0" styleClass="footer-section">
+                                <Label styleClass="footer-copyright" stylesheets="@../../styles/WelcomeStyles.css" text="© 2024 Bokamoso Airlines. All Rights Reserved." />
+                            </VBox>
                         </VBox>
 
-                        <ProgressIndicator fx:id="spinner" visible="false" maxWidth="100" maxHeight="100" styleClass="spinner" />
+                        <ProgressIndicator fx:id="spinner" maxHeight="80" maxWidth="80" styleClass="spinner-glow" visible="false" />
                     </children>
                 </StackPane>
             </center>

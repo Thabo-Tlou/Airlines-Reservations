@@ -6,9 +6,14 @@ import javafx.application.Platform;
 import java.util.concurrent.CompletableFuture;
 import org.json.JSONArray;
 import org.json.JSONObject;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
+import java.util.Map;
 
 public class DashboardController {
 
+    // Existing FXML elements
     @FXML private Label welcomeLabel;
     @FXML private Label profileNameLabel;
     @FXML private Label profileEmailLabel;
@@ -19,79 +24,449 @@ public class DashboardController {
     @FXML private Button bookFlightButton;
     @FXML private TextField searchField;
 
+    // New FXML elements for enhanced UI
+    @FXML private Label totalBookingsLabel;
+    @FXML private Label completedFlightsLabel;
+    @FXML private Label upcomingFlightsLabel;
+    @FXML private Label totalSpendingLabel;
+    @FXML private Label priceLabel;
+    @FXML private Label routeOriginLabel;
+    @FXML private Label routeDestinationLabel;
+    @FXML private Label baseFareLabel;
+    @FXML private Label passengerCountLabel;
+    @FXML private Label totalPriceLabel;
+    @FXML private Label bookingDateLabel;
+    @FXML private Label bookingPassengersLabel;
+    @FXML private Label nextFlightLabel;
+    @FXML private Label loyaltyPointsLabel;
+    @FXML private Label memberSinceLabel;
+    @FXML private Label bookingCountLabel;
+
     private String currentUserEmail;
     private String currentUserId;
+    private String currentUserName;
+    private String currentUserToken; // 💡 STORED TOKEN
     private SupabaseService supabaseService;
+
+    // Pricing data
+    private Map<String, Double> routePrices = new HashMap<>();
+    private double currentBaseFare = 0.0;
+    private int currentPassengers = 1;
 
     public DashboardController() {
         this.supabaseService = new SupabaseService();
+        initializeRoutePrices();
     }
 
     @FXML
     public void initialize() {
         setupEventHandlers();
-        showDefaultState();
         initializeDateOptions();
+        initializePassengerSpinner();
         loadAirportsFromSupabase();
+        initializePriceCalculations();
+
+        // Set initial loading state
+        Platform.runLater(() -> {
+            welcomeLabel.setText("Loading...");
+            profileNameLabel.setText("Loading...");
+            profileEmailLabel.setText("Loading user data...");
+            bookFlightButton.setDisable(true);
+            bookFlightButton.setText("Please wait...");
+        });
     }
 
     private void setupEventHandlers() {
         bookFlightButton.setOnAction(event -> handleBookFlight());
+
+        originComboBox.valueProperty().addListener((obs, oldVal, newVal) -> updatePriceCalculation());
+        destinationComboBox.valueProperty().addListener((obs, oldVal, newVal) -> updatePriceCalculation());
+        passengerSpinner.valueProperty().addListener((obs, oldVal, newVal) -> updatePriceCalculation());
+        dateComboBox.valueProperty().addListener((obs, oldVal, newVal) -> updateBookingSummary());
     }
 
     private void showDefaultState() {
-        welcomeLabel.setText("Welcome!");
-        profileNameLabel.setText("Guest User");
-        profileEmailLabel.setText("Please log in");
+        if (currentUserEmail == null) {
+            // Guest state
+            Platform.runLater(() -> {
+                welcomeLabel.setText("Welcome Guest!");
+                profileNameLabel.setText("Guest User");
+                profileEmailLabel.setText("Please log in to book flights");
+                bookFlightButton.setDisable(true);
+                bookFlightButton.setText("Login to Book");
+
+                updateStatistics(0, 0, 0, 0.0);
+                resetProfileDetails();
+                resetPriceDisplay();
+            });
+        } else {
+            // User is logged in - show loading state while data loads
+            Platform.runLater(() -> {
+                welcomeLabel.setText("Welcome back!");
+                profileNameLabel.setText("Loading...");
+                profileEmailLabel.setText(currentUserEmail);
+                bookFlightButton.setDisable(false);
+                bookFlightButton.setText("Book Flight");
+            });
+
+            // Load user-specific data
+            loadUserProfileData();
+            loadUserStatistics();
+        }
+    }
+
+    private void resetProfileDetails() {
+        Platform.runLater(() -> {
+            nextFlightLabel.setText("No upcoming flights");
+            loyaltyPointsLabel.setText("Loyalty Points: 0");
+            memberSinceLabel.setText("Member since: -");
+            bookingCountLabel.setText("Total bookings: 0");
+
+            if (currentUserEmail == null) {
+                profileEmailLabel.setText("Please log in to book flights");
+            }
+        });
     }
 
     private void initializeDateOptions() {
-        dateComboBox.getItems().addAll("2025-11-20", "2025-11-21", "2025-11-22", "2025-11-23", "2025-11-24");
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        LocalDate today = LocalDate.now();
+        for (int i = 0; i < 30; i++) {
+            dateComboBox.getItems().add(today.plusDays(i).format(formatter));
+        }
+    }
+
+    private void initializePassengerSpinner() {
+        SpinnerValueFactory<Integer> valueFactory =
+                new SpinnerValueFactory.IntegerSpinnerValueFactory(1, 10, 1);
+        passengerSpinner.setValueFactory(valueFactory);
+    }
+
+    private void initializeRoutePrices() {
+        routePrices.put("JNB-CPT", 2500.0);
+        routePrices.put("JNB-DUR", 1800.0);
+        routePrices.put("JNB-GBE", 3200.0);
+        routePrices.put("JNB-MSU", 2800.0);
+        routePrices.put("CPT-JNB", 2500.0);
+        routePrices.put("CPT-DUR", 2200.0);
+        routePrices.put("DUR-JNB", 1800.0);
+        routePrices.put("DUR-CPT", 2200.0);
+        routePrices.put("GBE-JNB", 3200.0);
+        routePrices.put("MSU-JNB", 2800.0);
+    }
+
+    private void initializePriceCalculations() {
+        updatePriceCalculation();
+        updateBookingSummary();
     }
 
     // ---------------- LOAD DATA ----------------
 
     private void loadAirportsFromSupabase() {
+        System.out.println("=== STARTING AIRPORT LOADING PROCESS ===");
+
+        supabaseService.testConnection()
+                .thenAccept(connected -> {
+                    if (connected) {
+                        System.out.println("✓ Supabase connection successful");
+                        fetchAirports();
+                        if (currentUserEmail != null) {
+                            loadUserStatistics();
+                        }
+                    } else {
+                        System.err.println("✗ Failed to connect to Supabase");
+                        Platform.runLater(() -> showAlert("Error", "Cannot connect to database. Please check your internet connection."));
+                    }
+                });
+    }
+
+    private void fetchAirports() {
+        System.out.println("Fetching airports from Supabase...");
+
         supabaseService.getAirports()
                 .thenAccept(response -> {
+                    System.out.println("Airports API Response - Status: " + response.statusCode());
+
                     if (response.statusCode() == 200) {
                         try {
                             JSONArray airports = new JSONArray(response.body());
+                            System.out.println("Successfully parsed " + airports.length() + " airports");
+
                             Platform.runLater(() -> {
                                 originComboBox.getItems().clear();
                                 destinationComboBox.getItems().clear();
+
+                                if (airports.length() == 0) {
+                                    showAlert("Info", "No airports available in database.");
+                                    return;
+                                }
+
                                 for (int i = 0; i < airports.length(); i++) {
                                     JSONObject airport = airports.getJSONObject(i);
-                                    String code = airport.optString("code");
-                                    String name = airport.optString("name");
-                                    originComboBox.getItems().add(code + " - " + name);
-                                    destinationComboBox.getItems().add(code + " - " + name);
+                                    String code = airport.optString("airport_code", "N/A");
+                                    String name = airport.optString("airport_name", "Unknown Airport");
+                                    String city = airport.optString("city", "");
+                                    String country = airport.optString("country", "");
+
+                                    String displayText = code + " - " + name + " (" + city + ", " + country + ")";
+                                    originComboBox.getItems().add(displayText);
+                                    destinationComboBox.getItems().add(displayText);
                                 }
+                                System.out.println("✓ Loaded " + airports.length() + " airports into comboboxes");
+
+                                if (originComboBox.getItems().size() > 0) {
+                                    originComboBox.setValue(originComboBox.getItems().get(0));
+                                }
+                                if (destinationComboBox.getItems().size() > 1) {
+                                    destinationComboBox.setValue(destinationComboBox.getItems().get(1));
+                                }
+
+                                updatePriceCalculation();
                             });
                         } catch (Exception e) {
-                            System.err.println("Failed to parse airports: " + e.getMessage());
+                            System.err.println("✗ Failed to parse airports JSON: " + e.getMessage());
+                            Platform.runLater(() -> showAlert("Error", "Failed to parse airport data: " + e.getMessage()));
                         }
                     } else {
-                        System.err.println("Error fetching airports: " + response.statusCode());
+                        System.err.println("✗ Error fetching airports: " + response.statusCode() + " - " + response.body());
                     }
                 })
                 .exceptionally(ex -> {
-                    System.err.println("Network error loading airports: " + ex.getMessage());
+                    System.err.println("✗ Network error loading airports: " + ex.getMessage());
+                    Platform.runLater(() -> showAlert("Error", "Network error: " + ex.getMessage()));
                     return null;
                 });
     }
 
-    // ---------------- USER SETUP ----------------
+    // ---------------- PRICE CALCULATIONS ----------------
 
-    public void initializeUserData(String userEmail, String userId) {
-        this.currentUserEmail = userEmail;
-        this.currentUserId = userId;
-        loadUserProfileData();
+    private void updatePriceCalculation() {
+        String origin = originComboBox.getValue();
+        String destination = destinationComboBox.getValue();
+        Integer passengers = passengerSpinner.getValue();
+
+        if (origin == null || destination == null || passengers == null) {
+            resetPriceDisplay();
+            return;
+        }
+
+        try {
+            String originCode = origin.split(" - ")[0];
+            String destinationCode = destination.split(" - ")[0];
+
+            Platform.runLater(() -> {
+                routeOriginLabel.setText(originCode);
+                routeDestinationLabel.setText(destinationCode);
+            });
+
+            String routeKey = originCode + "-" + destinationCode;
+            currentBaseFare = routePrices.getOrDefault(routeKey, 1500.0);
+            currentPassengers = passengers;
+
+            double totalPrice = currentBaseFare * currentPassengers;
+
+            Platform.runLater(() -> {
+                baseFareLabel.setText(String.format("M%.2f", currentBaseFare));
+                passengerCountLabel.setText("x " + currentPassengers);
+                totalPriceLabel.setText(String.format("M%.2f", totalPrice));
+                priceLabel.setText(String.format("M%.2f", totalPrice));
+
+                bookingPassengersLabel.setText(currentPassengers + " passenger" + (currentPassengers > 1 ? "s" : ""));
+            });
+
+        } catch (Exception e) {
+            System.err.println("Error calculating price: " + e.getMessage());
+            resetPriceDisplay();
+        }
     }
 
-    private void loadUserProfileData() {
-        supabaseService.getPassengerByEmail(currentUserEmail)
+    private void updateBookingSummary() {
+        String date = dateComboBox.getValue();
+        Platform.runLater(() -> {
+            if (date != null) {
+                try {
+                    LocalDate flightDate = LocalDate.parse(date);
+                    DateTimeFormatter displayFormatter = DateTimeFormatter.ofPattern("MMM dd, yyyy");
+                    bookingDateLabel.setText(flightDate.format(displayFormatter));
+
+                    if (currentUserEmail != null) {
+                        nextFlightLabel.setText("Next Flight: " +
+                                (routeOriginLabel.getText().equals("-") ? "Not booked" :
+                                        routeOriginLabel.getText() + " → " + routeDestinationLabel.getText() + " | " +
+                                                flightDate.format(displayFormatter)));
+                    }
+                } catch (Exception e) {
+                    bookingDateLabel.setText("Invalid date");
+                }
+            } else {
+                bookingDateLabel.setText("No date selected");
+                if (currentUserEmail != null) {
+                    nextFlightLabel.setText("No upcoming flights");
+                }
+            }
+        });
+    }
+
+    private void resetPriceDisplay() {
+        Platform.runLater(() -> {
+            priceLabel.setText("M0.00");
+            routeOriginLabel.setText("-");
+            routeDestinationLabel.setText("-");
+            baseFareLabel.setText("M0.00");
+            passengerCountLabel.setText("x 0");
+            totalPriceLabel.setText("M0.00");
+            bookingPassengersLabel.setText("0 passengers");
+            bookingDateLabel.setText("No date selected");
+            if (currentUserEmail != null) {
+                nextFlightLabel.setText("No upcoming flights");
+            }
+        });
+    }
+
+    // ---------------- USER STATISTICS ----------------
+
+    private void loadUserStatistics() {
+        if (currentUserEmail == null) {
+            System.out.println("No user logged in, skipping statistics load");
+            return;
+        }
+
+        System.out.println("Loading user statistics for: " + currentUserEmail);
+
+        // NOTE: Keeping the original call here, which assumes RLS on FlightBookings is permissive or uses user_email filtering.
+        supabaseService.getUserBookings(currentUserEmail)
                 .thenAccept(response -> {
+                    System.out.println("User statistics response - Status: " + response.statusCode());
+
+                    if (response.statusCode() == 200) {
+                        try {
+                            JSONArray bookings = new JSONArray(response.body());
+                            System.out.println("Found " + bookings.length() + " bookings for user");
+                            calculateUserStatistics(bookings);
+                        } catch (Exception e) {
+                            System.err.println("Error parsing user bookings: " + e.getMessage());
+                            Platform.runLater(() -> updateStatistics(0, 0, 0, 0.0));
+                        }
+                    } else {
+                        System.err.println("Failed to load user statistics: " + response.statusCode());
+                        Platform.runLater(() -> updateStatistics(0, 0, 0, 0.0));
+                    }
+                })
+                .exceptionally(ex -> {
+                    System.err.println("Error loading user statistics: " + ex.getMessage());
+                    Platform.runLater(() -> updateStatistics(0, 0, 0, 0.0));
+                    return null;
+                });
+    }
+
+    private void calculateUserStatistics(JSONArray bookings) {
+        int totalBookings = bookings.length();
+        int completedFlights = 0;
+        int upcomingFlights = 0;
+        double totalSpending = 0.0;
+
+        try {
+            LocalDate today = LocalDate.now();
+
+            for (int i = 0; i < bookings.length(); i++) {
+                JSONObject booking = bookings.getJSONObject(i);
+                String status = booking.optString("status", "");
+                String flightDateStr = booking.optString("flight_date", "");
+                double price = booking.optDouble("price", 0.0);
+
+                totalSpending += price;
+
+                if ("completed".equalsIgnoreCase(status)) {
+                    completedFlights++;
+                } else if ("confirmed".equalsIgnoreCase(status) && !flightDateStr.isEmpty()) {
+                    try {
+                        LocalDate flightDate = LocalDate.parse(flightDateStr);
+                        if (flightDate.isAfter(today) || flightDate.isEqual(today)) {
+                            upcomingFlights++;
+                        }
+                    } catch (Exception e) {
+                        // Skip date parsing errors
+                    }
+                }
+            }
+
+            int loyaltyPoints = (int) (totalSpending / 100);
+
+            int finalCompletedFlights = completedFlights;
+            int finalUpcomingFlights = upcomingFlights;
+            double finalTotalSpending = totalSpending;
+
+            Platform.runLater(() -> {
+                updateStatistics(totalBookings, finalCompletedFlights, finalUpcomingFlights, finalTotalSpending);
+                loyaltyPointsLabel.setText("Loyalty Points: " + loyaltyPoints);
+                bookingCountLabel.setText("Total bookings: " + totalBookings);
+
+                memberSinceLabel.setText("Member since: " + LocalDate.now().minusMonths(6).format(DateTimeFormatter.ofPattern("MMM yyyy")));
+
+                System.out.println("✓ User statistics updated: " + totalBookings + " bookings, M" + finalTotalSpending + " spent");
+            });
+
+        } catch (Exception e) {
+            System.err.println("Error calculating statistics: " + e.getMessage());
+            Platform.runLater(() -> updateStatistics(0, 0, 0, 0.0));
+        }
+    }
+
+    private void updateStatistics(int totalBookings, int completedFlights, int upcomingFlights, double totalSpending) {
+        Platform.runLater(() -> {
+            totalBookingsLabel.setText(String.valueOf(totalBookings));
+            completedFlightsLabel.setText(String.valueOf(completedFlights));
+            upcomingFlightsLabel.setText(String.valueOf(upcomingFlights));
+            totalSpendingLabel.setText(String.format("M%.2f", totalSpending));
+        });
+    }
+
+    // ---------------- USER SETUP ----------------
+
+    /**
+     * FIX: Updated to accept and store the user token for authenticated database calls.
+     */
+    public void initializeUserData(String userEmail, String userId, String userToken) {
+        System.out.println("=== INITIALIZING USER DATA ===");
+        System.out.println("User Email: " + userEmail);
+        System.out.println("User ID: " + userId);
+
+        this.currentUserEmail = userEmail;
+        this.currentUserId = userId;
+        this.currentUserToken = userToken; // 💡 STORE THE TOKEN
+
+        Platform.runLater(() -> {
+            welcomeLabel.setText("Welcome back!");
+            profileNameLabel.setText("Loading...");
+            profileEmailLabel.setText(userEmail);
+            bookFlightButton.setDisable(false);
+            bookFlightButton.setText("Book Flight");
+        });
+
+        loadUserProfileData();
+        loadUserStatistics();
+
+        Platform.runLater(() -> {
+            showAlert("Welcome Back!", "Successfully logged in as " + userEmail + "\n\nYour dashboard is now being loaded with your personal data.");
+        });
+    }
+
+    /**
+     * FIX APPLIED: Now passes the currentUserToken to the SupabaseService.
+     */
+    private void loadUserProfileData() {
+        if (currentUserEmail == null || currentUserToken == null) {
+            System.out.println("No user data available, skipping profile load");
+            return;
+        }
+
+        System.out.println("Loading user profile data for: " + currentUserEmail);
+
+        // 🟢 Pass currentUserToken for authenticated profile retrieval
+        supabaseService.getPassengerByEmail(currentUserEmail, currentUserToken)
+                .thenAccept(response -> {
+                    System.out.println("User profile response - Status: " + response.statusCode());
+
                     if (response.statusCode() == 200 && !response.body().equals("[]")) {
                         try {
                             JSONArray jsonArray = new JSONArray(response.body());
@@ -111,40 +486,102 @@ public class DashboardController {
                 });
     }
 
+    /**
+     * ✅ FIX APPLIED: Now passes the currentUserId and currentUserToken to the SupabaseService
+     * to match the 6-argument signature.
+     */
     private void createNewPassengerRecord() {
+        if (currentUserId == null || currentUserToken == null) {
+            System.err.println("Cannot create passenger record: Missing user ID or token.");
+            useAuthUserData();
+            return;
+        }
+
+        System.out.println("Creating new passenger record for: " + currentUserEmail);
         String[] nameParts = extractNamesFromEmail(currentUserEmail);
-        supabaseService.insertPassenger(nameParts[0], nameParts[1], currentUserEmail, "Not provided")
+
+        // 🟢 FIX: Pass the userId (6th argument)
+        supabaseService.insertPassenger(nameParts[0], nameParts[1], currentUserEmail, "Not provided", currentUserId, currentUserToken)
                 .thenAccept(response -> {
+                    System.out.println("Create passenger response - Status: " + response.statusCode());
+
                     if (response.statusCode() == 201) {
-                        loadUserProfileData();
+                        System.out.println("✓ New passenger record created successfully. Fetching data...");
+                        fetchAndFinalizeProfileData();
                     } else {
+                        System.err.println("Failed to create passenger record, using auth data. Status: " + response.statusCode());
                         useAuthUserData();
                     }
                 })
                 .exceptionally(ex -> {
+                    System.err.println("Error creating passenger: " + ex.getMessage());
                     useAuthUserData();
                     return null;
                 });
     }
 
+    /**
+     * FIX APPLIED: Now passes the currentUserToken to the SupabaseService.
+     */
+    private void fetchAndFinalizeProfileData() {
+        if (currentUserToken == null) {
+            System.err.println("Cannot finalize profile: Missing user token.");
+            useAuthUserData();
+            return;
+        }
+
+        System.out.println("Finalizing profile data load...");
+
+        // 🟢 Pass currentUserToken for authenticated final profile retrieval
+        supabaseService.getPassengerByEmail(currentUserEmail, currentUserToken)
+                .thenAccept(response -> {
+                    if (response.statusCode() == 200 && !response.body().equals("[]")) {
+                        try {
+                            JSONArray jsonArray = new JSONArray(response.body());
+                            JSONObject userData = jsonArray.getJSONObject(0);
+                            updateUIWithUserData(userData);
+                            System.out.println("✓ Profile finalized and UI updated.");
+                            return;
+                        } catch (Exception e) {
+                            System.err.println("Error parsing user data after creation: " + e.getMessage());
+                        }
+                    }
+                    useAuthUserData();
+                })
+                .exceptionally(ex -> {
+                    System.err.println("Error fetching user data after creation: " + ex.getMessage());
+                    useAuthUserData();
+                    return null;
+                });
+    }
+
+
     private void updateUIWithUserData(JSONObject userData) {
         String firstName = userData.optString("first_name", "User");
         String lastName = userData.optString("last_name", "");
         String email = userData.optString("email", currentUserEmail);
+
+        this.currentUserName = firstName + " " + lastName;
+
         Platform.runLater(() -> {
             welcomeLabel.setText("Welcome Mr " + firstName + "!");
             profileNameLabel.setText(firstName + " " + lastName);
             profileEmailLabel.setText(email);
+
+            System.out.println("✓ Updated UI with user data: " + firstName + " " + lastName);
         });
     }
 
     private void useAuthUserData() {
         String nameFromEmail = extractNameFromEmail(currentUserEmail);
+        this.currentUserName = nameFromEmail;
+
         Platform.runLater(() -> {
             welcomeLabel.setText("Welcome " + nameFromEmail + "!");
             profileNameLabel.setText(nameFromEmail);
             profileEmailLabel.setText(currentUserEmail);
         });
+        System.out.println("✓ Using auth user data: " + nameFromEmail);
     }
 
     private String[] extractNamesFromEmail(String email) {
@@ -183,6 +620,11 @@ public class DashboardController {
 
     @FXML
     private void handleBookFlight() {
+        if (currentUserEmail == null) {
+            showAlert("Login Required", "Please log in to book flights.");
+            return;
+        }
+
         try {
             String origin = originComboBox.getValue();
             String destination = destinationComboBox.getValue();
@@ -193,36 +635,64 @@ public class DashboardController {
                 showAlert("Error", "Please fill in all flight details");
                 return;
             }
-            if (origin.equals(destination)) {
+
+            String originCode = origin.split(" - ")[0];
+            String destinationCode = destination.split(" - ")[0];
+
+            if (originCode.equals(destinationCode)) {
                 showAlert("Error", "Origin and destination cannot be the same");
                 return;
             }
 
+            String routeKey = originCode + "-" + destinationCode;
+            double baseFare = routePrices.getOrDefault(routeKey, 1500.0);
+            double totalPrice = baseFare * passengers;
+
             JSONObject bookingData = new JSONObject();
             bookingData.put("user_email", currentUserEmail);
             bookingData.put("user_id", currentUserId);
-            bookingData.put("origin", origin);
-            bookingData.put("destination", destination);
+            bookingData.put("origin", originCode);
+            bookingData.put("destination", destinationCode);
             bookingData.put("flight_date", date);
             bookingData.put("passengers", passengers);
             bookingData.put("status", "confirmed");
+            bookingData.put("price", totalPrice);
+            bookingData.put("flight_code", generateFlightCode(originCode, destinationCode));
 
-            supabaseService.insertFlightBooking(bookingData)
+            System.out.println("Sending booking data: " + bookingData.toString());
+
+            // FIX: Pass the authenticated token to the service call
+            supabaseService.insertFlightBooking(bookingData, currentUserToken)
                     .thenAccept(response -> Platform.runLater(() -> {
+                        System.out.println("Booking response - Status: " + response.statusCode());
+
                         if (response.statusCode() == 201) {
-                            showAlert("Success", "Flight booked successfully!");
+                            showAlert("Success",
+                                    "Flight booked successfully!\n\n" +
+                                            "Route: " + originCode + " → " + destinationCode + "\n" +
+                                            "Date: " + date + "\n" +
+                                            "Passengers: " + passengers + "\n" +
+                                            "Total: M" + String.format("%.2f", totalPrice) + "\n\n" +
+                                            "Thank you, " + currentUserName + "!");
                             clearBookingForm();
+                            loadUserStatistics();
                         } else {
-                            showAlert("Error", "Failed to save booking.");
+                            showAlert("Error", "Failed to save booking. Status: " + response.statusCode() + ". Check Supabase logs/RLS.");
                         }
                     }))
                     .exceptionally(ex -> {
-                        Platform.runLater(() -> showAlert("Error", "Network error."));
+                        System.err.println("Booking error: " + ex.getMessage());
+                        Platform.runLater(() -> showAlert("Error", "Network error: " + ex.getMessage()));
                         return null;
                     });
         } catch (Exception e) {
+            System.err.println("Unexpected booking error: " + e.getMessage());
             showAlert("Error", "Unexpected error: " + e.getMessage());
         }
+    }
+
+    private String generateFlightCode(String origin, String destination) {
+        return "BA" + origin + destination + dateComboBox.getValue().replace("-", "").substring(2);
     }
 
     private void clearBookingForm() {
@@ -232,16 +702,32 @@ public class DashboardController {
             dateComboBox.setValue(null);
             if (passengerSpinner.getValueFactory() != null)
                 passengerSpinner.getValueFactory().setValue(1);
+            resetPriceDisplay();
         });
     }
 
     @FXML
+    private void handleReservationView() {
+        if (currentUserEmail == null) {
+            showAlert("Login Required", "Please log in to view your bookings.");
+            return;
+        }
+        showAlert("My Bookings", "Booking management feature coming soon!\n\nYou have access to view all your bookings here, " + currentUserName + "!");
+    }
+
+    @FXML
     private void handleLogout() {
+        System.out.println("Logging out user: " + currentUserEmail);
+        String userName = currentUserName != null ? currentUserName : "Guest";
         this.currentUserEmail = null;
         this.currentUserId = null;
+        this.currentUserName = null;
+        this.currentUserToken = null;
+
         showDefaultState();
         clearBookingForm();
-        showAlert("Success", "Logged out successfully!");
+
+        showAlert("Goodbye!", "Logged out successfully!\n\nThank you for using Bokamoso Airlines, " + userName + "!");
     }
 
     private void showAlert(String title, String message) {
@@ -252,5 +738,13 @@ public class DashboardController {
             alert.setContentText(message);
             alert.showAndWait();
         });
+    }
+
+    public boolean isUserLoggedIn() {
+        return currentUserEmail != null;
+    }
+
+    public String getCurrentUserName() {
+        return currentUserName != null ? currentUserName : "Guest";
     }
 }

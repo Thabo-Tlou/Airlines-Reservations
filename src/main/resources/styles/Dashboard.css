@@ -9,9 +9,12 @@
     -shadow-light: rgba(0, 0, 0, 0.1);
     -shadow-medium: rgba(0, 0, 0, 0.2);
     -border-light: #DDDDDD;
+    -success-green: #27ae60;
+    -warning-orange: #f39c12;
+    -error-red: #e74c3c;
 }
 
-/* SIDEBAR  */
+/* SIDEBAR - unchanged */
 .con_left {
     -fx-background-color: #272838;
 }
@@ -38,7 +41,6 @@
     -fx-text-fill: #F2B418;
 }
 
-
 .lbl_logo {
     -fx-text-fill: #F2B418;
     -fx-font-weight: bold;
@@ -51,7 +53,7 @@
     -fx-font-size: 16px;
 }
 
-/* CARDS*/
+/* CARDS */
 .Search_bar {
     -fx-background-color: #FFFFFF;
     -fx-background-radius: 8px;
@@ -147,22 +149,60 @@
     -fx-background-color: #e0a416;
 }
 
-.weather-temp {
-    -fx-font-size: 28px;
+/* PRICING AND FLIGHT INFO STYLES */
+.price-display {
+    -fx-font-size: 18px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #27ae60;
+}
+
+.flight-info-title {
+    -fx-font-size: 14px;
     -fx-font-weight: bold;
     -fx-text-fill: #272838;
 }
 
-.weather-desc {
-    -fx-font-size: 14px;
-    -fx-text-fill: #666666;
-}
-
-.weather-info {
-    -fx-font-size: 12px;
+.flight-route {
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
     -fx-text-fill: #272838;
 }
 
+.flight-route-arrow {
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #F2B418;
+}
+
+.price-label {
+    -fx-font-size: 12px;
+    -fx-text-fill: #666666;
+}
+
+.price-value {
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #272838;
+}
+
+.total-price-label {
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #272838;
+}
+
+.total-price-value {
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #27ae60;
+}
+
+.booking-info {
+    -fx-font-size: 12px;
+    -fx-text-fill: #666666;
+}
+
+/* PROFILE ENHANCEMENTS */
 .profile-name {
     -fx-font-size: 18px;
     -fx-font-weight: bold;
@@ -177,4 +217,36 @@
 .profile-flights {
     -fx-font-size: 11px;
     -fx-text-fill: #272838;
+}
+
+.loyalty-points {
+    -fx-font-size: 11px;
+    -fx-text-fill: #F2B418;
+    -fx-font-weight: bold;
+}
+
+.member-since {
+    -fx-font-size: 10px;
+    -fx-text-fill: #666666;
+}
+
+.booking-count {
+    -fx-font-size: 10px;
+    -fx-text-fill: #666666;
+}
+
+/* STATUS INDICATORS */
+.status-confirmed {
+    -fx-text-fill: #27ae60;
+    -fx-font-weight: bold;
+}
+
+.status-pending {
+    -fx-text-fill: #f39c12;
+    -fx-font-weight: bold;
+}
+
+.status-cancelled {
+    -fx-text-fill: #e74c3c;
+    -fx-font-weight: bold;
 }

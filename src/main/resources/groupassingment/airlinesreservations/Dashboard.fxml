@@ -18,8 +18,10 @@
     <children>
         <BorderPane layoutX="77.0" layoutY="148.0" prefHeight="600.0" prefWidth="900.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
             <left>
+                <!-- Left sidebar remains the same -->
                 <VBox prefHeight="600.0" prefWidth="240.0" spacing="5.0" styleClass="con_left" stylesheets="@../../styles/Dashboard.css">
                     <children>
+                        <!-- Existing sidebar content remains unchanged -->
                         <HBox prefHeight="16.0" prefWidth="231.0">
                             <children>
                                 <ImageView fitHeight="47.0" fitWidth="57.0" pickOnBounds="true" preserveRatio="true">
@@ -74,7 +76,7 @@
                                         <Insets left="10.0" top="12.0" />
                                     </HBox.margin>
                                 </ImageView>
-                                <Button mnemonicParsing="false" onAction="#handleReservationView" styleClass="btn_dashboard" stylesheets="@../../styles/Dashboard.css" text="Reservation">
+                                <Button mnemonicParsing="false" onAction="#handleReservationView" styleClass="btn_dashboard" stylesheets="@../../styles/Dashboard.css" text="My Bookings">
                                     <HBox.margin>
                                         <Insets top="3.0" />
                                     </HBox.margin></Button>
@@ -84,6 +86,7 @@
                             </VBox.margin>
                         </HBox>
 
+                        <!-- Other sidebar buttons remain the same -->
                         <HBox prefHeight="38.0" prefWidth="229.0">
                             <children>
                                 <ImageView fitHeight="18.0" fitWidth="18.0" pickOnBounds="true" preserveRatio="true">
@@ -215,7 +218,7 @@
                                         <Insets right="5.0" top="9.0" />
                                     </HBox.margin>
                                 </ImageView>
-                                <TextField maxHeight="2.0" prefHeight="2.0" prefWidth="210.0" promptText="Flight code" styleClass="search_bar" stylesheets="@../../styles/Dashboard.css">
+                                <TextField fx:id="searchField" maxHeight="2.0" prefHeight="2.0" prefWidth="210.0" promptText="Search bookings or flights..." styleClass="search_bar" stylesheets="@../../styles/Dashboard.css">
                                     <HBox.margin>
                                         <Insets right="5.0" top="2.0" />
                                     </HBox.margin>
@@ -231,8 +234,8 @@
                             <children>
                                 <VBox prefHeight="100.0" prefWidth="150.0" styleClass="stat-card" stylesheets="@../../styles/Dashboard.css">
                                     <children>
-                                        <Label styleClass="stat-number" text="12" />
-                                        <Label styleClass="stat-label" text="Flights Booked" />
+                                        <Label fx:id="totalBookingsLabel" styleClass="stat-number" text="0" />
+                                        <Label styleClass="stat-label" text="Total Bookings" />
                                     </children>
                                     <padding>
                                         <Insets left="10.0" top="10.0" />
@@ -240,8 +243,8 @@
                                 </VBox>
                                 <VBox prefHeight="100.0" prefWidth="150.0" styleClass="stat-card" stylesheets="@../../styles/Dashboard.css">
                                     <children>
-                                        <Label styleClass="stat-number" text="8" />
-                                        <Label styleClass="stat-label" text="Flights Completed" />
+                                        <Label fx:id="completedFlightsLabel" styleClass="stat-number" text="0" />
+                                        <Label styleClass="stat-label" text="Completed Flights" />
                                     </children>
                                     <padding>
                                         <Insets left="10.0" top="10.0" />
@@ -249,8 +252,8 @@
                                 </VBox>
                                 <VBox prefHeight="100.0" prefWidth="150.0" styleClass="stat-card" stylesheets="@../../styles/Dashboard.css">
                                     <children>
-                                        <Label styleClass="stat-number" text="2" />
-                                        <Label styleClass="stat-label" text="Flights Cancelled" />
+                                        <Label fx:id="upcomingFlightsLabel" styleClass="stat-number" text="0" />
+                                        <Label styleClass="stat-label" text="Upcoming Flights" />
                                     </children>
                                     <padding>
                                         <Insets left="10.0" top="10.0" />
@@ -258,7 +261,7 @@
                                 </VBox>
                                 <VBox prefHeight="100.0" prefWidth="150.0" styleClass="stat-card" stylesheets="@../../styles/Dashboard.css">
                                     <children>
-                                        <Label styleClass="stat-number" text="M15,240" />
+                                        <Label fx:id="totalSpendingLabel" styleClass="stat-number" text="M0.00" />
                                         <Label styleClass="stat-label" text="Total Spending" />
                                     </children>
                                     <padding>
@@ -274,7 +277,7 @@
                         <!-- Main Content Area -->
                         <HBox prefHeight="271.0" prefWidth="620.0" spacing="20.0">
                             <children>
-                                <!-- Book Flight Card -->
+                                <!-- Book Flight Card - Enhanced -->
                                 <VBox prefHeight="269.0" prefWidth="395.0" styleClass="Search_bar" stylesheets="@../../styles/Dashboard.css">
                                     <children>
                                         <Label styleClass="section-title" text="Book New Flight" />
@@ -322,9 +325,16 @@
                                                                 </VBox>
                                                             </children>
                                                         </HBox>
+                                                        <!-- Price Display -->
+                                                        <HBox spacing="10.0" alignment="CENTER_LEFT">
+                                                            <children>
+                                                                <Label styleClass="form-label" text="Total Price:" />
+                                                                <Label fx:id="priceLabel" styleClass="price-display" text="M0.00" />
+                                                            </children>
+                                                        </HBox>
                                                         <Button fx:id="bookFlightButton" mnemonicParsing="false" onAction="#handleBookFlight" styleClass="book-button" text="Book Flight">
                                                             <VBox.margin>
-                                                                <Insets left="63.0" top="50.0" />
+                                                                <Insets left="63.0" top="20.0" />
                                                             </VBox.margin>
                                                         </Button>
                                                     </children>
@@ -337,70 +347,81 @@
                                     </children>
                                 </VBox>
 
-                                <!-- Weather Card -->
+                                <!-- Flight Details & Pricing Card -->
                                 <VBox prefHeight="314.0" prefWidth="227.0" styleClass="Search_bar" stylesheets="@../../styles/Dashboard.css">
                                     <children>
-                                        <Label styleClass="section-title" text="Weather &amp; Date" />
-                                        <VBox alignment="CENTER" prefHeight="200.0" prefWidth="180.0" spacing="10.0">
+                                        <Label styleClass="section-title" text="Flight Details" />
+                                        <VBox alignment="CENTER_LEFT" prefHeight="200.0" prefWidth="180.0" spacing="15.0">
                                             <children>
-                                                <ImageView fitHeight="64.0" fitWidth="64.0" pickOnBounds="true" preserveRatio="true">
-                                                    <image>
-                                                        <Image url="@../../images/icons/icons8-cloud-50.png" />
-                                                    </image>
-                                                </ImageView>
-                                                <VBox alignment="CENTER" spacing="5.0">
+                                                <!-- Flight Information -->
+                                                <VBox spacing="5.0">
                                                     <children>
-                                                        <Label styleClass="weather-temp" text="28°C" />
-                                                        <Label styleClass="weather-desc" text="Sunny" />
+                                                        <Label styleClass="flight-info-title" text="Selected Route" />
+                                                        <HBox spacing="5.0">
+                                                            <children>
+                                                                <Label fx:id="routeOriginLabel" styleClass="flight-route" text="-" />
+                                                                <Label styleClass="flight-route-arrow" text="→" />
+                                                                <Label fx:id="routeDestinationLabel" styleClass="flight-route" text="-" />
+                                                            </children>
+                                                        </HBox>
                                                     </children>
                                                 </VBox>
-                                                <VBox spacing="10.0">
+
+                                                <!-- Pricing Breakdown -->
+                                                <VBox spacing="8.0">
                                                     <children>
+                                                        <Label styleClass="flight-info-title" text="Pricing Breakdown" />
+                                                        <HBox spacing="10.0">
+                                                            <children>
+                                                                <Label styleClass="price-label" text="Base Fare:" />
+                                                                <Label fx:id="baseFareLabel" styleClass="price-value" text="M0.00" />
+                                                            </children>
+                                                        </HBox>
+                                                        <HBox spacing="10.0">
+                                                            <children>
+                                                                <Label styleClass="price-label" text="Passengers:" />
+                                                                <Label fx:id="passengerCountLabel" styleClass="price-value" text="x 0" />
+                                                            </children>
+                                                        </HBox>
+                                                        <Separator />
+                                                        <HBox spacing="10.0">
+                                                            <children>
+                                                                <Label styleClass="total-price-label" text="Total:" />
+                                                                <Label fx:id="totalPriceLabel" styleClass="total-price-value" text="M0.00" />
+                                                            </children>
+                                                        </HBox>
+                                                    </children>
+                                                </VBox>
+
+                                                <!-- Booking Summary -->
+                                                <VBox spacing="5.0">
+                                                    <children>
+                                                        <Label styleClass="flight-info-title" text="Booking Summary" />
                                                         <HBox spacing="10.0">
                                                             <children>
                                                                 <ImageView fitHeight="16.0" fitWidth="16.0" pickOnBounds="true" preserveRatio="true">
                                                                     <image>
-                                                                        <Image url="@../../images/icons/icons8-summer-50.png" />
+                                                                        <Image url="@../../images/icons/calendar.png" />
                                                                     </image>
                                                                 </ImageView>
-                                                                <Label styleClass="weather-info" text="November 15, 2025" />
+                                                                <Label fx:id="bookingDateLabel" styleClass="booking-info" text="No date selected" />
                                                             </children>
                                                         </HBox>
                                                         <HBox spacing="10.0">
                                                             <children>
                                                                 <ImageView fitHeight="16.0" fitWidth="16.0" pickOnBounds="true" preserveRatio="true">
                                                                     <image>
-                                                                        <Image url="@../../images/icons/icons8-partly-cloudy-day-50.png" />
+                                                                        <Image url="@../../images/icons/passangers.png" />
                                                                     </image>
                                                                 </ImageView>
-                                                                <Label styleClass="weather-info" text="Maseru Lesotho" />
-                                                            </children>
-                                                        </HBox>
-                                                        <HBox spacing="10.0">
-                                                            <children>
-                                                                <ImageView fitHeight="16.0" fitWidth="16.0" pickOnBounds="true" preserveRatio="true">
-                                                                    <image>
-                                                                        <Image url="@../../images/icons/icons8-snow-storm-50.png" />
-                                                                    </image>
-                                                                </ImageView>
-                                                                <Label styleClass="weather-info" text="Humidity: 45%" />
-                                                            </children>
-                                                        </HBox>
-                                                        <HBox spacing="10.0">
-                                                            <children>
-                                                                <ImageView fitHeight="16.0" fitWidth="16.0" pickOnBounds="true" preserveRatio="true">
-                                                                    <image>
-                                                                        <Image url="@../../images/icons/icons8-umbrella-50.png" />
-                                                                    </image>
-                                                                </ImageView>
-                                                                <Label styleClass="weather-info" text="Wind: 15 km/h" />
+                                                                <Label fx:id="bookingPassengersLabel" styleClass="booking-info" text="0 passengers" />
                                                             </children>
                                                         </HBox>
                                                     </children>
                                                 </VBox>
                                             </children>
                                             <padding>
-                                                <Insets bottom="10.0" left="10.0" right="10.0" />
+                                                <Insets bottom="10.0" left="15.0" right="15.0" top="10.0" />
                                             </padding>
                                         </VBox>
                                     </children>
@@ -414,7 +435,7 @@
                             </VBox.margin>
                         </HBox>
 
-                        <!-- Profile Card -->
+                        <!-- Profile Card - Enhanced -->
                         <HBox prefHeight="111.0" prefWidth="636.0" styleClass="Search_bar" stylesheets="@../../styles/Dashboard.css">
                             <children>
                                 <ImageView fitHeight="80.0" fitWidth="92.0" pickOnBounds="true" preserveRatio="true">
@@ -427,12 +448,23 @@
                                 </ImageView>
                                 <VBox spacing="5.0">
                                     <children>
-                                        <Label fx:id="profileNameLabel" styleClass="profile-name" text="Thabo Moloi" />
-                                        <Label fx:id="profileEmailLabel" styleClass="profile-email" text="thabo.moloi@email.com" />
-                                        <Label styleClass="profile-flights" text="Next Flight: JNB &#8594; CPT | Nov 20, 2025 | 08:00 AM" />
+                                        <Label fx:id="profileNameLabel" styleClass="profile-name" text="Guest User" />
+                                        <Label fx:id="profileEmailLabel" styleClass="profile-email" text="Please log in" />
+                                        <Label fx:id="nextFlightLabel" styleClass="profile-flights" text="No upcoming flights" />
+                                        <Label fx:id="loyaltyPointsLabel" styleClass="loyalty-points" text="Loyalty Points: 0" />
                                     </children>
                                     <padding>
                                         <Insets left="15.0" top="10.0" />
+                                    </padding>
+                                </VBox>
+                                <HBox HBox.hgrow="ALWAYS" />
+                                <VBox alignment="CENTER_RIGHT" spacing="5.0">
+                                    <children>
+                                        <Label fx:id="memberSinceLabel" styleClass="member-since" text="Member since: -" />
+                                        <Label fx:id="bookingCountLabel" styleClass="booking-count" text="Total bookings: 0" />
+                                    </children>
+                                    <padding>
+                                        <Insets right="20.0" />
                                     </padding>
                                 </VBox>
                             </children>
