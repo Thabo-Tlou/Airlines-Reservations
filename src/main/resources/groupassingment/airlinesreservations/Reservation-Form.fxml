@@ -421,8 +421,7 @@
                                 </HBox>
                         <Button fx:id="btn_submit1" layoutX="430.0" layoutY="536.0" mnemonicParsing="false" onAction="#submit_form" styleClass="btn_print_ticket" stylesheets="@../../styles/reserveform.css" text="Print Ticket" />
                                 <!-- Status Label -->
-                                <Label fx:id="lbl_status" layoutX="106.0" layoutY="580.0" prefHeight="25.0" prefWidth="300.0"
-                                       text="" styleClass="lbl-status" stylesheets="@../../styles/reserveform.css"/>
+                                <Label fx:id="lbl_status" layoutX="106.0" layoutY="580.0" prefHeight="25.0" prefWidth="300.0" styleClass="lbl-status" stylesheets="@../../styles/reserveform.css" text="" />
 
                             </children>
 

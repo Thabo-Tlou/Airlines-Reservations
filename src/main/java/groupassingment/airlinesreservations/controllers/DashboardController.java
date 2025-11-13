@@ -101,7 +101,7 @@ public class DashboardController {
         // Navigation button handlers (NEWLY ADDED)
         if (btn_dashboard != null) btn_dashboard.setOnAction(event -> handleViewDashboard());
         if (btn_reservation != null) btn_reservation.setOnAction(event -> handleViewReservation());
-        if (btn_manage_reservations != null) btn_manage_reservations.setOnAction(event -> handleViewManageReservations());
+        if (btn_manage_reservations != null) btn_manage_reservations.setOnAction(event -> handleManageReservations());
         if (btn_feedback != null) btn_feedback.setOnAction(event -> handleViewFeedback());
         if (btn_support != null) btn_support.setOnAction(event -> handleViewSupport());
         if (btn_settings != null) btn_settings.setOnAction(event -> handleViewSettings());
@@ -556,7 +556,7 @@ public class DashboardController {
 
         System.out.println("Finalizing profile data load...");
 
-        // 🟢 Pass currentUserToken for authenticated final profile retrieval
+        //  Pass currentUserToken for authenticated final profile retrieval
         supabaseService.getPassengerByEmail(currentUserEmail, currentUserToken)
                 .thenAccept(response -> {
                     if (response.statusCode() == 200 && !response.body().equals("[]")) {
@@ -813,11 +813,41 @@ public class DashboardController {
     /**
      * Placeholder for Manage Reservations view.
      */
-    @FXML
-    private void handleViewManageReservations() {
-        loadAndSwitchScene("/groupassingment/airlinesreservations/ManageReservations.fxml", "Manage Reservations", null);
-    }
+    // Inside DashboardController.java
 
+// ... (Other navigation handlers)
+
+    @FXML
+    private void handleManageReservations() {
+        if (currentUserEmail == null) {
+            showAlert("Login Required", "Please log in to manage reservations.");
+            return;
+        }
+
+        try {
+            Stage stage = (Stage) btn_manage_reservations.getScene().getWindow();
+
+            // 1. Load the FXML using the specified file name
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/groupassingment/airlinesreservations/ManageReservations.fxml"));
+            Parent root = loader.load();
+
+            // 2. Get the controller and pass the session data
+            // NOTE: Replace 'ManageReservationsController' with your actual controller class name
+            ManageReservationsController manageReservationsController = loader.getController();
+
+            // Pass the session data (token, ID, email)
+            manageReservationsController.initializeSessionData(currentUserToken, currentUserId, currentUserEmail);
+
+            // 3. Switch the scene
+            Scene scene = new Scene(root);
+            stage.setScene(scene);
+            stage.setTitle("Bokamoso Airlines - Manage Reservations");
+            stage.centerOnScreen();
+        } catch (IOException e) {
+            e.printStackTrace();
+            showAlert("Navigation Error", "Unable to load Manage Reservations view. Check that ManageReservations.fxml exists: " + e.getMessage());
+        }
+    }
     /**
      * Placeholder for Feedback view.
      */
@@ -848,7 +878,7 @@ public class DashboardController {
     @FXML
     private void handleReservationView() {
         // This old placeholder is replaced by handleViewManageReservations for consistency
-        handleViewManageReservations();
+        handleManageReservations();
     }
 
     @FXML

@@ -1,9 +1,11 @@
 package groupassingment.airlinesreservations.controllers;
 
 import java.net.URI;
+import java.net.URLEncoder;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
 import org.json.JSONObject;
@@ -194,6 +196,132 @@ public class SupabaseService {
 
         return client.sendAsync(request, HttpResponse.BodyHandlers.ofString());
     }
+
+
+    // --- START: NEW METHODS FOR ManageReservaionsController ---
+    // --- FLIGHT MANAGEMENT (for ManageReservaionsController) ---
+    // NOTE: This assumes your table is 'flights'. If it's 'customers', change "/rest/v1/flights" to "/rest/v1/customers".
+
+    /**
+     * Fetches a paginated and searchable list of flights for the management screen.
+     * Assumes this is an authenticated operation.
+     *
+     * @param page          The page number to fetch (0-indexed).
+     * @param pageSize      The number of items per page.
+     * @param searchTerm    The string to search for in the 'flight_code' column.
+     * @param userAuthToken The JWT of the authenticated user.
+     * @return A CompletableFuture with the HttpResponse.
+     *
+     * ‼️ IMPORTANT: Your controller must parse the 'Content-Range' header
+     * from the response (e.g., "0-9/100") to get the total item count for pagination.
+     */
+    public CompletableFuture<HttpResponse<String>> fetchManagedFlights(
+            int page, int pageSize, String searchTerm, String userAuthToken) {
+
+        int offset = page * pageSize;
+
+        // Build the query string
+        StringBuilder query = new StringBuilder("?select=*");
+        query.append("&offset=").append(offset);
+        query.append("&limit=").append(pageSize);
+        query.append("&order=flight_name.asc"); // Order by name
+
+        // Add search filter if provided
+        if (searchTerm != null && !searchTerm.isBlank()) {
+            // URL-encode the search term
+            String encodedSearch = URLEncoder.encode(searchTerm, StandardCharsets.UTF_8);
+            // Use 'ilike' for case-insensitive search
+            query.append("&flight_code=ilike.*").append(encodedSearch).append("*");
+        }
+
+        String url = SUPABASE_URL + "/rest/v1/flights" + query.toString();
+
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(url))
+                .header("apikey", SUPABASE_KEY)
+                .header("Authorization", "Bearer " + userAuthToken)
+                .header("Content-Type", "application/json")
+                .header("Prefer", "count=exact") // ⬅️ CRITICAL: Asks Supabase for the total count
+                .GET()
+                .build();
+
+        return client.sendAsync(request, HttpResponse.BodyHandlers.ofString());
+    }
+
+    /**
+     * Adds a new flight to the 'flights' table.
+     *
+     * @param flightData    A JSONObject representing the new flight.
+     * @param userAuthToken The JWT of the authenticated user.
+     * @return A CompletableFuture with the HttpResponse.
+     */
+    public CompletableFuture<HttpResponse<String>> addFlight(
+            JSONObject flightData, String userAuthToken) {
+
+        String url = SUPABASE_URL + "/rest/v1/flights";
+
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(url))
+                .header("apikey", SUPABASE_KEY)
+                .header("Authorization", "Bearer " + userAuthToken)
+                .header("Content-Type", "application/json")
+                .header("Prefer", "return=representation") // Returns the newly created object
+                .POST(HttpRequest.BodyPublishers.ofString("[" + flightData.toString() + "]")) // Must be an array
+                .build();
+
+        return client.sendAsync(request, HttpResponse.BodyHandlers.ofString());
+    }
+
+    /**
+     * Updates an existing flight in the 'flights' table by its ID.
+     *
+     * @param flightId      The database ID of the flight to update.
+     * @param flightData    A JSONObject containing the fields to update.
+     * @param userAuthToken The JWT of the authenticated user.
+     * @return A CompletableFuture with the HttpResponse.
+     */
+    public CompletableFuture<HttpResponse<String>> updateFlight(
+            int flightId, JSONObject flightData, String userAuthToken) {
+
+        // Use 'id' to filter. Change 'id' if your primary key is different.
+        String url = SUPABASE_URL + "/rest/v1/flights?id=eq." + flightId;
+
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(url))
+                .header("apikey", SUPABASE_KEY)
+                .header("Authorization", "Bearer " + userAuthToken)
+                .header("Content-Type", "application/json")
+                .method("PATCH", HttpRequest.BodyPublishers.ofString(flightData.toString())) // Not an array
+                .build();
+
+        return client.sendAsync(request, HttpResponse.BodyHandlers.ofString());
+    }
+
+    /**
+     * Deletes a flight from the 'flights' table by its ID.
+     *
+     * @param flightId      The database ID of the flight to delete.
+     * @param userAuthToken The JWT of the authenticated user.
+     * @return A CompletableFuture with the HttpResponse.
+     */
+    public CompletableFuture<HttpResponse<String>> deleteFlight(
+            int flightId, String userAuthToken) {
+
+        // Use 'id' to filter. Change 'id' if your primary key is different.
+        String url = SUPABASE_URL + "/rest/v1/flights?id=eq." + flightId;
+
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(url))
+                .header("apikey", SUPABASE_KEY)
+                .header("Authorization", "Bearer " + userAuthToken)
+                .DELETE()
+                .build();
+
+        return client.sendAsync(request, HttpResponse.BodyHandlers.ofString());
+    }
+
+    // --- END: NEW METHODS FOR ManageReservaionsController ---
+
 
     // ---------------- CONNECTION TEST ----------------
 
