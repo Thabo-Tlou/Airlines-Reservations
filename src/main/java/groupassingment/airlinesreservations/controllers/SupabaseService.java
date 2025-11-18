@@ -117,7 +117,6 @@ public class SupabaseService {
 
     /**
      * Inserts a new customer record into the 'customers' table.
-     * 🔑 FIX APPLIED: Updated to match the provided 'customers' table schema,
      * removing 'concess' and 'user_id' and adding 'category_fare'.
      */
     public CompletableFuture<HttpResponse<String>> insertCustomer(
@@ -130,7 +129,7 @@ public class SupabaseService {
         customer.put("address", address);
         customer.put("email", email);
         customer.put("phone", phone);
-        customer.put("category_fare", categoryFare); // ✅ Correct column
+        customer.put("category_fare", categoryFare); // Correct column
         // Removed: 'concess' and 'user_id' which are not in the schema
 
         String url = SUPABASE_URL + "/rest/v1/customers"; // TARGETS 'customers'
@@ -300,7 +299,7 @@ public class SupabaseService {
      * TARGETS: 'reservations'
      */
     public CompletableFuture<HttpResponse<String>> deleteReservation(
-            int reservationId, String userAuthToken) { // Renamed method
+            int reservationId, String userAuthToken) {
 
         String url = SUPABASE_URL + "/rest/v1/reservations?id=eq." + reservationId; // TARGETS 'reservations'
 

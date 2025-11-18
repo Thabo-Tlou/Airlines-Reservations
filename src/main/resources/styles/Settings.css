@@ -1,0 +1,155 @@
+.settings-scroll {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-padding: 0;
+}
+
+.settings-scroll .viewport {
+    -fx-background-color: transparent;
+}
+
+.settings-container {
+    -fx-background-color: #FFFFFF;
+}
+
+.settings-title {
+    -fx-text-fill: #272838;
+    -fx-font-size: 24px;
+    -fx-font-weight: bold;
+}
+
+.settings-section {
+    -fx-background-color: #FFFFFF;
+    -fx-border-color: #DDDDDD;
+    -fx-border-radius: 10px;
+    -fx-background-radius: 10px;
+    -fx-padding: 20px;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.08), 12, 0, 0, 3);
+}
+
+.section-title {
+    -fx-text-fill: #272838;
+    -fx-font-size: 18px;
+    -fx-font-weight: bold;
+}
+
+.avatar-container {
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.15), 8, 0, 0, 2);
+}
+
+.input-label {
+    -fx-text-fill: #272838;
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+}
+
+.settings-input {
+    -fx-background-color: #FFFFFF;
+    -fx-border-color: #DDDDDD;
+    -fx-border-radius: 6px;
+    -fx-background-radius: 6px;
+    -fx-padding: 10px 12px;
+    -fx-font-size: 13px;
+    -fx-pref-height: 40px;
+}
+
+.settings-input:focused {
+    -fx-border-color: #F2B418;
+    -fx-effect: dropshadow(gaussian, rgba(242, 180, 24, 0.2), 8, 0, 0, 0);
+}
+
+.settings-combo {
+    -fx-background-color: #FFFFFF;
+    -fx-border-color: #DDDDDD;
+    -fx-border-radius: 6px;
+    -fx-background-radius: 6px;
+    -fx-padding: 10px 12px;
+    -fx-font-size: 13px;
+    -fx-pref-height: 40px;
+}
+
+.settings-combo:focused {
+    -fx-border-color: #F2B418;
+    -fx-effect: dropshadow(gaussian, rgba(242, 180, 24, 0.2), 8, 0, 0, 0);
+}
+
+.action-btn {
+    -fx-background-color: transparent;
+    -fx-text-fill: #272838;
+    -fx-border-color: #272838;
+    -fx-border-radius: 6px;
+    -fx-background-radius: 6px;
+    -fx-padding: 6px 15px;
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+    -fx-cursor: hand;
+}
+
+.action-btn:hover {
+    -fx-background-color: #272838;
+    -fx-text-fill: #FFFFFF;
+}
+
+.save-btn {
+    -fx-background-color: #F2B418;
+    -fx-text-fill: #272838;
+    -fx-border-radius: 6px;
+    -fx-background-radius: 6px;
+    -fx-padding: 10px 25px;
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+    -fx-cursor: hand;
+}
+
+.save-btn:hover {
+    -fx-background-color: #e0a416;
+    -fx-effect: dropshadow(gaussian, rgba(242, 180, 24, 0.3), 8, 0, 0, 2);
+}
+
+.cancel-btn {
+    -fx-background-color: transparent;
+    -fx-text-fill: #666666;
+    -fx-border-color: #DDDDDD;
+    -fx-border-radius: 6px;
+    -fx-background-radius: 6px;
+    -fx-padding: 10px 25px;
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+    -fx-cursor: hand;
+}
+
+.cancel-btn:hover {
+    -fx-background-color: #f8f9fa;
+    -fx-border-color: #666666;
+}
+
+.modern-checkbox {
+    -fx-text-fill: #272838;
+}
+
+.modern-checkbox .box {
+    -fx-background-color: #FFFFFF;
+    -fx-border-color: #DDDDDD;
+    -fx-border-radius: 3px;
+    -fx-background-radius: 3px;
+}
+
+.modern-checkbox:selected .box {
+    -fx-background-color: #F2B418;
+    -fx-border-color: #F2B418;
+}
+
+.modern-checkbox:selected .mark {
+    -fx-background-color: #272838;
+}
+
+.preference-label {
+    -fx-text-fill: #272838;
+    -fx-font-size: 13px;
+}
+
+.hint-text {
+    -fx-text-fill: #666666;
+    -fx-font-size: 11px;
+    -fx-font-style: italic;
+}

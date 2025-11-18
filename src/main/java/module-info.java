@@ -4,6 +4,7 @@ module groupassingment.airlinesreservations {
     requires java.net.http;
     requires org.json;
     requires java.sql;
+    requires java.prefs;
 
 
     opens groupassingment.airlinesreservations to javafx.fxml;

@@ -12,7 +12,7 @@
 }
 
 .lbl_header {
-    -fx-font-size: 22px;
+    -fx-font-size: 14px;
     -fx-font-weight: bold;
     -fx-text-fill: #ffffff; /* White text */
 }

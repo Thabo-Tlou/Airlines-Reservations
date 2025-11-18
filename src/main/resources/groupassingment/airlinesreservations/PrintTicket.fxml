@@ -1,42 +1,65 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.scene.layout.VBox?>
-<?import javafx.scene.layout.HBox?>
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 <?import javafx.scene.text.Text?>
 
-<VBox xmlns="http://javafx.com/javafx"
-      xmlns:fx="http://javafx.com/fxml"
-      fx:controller="groupassingment.airlinesreservations.controllers.PrintTicketController"
-      spacing="10" alignment="CENTER" style="-fx-background-color: #f5f5f5;" padding="20">
+<VBox alignment="CENTER" spacing="10" style="-fx-background-color: #f5f5f5;" xmlns="http://javafx.com/javafx/20.0.2" xmlns:fx="http://javafx.com/fxml/1" fx:controller="groupassingment.airlinesreservations.controllers.PrintTicketController">
 
-    <Label text="✈ Flight Ticket" style="-fx-font-size: 22px; -fx-font-weight: bold;"/>
+    <padding>
+        <Insets topRightBottomLeft="20.0" />
+    </padding>
+   <HBox prefHeight="12.0" prefWidth="222.0" spacing="20.0">
+      <children>
+         <ImageView fitHeight="33.0" fitWidth="45.0" pickOnBounds="true" preserveRatio="true">
+            <image>
+               <Image url="@../../images/logo.png" />
+            </image>
+         </ImageView>
+      
+          <Label style="-fx-font-size: 22px; -fx-font-weight: bold;" text="Flight Ticket">
+              <font>
+                  <Font name="System Bold" size="22.0" />
+              </font>
+          </Label>
+      </children>
+   </HBox>
 
     <VBox spacing="6" style="-fx-background-color: white; -fx-padding: 15; -fx-border-color: #1e3a8a; -fx-border-width: 2; -fx-border-radius: 10; -fx-background-radius: 10; -fx-effect: dropshadow(two-pass-box, rgba(0,0,0,0.2), 5,0,0,3);">
-        <Text text="--- Customer Information ---" style="-fx-font-weight: bold; -fx-font-size: 14px;" />
+
+        <Text style="-fx-font-weight: bold; -fx-font-size: 14px;" text="--- Customer Information ---" />
         <Label fx:id="lbl_customerName" text="Name:" />
         <Label fx:id="lbl_customerEmail" text="Email:" />
         <Label fx:id="lbl_customerPhone" text="Phone:" />
         <Label fx:id="lbl_customerId" text="ID Number:" />
         <Label fx:id="lbl_fareCategory" text="Fare Category:" />
+      <Separator prefWidth="200.0" />
 
-        <Text text="--- Flight Details ---" style="-fx-font-weight: bold; -fx-font-size: 14px;" />
+        <Text style="-fx-font-weight: bold; -fx-font-size: 14px;" text="--- Flight Details ---" />
         <Label fx:id="lbl_flightCode" text="Flight Code:" />
         <Label fx:id="lbl_travelDate" text="Date:" />
         <Label fx:id="lbl_travelFrom" text="From:" />
         <Label fx:id="lbl_travelTo" text="To:" />
+      <Separator prefWidth="200.0" />
 
-        <Text text="--- Seat Information ---" style="-fx-font-weight: bold; -fx-font-size: 14px;" />
+        <Text style="-fx-font-weight: bold; -fx-font-size: 14px;" text="--- Seat Information ---" />
         <Label fx:id="lbl_seatClass" text="Seat Class:" />
         <Label fx:id="lbl_seatPref" text="Seat Preference:" />
+      <Separator prefWidth="200.0" />
 
-        <Text text="--- Payment ---" style="-fx-font-weight: bold; -fx-font-size: 14px;" />
-        <Label fx:id="lbl_totalPrice" text="Total Price:" />
+        <Text style="-fx-font-weight: bold; -fx-font-size: 14px;" text="--- Payment ---" />
+        <Label fx:id="lbl_totalPrice" text="Total Paid: M0.00" />
+      <Separator prefWidth="200.0" />
 
-        <Text text="--- Issued By ---" style="-fx-font-weight: bold; -fx-font-size: 14px;" />
-        <Label fx:id="lbl_issuedBy" text="Issued by:" />
+        <Text style="-fx-font-weight: bold; -fx-font-size: 14px;" text="--- Issued By ---" />
+        <Label fx:id="lbl_issuedBy" text="Issued by: Bokamoso Airlines" />
+
     </VBox>
 
 </VBox>

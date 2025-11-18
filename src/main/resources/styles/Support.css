@@ -1,0 +1,188 @@
+.support-scroll {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-padding: 0;
+}
+
+.support-scroll .viewport {
+    -fx-background-color: transparent;
+}
+
+.support-container {
+    -fx-background-color: #FFFFFF;
+}
+
+.support-title {
+    -fx-text-fill: #272838;
+    -fx-font-size: 24px;
+    -fx-font-weight: bold;
+}
+
+.support-section {
+    -fx-background-color: #FFFFFF;
+    -fx-border-color: #DDDDDD;
+    -fx-border-radius: 10px;
+    -fx-background-radius: 10px;
+    -fx-padding: 20px;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.08), 12, 0, 0, 3);
+}
+
+.section-title {
+    -fx-text-fill: #272838;
+    -fx-font-size: 18px;
+    -fx-font-weight: bold;
+}
+
+.contact-card {
+    -fx-background-color: #f8f9fa;
+    -fx-border-color: #DDDDDD;
+    -fx-border-radius: 8px;
+    -fx-background-radius: 8px;
+    -fx-padding: 15px;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.05), 5, 0, 0, 1);
+}
+
+.contact-type {
+    -fx-text-fill: #272838;
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+}
+
+.contact-detail {
+    -fx-text-fill: #272838;
+    -fx-font-size: 13px;
+}
+
+.contact-hint {
+    -fx-text-fill: #666666;
+    -fx-font-size: 11px;
+    -fx-font-style: italic;
+}
+
+.input-label {
+    -fx-text-fill: #272838;
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+}
+
+.support-combo {
+    -fx-background-color: #FFFFFF;
+    -fx-border-color: #DDDDDD;
+    -fx-border-radius: 6px;
+    -fx-background-radius: 6px;
+    -fx-padding: 10px 12px;
+    -fx-font-size: 13px;
+    -fx-pref-height: 40px;
+}
+
+.support-combo:focused {
+    -fx-border-color: #F2B418;
+    -fx-effect: dropshadow(gaussian, rgba(242, 180, 24, 0.2), 8, 0, 0, 0);
+}
+
+.support-textarea {
+    -fx-background-color: #FFFFFF;
+    -fx-border-color: #DDDDDD;
+    -fx-border-radius: 6px;
+    -fx-background-radius: 6px;
+    -fx-padding: 10px 12px;
+    -fx-font-size: 13px;
+}
+
+.support-textarea:focused {
+    -fx-border-color: #F2B418;
+    -fx-effect: dropshadow(gaussian, rgba(242, 180, 24, 0.2), 8, 0, 0, 0);
+}
+
+.attachment-btn {
+    -fx-background-color: transparent;
+    -fx-text-fill: #272838;
+    -fx-border-color: #272838;
+    -fx-border-radius: 6px;
+    -fx-background-radius: 6px;
+    -fx-padding: 8px 15px;
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+    -fx-cursor: hand;
+}
+
+.attachment-btn:hover {
+    -fx-background-color: #272838;
+    -fx-text-fill: #FFFFFF;
+}
+
+.file-label {
+    -fx-text-fill: #666666;
+    -fx-font-size: 12px;
+    -fx-font-style: italic;
+}
+
+.send-btn {
+    -fx-background-color: #F2B418;
+    -fx-text-fill: #272838;
+    -fx-border-radius: 6px;
+    -fx-background-radius: 6px;
+    -fx-padding: 10px 25px;
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+    -fx-cursor: hand;
+}
+
+.send-btn:hover {
+    -fx-background-color: #e0a416;
+    -fx-effect: dropshadow(gaussian, rgba(242, 180, 24, 0.3), 8, 0, 0, 2);
+}
+
+.cancel-btn {
+    -fx-background-color: transparent;
+    -fx-text-fill: #666666;
+    -fx-border-color: #DDDDDD;
+    -fx-border-radius: 6px;
+    -fx-background-radius: 6px;
+    -fx-padding: 10px 25px;
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+    -fx-cursor: hand;
+}
+
+.cancel-btn:hover {
+    -fx-background-color: #f8f9fa;
+    -fx-border-color: #666666;
+}
+
+.faq-item {
+    -fx-background-color: #f8f9fa;
+    -fx-border-color: #DDDDDD;
+    -fx-border-radius: 6px;
+    -fx-background-radius: 6px;
+}
+
+.faq-item .title {
+    -fx-background-color: #f8f9fa;
+    -fx-border-color: #DDDDDD;
+    -fx-border-radius: 6px;
+    -fx-background-radius: 6px;
+    -fx-padding: 12px 15px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #272838;
+}
+
+.faq-item .content {
+    -fx-background-color: #FFFFFF;
+    -fx-border-color: #DDDDDD;
+    -fx-border-radius: 0 0 6px 6px;
+    -fx-background-radius: 0 0 6px 6px;
+    -fx-padding: 15px;
+}
+
+.faq-answer {
+    -fx-text-fill: #666666;
+    -fx-font-size: 13px;
+    -fx-line-spacing: 1.5;
+}
+
+.hint-text {
+    -fx-text-fill: #666666;
+    -fx-font-size: 11px;
+    -fx-font-style: italic;
+}

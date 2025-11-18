@@ -15,8 +15,9 @@
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Font?>
 
-<AnchorPane prefHeight="600.0" prefWidth="900.0" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="groupassingment.airlinesreservations.controllers.ManageReservationsController">
+<AnchorPane prefHeight="600.0" prefWidth="900.0" xmlns="http://javafx.com/javafx/20.0.2" xmlns:fx="http://javafx.com/fxml/1" fx:controller="groupassingment.airlinesreservations.controllers.ManageReservationsController">
     <children>
         <BorderPane layoutX="77.0" layoutY="148.0" prefHeight="600.0" prefWidth="900.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
             <left>
@@ -209,8 +210,11 @@
                             <children>
                                 <Label styleClass="lbl_header" stylesheets="@../../styles/ManageReservations.css" text="Flight Reservations Management">
                                     <HBox.margin>
-                                        <Insets left="25.0" top="10.0" />
+                                        <Insets left="10.0" top="27.0" />
                                     </HBox.margin>
+                           <font>
+                              <Font size="18.0" />
+                           </font>
                                 </Label>
                             </children>
                      <VBox.margin>
