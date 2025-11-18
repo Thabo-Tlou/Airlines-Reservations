@@ -96,13 +96,33 @@ public class SupabaseService {
     // ---------------- CUSTOMERS ----------------
 
     /**
+     * Retrieves a customer record from the 'customers' table by their ID Number.
+     * TARGETS: 'customers?id_num=eq.{idNum}'
+     */
+    public CompletableFuture<HttpResponse<String>> getCustomerByIdNumber(String idNum, String userAuthToken) {
+        // Ensure ID number is URL-encoded for safety, although digits shouldn't need it.
+        String encodedIdNum = URLEncoder.encode(idNum, StandardCharsets.UTF_8);
+        String url = SUPABASE_URL + "/rest/v1/customers?id_num=eq." + encodedIdNum;
+
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(url))
+                .header("apikey", SUPABASE_KEY)
+                .header("Authorization", "Bearer " + userAuthToken)
+                .header("Accept", "application/json")
+                .GET()
+                .build();
+
+        return client.sendAsync(request, HttpResponse.BodyHandlers.ofString());
+    }
+
+    /**
      * Inserts a new customer record into the 'customers' table.
-     * CRITICAL: Assumes the 'user_id' column has been added to the SQL schema.
+     * 🔑 FIX APPLIED: Updated to match the provided 'customers' table schema,
+     * removing 'concess' and 'user_id' and adding 'category_fare'.
      */
     public CompletableFuture<HttpResponse<String>> insertCustomer(
-            String name, String idNum, String address, String email, String phone, String concess,
-            String userId, // User ID for RLS linkage in payload
-            String userAuthToken) { // JWT for Authorization header
+            String name, String idNum, String address, String email, String phone, String categoryFare,
+            String userAuthToken) {
 
         JSONObject customer = new JSONObject();
         customer.put("name", name);
@@ -110,18 +130,18 @@ public class SupabaseService {
         customer.put("address", address);
         customer.put("email", email);
         customer.put("phone", phone);
-        customer.put("concess", concess);
-        customer.put("user_id", userId); // Added to payload for RLS
+        customer.put("category_fare", categoryFare); // ✅ Correct column
+        // Removed: 'concess' and 'user_id' which are not in the schema
 
-        String url = SUPABASE_URL + "/rest/v1/customers"; // Target the 'customers' table
+        String url = SUPABASE_URL + "/rest/v1/customers"; // TARGETS 'customers'
 
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(url))
                 .header("apikey", SUPABASE_KEY)
-                .header("Authorization", "Bearer " + userAuthToken) // Correctly uses the JWT
+                .header("Authorization", "Bearer " + userAuthToken)
                 .header("Content-Type", "application/json")
                 .header("Prefer", "return=representation")
-                .POST(HttpRequest.BodyPublishers.ofString("[" + customer.toString() + "]")) // Supabase expects an array of objects
+                .POST(HttpRequest.BodyPublishers.ofString("[" + customer.toString() + "]"))
                 .build();
 
         return client.sendAsync(request, HttpResponse.BodyHandlers.ofString());
@@ -135,7 +155,7 @@ public class SupabaseService {
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(url))
                 .header("apikey", SUPABASE_KEY)
-                .header("Authorization", "Bearer " + SUPABASE_KEY) // Airports are public, so service key is fine
+                .header("Authorization", "Bearer " + SUPABASE_KEY)
                 .header("Content-Type", "application/json")
                 .GET()
                 .build();
@@ -151,7 +171,7 @@ public class SupabaseService {
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(url))
                 .header("apikey", SUPABASE_KEY)
-                .header("Authorization", "Bearer " + SUPABASE_KEY) // Flights are public
+                .header("Authorization", "Bearer " + SUPABASE_KEY)
                 .header("Content-Type", "application/json")
                 .GET()
                 .build();
@@ -165,7 +185,7 @@ public class SupabaseService {
     public CompletableFuture<HttpResponse<String>> insertFlightBooking(
             JSONObject bookingData, String userAuthToken) {
 
-        String url = SUPABASE_URL + "/rest/v1/flight_bookings";
+        String url = SUPABASE_URL + "/rest/v1/flight_bookings"; // TARGETS 'flight_bookings'
 
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(url))
@@ -180,16 +200,15 @@ public class SupabaseService {
     }
 
     /**
-     * 🔑 FIX: Signature changed to accept the userAuthToken and used for RLS.
-     * You will need to update the calling code in DashboardController to pass the token.
+     * Retrieves flight bookings linked to the user's email.
      */
     public CompletableFuture<HttpResponse<String>> getUserBookings(String userEmail, String userAuthToken) {
-        String url = SUPABASE_URL + "/rest/v1/flight_bookings?user_email=eq." + userEmail;
+        String url = SUPABASE_URL + "/rest/v1/flight_bookings?user_email=eq." + userEmail; // TARGETS 'flight_bookings'
 
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(url))
                 .header("apikey", SUPABASE_KEY)
-                .header("Authorization", "Bearer " + userAuthToken) // ⬅️ FIX APPLIED
+                .header("Authorization", "Bearer " + userAuthToken)
                 .header("Content-Type", "application/json")
                 .GET()
                 .build();
@@ -198,25 +217,14 @@ public class SupabaseService {
     }
 
 
-    // --- START: NEW METHODS FOR ManageReservaionsController ---
-    // --- FLIGHT MANAGEMENT (for ManageReservaionsController) ---
-    // NOTE: This assumes your table is 'flights'. If it's 'customers', change "/rest/v1/flights" to "/rest/v1/customers".
+    // --- START: RESERVATION MANAGEMENT ---
 
     /**
-     * Fetches a paginated and searchable list of flights for the management screen.
-     * Assumes this is an authenticated operation.
-     *
-     * @param page          The page number to fetch (0-indexed).
-     * @param pageSize      The number of items per page.
-     * @param searchTerm    The string to search for in the 'flight_code' column.
-     * @param userAuthToken The JWT of the authenticated user.
-     * @return A CompletableFuture with the HttpResponse.
-     *
-     * ‼️ IMPORTANT: Your controller must parse the 'Content-Range' header
-     * from the response (e.g., "0-9/100") to get the total item count for pagination.
+     * Fetches a paginated and searchable list of reservations for the management screen.
+     * TARGETS: 'reservations'
      */
-    public CompletableFuture<HttpResponse<String>> fetchManagedFlights(
-            int page, int pageSize, String searchTerm, String userAuthToken) {
+    public CompletableFuture<HttpResponse<String>> fetchManagedReservations(
+            int page, int pageSize, String searchTerm, String userAuthToken) { // Renamed method
 
         int offset = page * pageSize;
 
@@ -224,24 +232,22 @@ public class SupabaseService {
         StringBuilder query = new StringBuilder("?select=*");
         query.append("&offset=").append(offset);
         query.append("&limit=").append(pageSize);
-        query.append("&order=flight_name.asc"); // Order by name
+        query.append("&order=reservation_date.desc");
 
         // Add search filter if provided
         if (searchTerm != null && !searchTerm.isBlank()) {
-            // URL-encode the search term
             String encodedSearch = URLEncoder.encode(searchTerm, StandardCharsets.UTF_8);
-            // Use 'ilike' for case-insensitive search
-            query.append("&flight_code=ilike.*").append(encodedSearch).append("*");
+            query.append("&reservation_code=ilike.*").append(encodedSearch).append("*");
         }
 
-        String url = SUPABASE_URL + "/rest/v1/flights" + query.toString();
+        String url = SUPABASE_URL + "/rest/v1/reservations" + query.toString(); // TARGETS 'reservations'
 
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(url))
                 .header("apikey", SUPABASE_KEY)
                 .header("Authorization", "Bearer " + userAuthToken)
                 .header("Content-Type", "application/json")
-                .header("Prefer", "count=exact") // ⬅️ CRITICAL: Asks Supabase for the total count
+                .header("Prefer", "count=exact")
                 .GET()
                 .build();
 
@@ -249,66 +255,54 @@ public class SupabaseService {
     }
 
     /**
-     * Adds a new flight to the 'flights' table.
-     *
-     * @param flightData    A JSONObject representing the new flight.
-     * @param userAuthToken The JWT of the authenticated user.
-     * @return A CompletableFuture with the HttpResponse.
+     * Adds a new reservation.
+     * TARGETS: 'reservations'
      */
-    public CompletableFuture<HttpResponse<String>> addFlight(
-            JSONObject flightData, String userAuthToken) {
+    public CompletableFuture<HttpResponse<String>> addReservation(
+            JSONObject reservationData, String userAuthToken) { // Renamed method
 
-        String url = SUPABASE_URL + "/rest/v1/flights";
+        String url = SUPABASE_URL + "/rest/v1/reservations"; // TARGETS 'reservations'
 
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(url))
                 .header("apikey", SUPABASE_KEY)
                 .header("Authorization", "Bearer " + userAuthToken)
                 .header("Content-Type", "application/json")
-                .header("Prefer", "return=representation") // Returns the newly created object
-                .POST(HttpRequest.BodyPublishers.ofString("[" + flightData.toString() + "]")) // Must be an array
+                .header("Prefer", "return=representation")
+                .POST(HttpRequest.BodyPublishers.ofString("[" + reservationData.toString() + "]"))
                 .build();
 
         return client.sendAsync(request, HttpResponse.BodyHandlers.ofString());
     }
 
     /**
-     * Updates an existing flight in the 'flights' table by its ID.
-     *
-     * @param flightId      The database ID of the flight to update.
-     * @param flightData    A JSONObject containing the fields to update.
-     * @param userAuthToken The JWT of the authenticated user.
-     * @return A CompletableFuture with the HttpResponse.
+     * Updates an existing reservation by its ID.
+     * TARGETS: 'reservations'
      */
-    public CompletableFuture<HttpResponse<String>> updateFlight(
-            int flightId, JSONObject flightData, String userAuthToken) {
+    public CompletableFuture<HttpResponse<String>> updateReservation(
+            int reservationId, JSONObject reservationData, String userAuthToken) { // Renamed method
 
-        // Use 'id' to filter. Change 'id' if your primary key is different.
-        String url = SUPABASE_URL + "/rest/v1/flights?id=eq." + flightId;
+        String url = SUPABASE_URL + "/rest/v1/reservations?id=eq." + reservationId; // TARGETS 'reservations'
 
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(url))
                 .header("apikey", SUPABASE_KEY)
                 .header("Authorization", "Bearer " + userAuthToken)
                 .header("Content-Type", "application/json")
-                .method("PATCH", HttpRequest.BodyPublishers.ofString(flightData.toString())) // Not an array
+                .method("PATCH", HttpRequest.BodyPublishers.ofString(reservationData.toString()))
                 .build();
 
         return client.sendAsync(request, HttpResponse.BodyHandlers.ofString());
     }
 
     /**
-     * Deletes a flight from the 'flights' table by its ID.
-     *
-     * @param flightId      The database ID of the flight to delete.
-     * @param userAuthToken The JWT of the authenticated user.
-     * @return A CompletableFuture with the HttpResponse.
+     * Deletes a reservation by its ID.
+     * TARGETS: 'reservations'
      */
-    public CompletableFuture<HttpResponse<String>> deleteFlight(
-            int flightId, String userAuthToken) {
+    public CompletableFuture<HttpResponse<String>> deleteReservation(
+            int reservationId, String userAuthToken) { // Renamed method
 
-        // Use 'id' to filter. Change 'id' if your primary key is different.
-        String url = SUPABASE_URL + "/rest/v1/flights?id=eq." + flightId;
+        String url = SUPABASE_URL + "/rest/v1/reservations?id=eq." + reservationId; // TARGETS 'reservations'
 
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(url))
@@ -320,7 +314,7 @@ public class SupabaseService {
         return client.sendAsync(request, HttpResponse.BodyHandlers.ofString());
     }
 
-    // --- END: NEW METHODS FOR ManageReservaionsController ---
+    // --- END: RESERVATION MANAGEMENT ---
 
 
     // ---------------- CONNECTION TEST ----------------

@@ -38,11 +38,11 @@
                                         <Insets left="10.0" top="17.0" />
                                     </HBox.margin></Label>
                             </children>
-                     <VBox.margin>
-                        <Insets top="10.0" />
-                     </VBox.margin>
+                            <VBox.margin>
+                                <Insets top="10.0" />
+                            </VBox.margin>
                         </HBox>
-                  <Separator prefWidth="200.0" />
+                        <Separator prefWidth="200.0" />
                         <HBox prefHeight="38.0" prefWidth="199.0" stylesheets="@../../styles/Dashboard.css">
                             <children>
                                 <ImageView fitHeight="16.0" fitWidth="16.0" pickOnBounds="true" preserveRatio="true">
@@ -245,7 +245,7 @@
                                                         <Insets left="10.0" top="10.0" />
                                                     </HBox.margin>
                                                 </Label>
-                                    <HBox prefHeight="100.0" prefWidth="66.0" />
+                                                <HBox prefHeight="100.0" prefWidth="66.0" />
                                                 <TextField fx:id="txt_enteraddress" prefHeight="42.0" prefWidth="227.0" promptText="Enter Address" styleClass="txt_enter" stylesheets="@../../styles/reserveform.css">
                                                     <HBox.margin>
                                                         <Insets left="-50.0" />
@@ -297,7 +297,7 @@
                                                         <Insets left="10.0" top="10.0" />
                                                     </HBox.margin>
                                                 </Label>
-                                    <ComboBox fx:id="combo_categoryfare" prefHeight="30.0" prefWidth="153.0" promptText="choose fare eg. student" styleClass="combo-boxes" stylesheets="@../../styles/reserveform.css" />
+                                                <ComboBox fx:id="combo_categoryfare" prefHeight="30.0" prefWidth="153.0" promptText="choose fare eg. student" styleClass="combo-boxes" stylesheets="@../../styles/reserveform.css" />
                                             </children>
                                         </HBox>
                                     </children>
@@ -353,11 +353,11 @@
                                                         <Insets left="10.0" top="10.0" />
                                                     </HBox.margin>
                                                 </Label>
-                                    <ComboBox fx:id="combo_travelfrom" prefWidth="150.0" promptText="choose depature" styleClass="combo-boxes" stylesheets="@../../styles/reserveform.css">
-                                       <HBox.margin>
-                                          <Insets right="10.0" />
-                                       </HBox.margin>
-                                    </ComboBox>
+                                                <ComboBox fx:id="combo_travelfrom" prefWidth="150.0" promptText="choose depature" styleClass="combo-boxes" stylesheets="@../../styles/reserveform.css">
+                                                    <HBox.margin>
+                                                        <Insets right="10.0" />
+                                                    </HBox.margin>
+                                                </ComboBox>
                                             </children>
                                         </HBox>
                                         <HBox prefHeight="80.0" prefWidth="200.0" spacing="20.0" styleClass="hbox_back" stylesheets="@../../styles/reserveform.css">
@@ -370,7 +370,7 @@
                                                         <Insets left="10.0" top="10.0" />
                                                     </HBox.margin>
                                                 </Label>
-                                    <ComboBox fx:id="combo_travelto" prefHeight="26.0" prefWidth="150.0" promptText="choose destination" styleClass="combo-boxes" stylesheets="@../../styles/reserveform.css" />
+                                                <ComboBox fx:id="combo_travelto" prefHeight="26.0" prefWidth="150.0" promptText="choose destination" styleClass="combo-boxes" stylesheets="@../../styles/reserveform.css" />
                                             </children>
                                         </HBox>
                                         <HBox prefHeight="80.0" prefWidth="200.0" spacing="20.0" styleClass="hbox_back" stylesheets="@../../styles/reserveform.css">
@@ -383,11 +383,11 @@
                                                         <Insets left="10.0" top="10.0" />
                                                     </HBox.margin>
                                                 </Label>
-                                    <ComboBox fx:id="combo_seatclass" prefHeight="30.0" prefWidth="150.0" promptText="choose seat class" styleClass="combo-boxes" stylesheets="@../../styles/reserveform.css">
-                                       <HBox.margin>
-                                          <Insets right="15.0" />
-                                       </HBox.margin>
-                                    </ComboBox>
+                                                <ComboBox fx:id="combo_seatclass" prefHeight="30.0" prefWidth="150.0" promptText="choose seat class" styleClass="combo-boxes" stylesheets="@../../styles/reserveform.css">
+                                                    <HBox.margin>
+                                                        <Insets right="15.0" />
+                                                    </HBox.margin>
+                                                </ComboBox>
                                             </children>
                                         </HBox>
                                         <HBox prefHeight="76.0" prefWidth="320.0" spacing="19.0" styleClass="hbox_back" stylesheets="@../../styles/reserveform.css">
@@ -400,11 +400,11 @@
                                                         <Insets left="10.0" top="10.0" />
                                                     </HBox.margin>
                                                 </Label>
-                                    <ComboBox fx:id="combo_seatpref" prefHeight="26.0" prefWidth="150.0" promptText="choose seat preference" styleClass="combo-boxes" stylesheets="@../../styles/reserveform.css">
-                                       <HBox.margin>
-                                          <Insets right="13.0" />
-                                       </HBox.margin>
-                                    </ComboBox>
+                                                <ComboBox fx:id="combo_seatpref" prefHeight="26.0" prefWidth="150.0" promptText="choose seat preference" styleClass="combo-boxes" stylesheets="@../../styles/reserveform.css">
+                                                    <HBox.margin>
+                                                        <Insets right="13.0" />
+                                                    </HBox.margin>
+                                                </ComboBox>
                                             </children>
                                         </HBox>
                                     </children>
@@ -419,8 +419,7 @@
                                         </Label>
                                     </children>
                                 </HBox>
-                        <Button fx:id="btn_submit1" layoutX="430.0" layoutY="536.0" mnemonicParsing="false" onAction="#submit_form" styleClass="btn_print_ticket" stylesheets="@../../styles/reserveform.css" text="Print Ticket" />
-                                <!-- Status Label -->
+                                <Button fx:id="btn_submit1" layoutX="430.0" layoutY="536.0" mnemonicParsing="false" onAction="#handlePrintTicket" styleClass="btn_print_ticket" stylesheets="@../../styles/reserveform.css" text="Print Ticket" />
                                 <Label fx:id="lbl_status" layoutX="106.0" layoutY="580.0" prefHeight="25.0" prefWidth="300.0" styleClass="lbl-status" stylesheets="@../../styles/reserveform.css" text="" />
 
                             </children>

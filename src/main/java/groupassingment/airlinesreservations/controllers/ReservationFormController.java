@@ -4,6 +4,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
 import java.util.Random;
+import java.util.concurrent.CompletableFuture; // <-- Needed for async chaining
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 import javafx.application.Platform;
@@ -55,8 +56,8 @@ public class ReservationFormController {
     @FXML private Button btn_settings;
     @FXML private Button btn_logout;
 
-    @FXML private Button btn_submit;
-    @FXML private Button btn_submit1;
+    @FXML private Button btn_submit; // Book/Reserve Button
+    @FXML private Button btn_submit1; // Print Ticket Button
     @FXML private Label lbl_status;
 
 
@@ -66,6 +67,7 @@ public class ReservationFormController {
         populateStaticComboBoxes();
         populateAirportComboBoxes();
         generateUniqueFlightCode();
+        // btn_submit1 (Print Ticket) is disabled until a successful booking
         btn_submit1.setDisable(true);
         lbl_status.setText("");
     }
@@ -79,9 +81,6 @@ public class ReservationFormController {
         txt_enterflightcode.setDisable(true);
     }
 
-    /**
-     * FIX: Trim the token here for defensive programming.
-     */
     public void initializeSessionData(String userAuthToken, String userId, String userEmail) {
         this.userAuthToken = userAuthToken != null ? userAuthToken.trim() : null;
         this.userId = userId;
@@ -145,21 +144,21 @@ public class ReservationFormController {
     }
 
     /**
-     * CRITICAL FIX: The arguments passed to insertCustomer are in the correct order.
+     * Handles the booking process by first checking/inserting the customer and then creating the reservation.
+     * This logic prevents the 409 Duplicate Key error.
      */
     @FXML
     private void handleBookFlight() {
         btn_submit.setDisable(true);
         lbl_status.setText("Checking input...");
 
-        if (userAuthToken == null || userAuthToken.isEmpty() || userId == null || userId.isEmpty()) {
-            showErrorAlert("Session Error (Possible 401 Cause)", "User session data (Auth Token/User ID) is not valid. Ensure 'initializeSessionData' was called correctly.");
+        if (userAuthToken == null || userAuthToken.isEmpty()) {
+            showErrorAlert("Session Error", "User session data (Auth Token) is missing.");
             btn_submit.setDisable(false);
             return;
         }
 
         String validationError = getValidationErrors();
-
         if (validationError != null) {
             lbl_status.setText("Validation failed.");
             showErrorAlert("Input Error", validationError);
@@ -167,41 +166,63 @@ public class ReservationFormController {
             return;
         }
 
-        // 3. Create Customer - CORRECTED CALL
-        supabaseService.insertCustomer(
+        String idNumber = txt_idnumber.getText().trim();
+
+        // 1. Check if Customer already exists by ID Number
+        supabaseService.getCustomerByIdNumber(idNumber, userAuthToken)
+                .thenCompose(customerCheckResponse -> {
+                    if (customerCheckResponse.statusCode() == 200) {
+                        JSONArray existingCustomers = new JSONArray(customerCheckResponse.body());
+                        if (existingCustomers.length() > 0) {
+                            // Customer Found: Extract existing ID and proceed directly to reservation
+                            int existingCustomerId = existingCustomers.getJSONObject(0).getInt("customer_id");
+                            Platform.runLater(() -> lbl_status.setText("Customer already exists. Creating reservation..."));
+                            return CompletableFuture.completedFuture(existingCustomerId);
+                        }
+                    }
+
+                    // Customer Not Found or other 200/404 response: Insert New Customer
+                    Platform.runLater(() -> lbl_status.setText("Inserting new customer..."));
+                    return insertNewCustomer();
+                })
+                .thenAccept(customerId -> {
+                    // 2. Proceed to create the reservation using the (existing or new) customer ID
+                    createReservation(customerId, userAuthToken);
+                })
+                .exceptionally(ex -> {
+                    Platform.runLater(() -> {
+                        showErrorAlert("Booking Error", "An unexpected error occurred during customer handling: " + ex.getMessage());
+                        btn_submit.setDisable(false);
+                    });
+                    return null;
+                });
+    }
+
+    /**
+     * Attempts to insert a new customer record and returns the customer_id.
+     */
+    private CompletableFuture<Integer> insertNewCustomer() {
+        return supabaseService.insertCustomer(
                 txt_entername.getText(),
                 txt_idnumber.getText(),
                 txt_enteraddress.getText(),
                 txt_enteremail.getText(),
                 txt_enterphone.getText(),
                 combo_categoryfare.getValue(),
-                this.userId, // CORRECT: User ID is now the 7th argument for the payload
-                this.userAuthToken // CORRECT: User Token is now the 8th argument for Authorization
-        ).thenAccept(customerResponse -> {
+                this.userAuthToken
+        ).thenApply(customerResponse -> {
             if (customerResponse.statusCode() == 201) {
                 JSONArray newCustomerArray = new JSONArray(customerResponse.body());
                 if (newCustomerArray.length() == 0) {
-                    throw new RuntimeException("Failed to parse new customer data. Response: " + customerResponse.body());
+                    throw new RuntimeException("Failed to parse new customer data after 201. Response: " + customerResponse.body());
                 }
-                int newCustomerId = newCustomerArray.getJSONObject(0).getInt("customer_id");
-
-                // 4. Create Reservation
-                createReservation(newCustomerId, userAuthToken);
-
+                // Extract the newly generated customer_id
+                return newCustomerArray.getJSONObject(0).getInt("customer_id");
             } else {
-                Platform.runLater(() -> {
-                    showErrorAlert("Customer Insertion Failed (400?)",
-                            "Failed to save customer data.\nStatus: " + customerResponse.statusCode() +
-                                    "\nResponse (Check Console): " + customerResponse.body());
-                    btn_submit.setDisable(false);
-                });
+                // This is where a database/schema error (like the previous 'concess' issue) would be caught
+                throw new RuntimeException("Customer Insertion Failed. Status: " + customerResponse.statusCode() +
+                        " | Response: " + customerResponse.body());
             }
-        }).exceptionally(ex -> {
-            Platform.runLater(() -> {
-                showErrorAlert("Booking Error", "An unexpected error occurred during customer insertion: " + ex.getMessage());
-                btn_submit.setDisable(false);
-            });
-            return null;
         });
     }
 
@@ -214,7 +235,6 @@ public class ReservationFormController {
         if (!txt_enteremail.getText().contains("@")) return "Email is invalid. Must contain '@'.";
         if (txt_enterphone.getText().trim().isEmpty()) return "Phone number is required.";
         if (combo_categoryfare.getValue() == null) return "Fare Category must be selected.";
-
         if (txt_enterflightcode.getText().trim().isEmpty()) return "Flight Code is required.";
         if (!txt_enterflightcode.getText().trim().matches("^\\d{6}$")) return "Flight Code must be exactly 6 digits.";
         if (dp_traveldate.getValue() == null) return "Travel Date must be selected.";
@@ -222,7 +242,6 @@ public class ReservationFormController {
         if (combo_travelto.getValue() == null) return "Destination Airport (Travel To) must be selected.";
         if (combo_seatclass.getValue() == null) return "Seat Class must be selected.";
         if (combo_seatpref.getValue() == null) return "Seat Preference must be selected.";
-
         return null;
     }
 
@@ -239,19 +258,12 @@ public class ReservationFormController {
         reservationPayload.put("customer_id", customerId);
         reservationPayload.put("flight_code", flightCode);
         reservationPayload.put("travel_date", travelDate);
-
-        // 🔑 FIX: Corrected keys to match schema
         reservationPayload.put("travel_from", travelFrom);
         reservationPayload.put("travel_to", travelTo);
-
         reservationPayload.put("seat_class", seatClass);
-
-        // 🔑 FIX: Corrected key to match schema
         reservationPayload.put("seat_pref", seatPref);
 
-        // Removed: reservationPayload.put("user_email", this.userEmail); // Not needed in reservations table
-
-        supabaseService.insertFlightBooking(reservationPayload, userAuthToken)
+        supabaseService.addReservation(reservationPayload, userAuthToken)
                 .thenAccept(reservationResponse -> {
                     if (reservationResponse.statusCode() == 201) {
                         lastCalculatedPrice = calculatePrice();
@@ -259,7 +271,7 @@ public class ReservationFormController {
 
                         Platform.runLater(() -> {
                             lbl_status.setText("Booking successful! Code: " + flightCode);
-                            btn_submit1.setDisable(false);
+                            btn_submit1.setDisable(false); // Enable Print Ticket button
                             btn_submit.setDisable(false);
                             generateUniqueFlightCode();
                             showSuccessAlert("Booking Confirmed", "Your flight has been successfully booked (Code: " + flightCode + "). You can now print your ticket.");
@@ -281,6 +293,9 @@ public class ReservationFormController {
                 });
     }
 
+    /**
+     * This method only displays the ticket and does NOT trigger booking logic.
+     */
     @FXML
     private void handlePrintTicket() {
         if (lastBookingDetails == null || lastBookingDetails.isEmpty()) {
@@ -335,7 +350,7 @@ public class ReservationFormController {
                         "Preference: %s\n" +
                         "\n" +
                         "--- PRICE ---\n" +
-                        "Total Paid: $%.2f",
+                        "Total Paid: M%.2f", // Using Maluti (M)
                 txt_entername.getText(),
                 txt_enteremail.getText(),
                 txt_enterphone.getText(),
@@ -368,6 +383,7 @@ public class ReservationFormController {
         alert.showAndWait();
     }
 
+    // This method is correctly mapped to btn_submit (Reserve)
     @FXML
     public void submit_form(ActionEvent actionEvent) {
         handleBookFlight();

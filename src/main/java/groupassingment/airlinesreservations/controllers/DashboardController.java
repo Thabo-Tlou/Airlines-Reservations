@@ -47,10 +47,10 @@ public class DashboardController {
     @FXML private Label memberSinceLabel;
     @FXML private Label bookingCountLabel;
 
-    // FXML elements for Sidebar Navigation Buttons (NEWLY ADDED)
+    // FXML elements for Sidebar Navigation Buttons
     @FXML private Button btn_dashboard;
     @FXML private Button btn_reservation;
-    @FXML private Button btn_manage_reservations; // Using the ID from your latest instruction
+    @FXML private Button btn_manage_reservations;
     @FXML private Button btn_feedback;
     @FXML private Button btn_support;
     @FXML private Button btn_settings;
@@ -59,7 +59,7 @@ public class DashboardController {
     private String currentUserEmail;
     private String currentUserId;
     private String currentUserName;
-    private String currentUserToken; // 💡 STORED TOKEN
+    private String currentUserToken;
     private SupabaseService supabaseService;
 
     // Pricing data
@@ -98,7 +98,7 @@ public class DashboardController {
         passengerSpinner.valueProperty().addListener((obs, oldVal, newVal) -> updatePriceCalculation());
         dateComboBox.valueProperty().addListener((obs, oldVal, newVal) -> updateBookingSummary());
 
-        // Navigation button handlers (NEWLY ADDED)
+        // Navigation button handlers
         if (btn_dashboard != null) btn_dashboard.setOnAction(event -> handleViewDashboard());
         if (btn_reservation != null) btn_reservation.setOnAction(event -> handleViewReservation());
         if (btn_manage_reservations != null) btn_manage_reservations.setOnAction(event -> handleManageReservations());
@@ -362,6 +362,7 @@ public class DashboardController {
 
                     if (response.statusCode() == 200) {
                         try {
+                            // Assumes getUserBookings now retrieves data from the 'reservations' table
                             JSONArray bookings = new JSONArray(response.body());
                             System.out.println("Found " + bookings.length() + " bookings for user");
                             calculateUserStatistics(bookings);
@@ -392,8 +393,10 @@ public class DashboardController {
 
             for (int i = 0; i < bookings.length(); i++) {
                 JSONObject booking = bookings.getJSONObject(i);
-                String status = booking.optString("status", "");
-                String flightDateStr = booking.optString("flight_date", "");
+
+                // Assuming 'reservations' table fields:
+                String status = booking.optString("status", "confirmed");
+                String flightDateStr = booking.optString("travel_date", ""); // 🔑 Updated to 'travel_date'
                 double price = booking.optDouble("price", 0.0);
 
                 totalSpending += price;
@@ -446,8 +449,7 @@ public class DashboardController {
     // ---------------- USER SETUP ----------------
 
     /**
-     * FIX: Updated to accept and store the user token for authenticated database calls.
-     * CRITICAL FIX APPLIED: The userToken is now trimmed to remove whitespace that breaks the JWT format.
+     * Initializes user session data passed from the LoginController.
      */
     public void initializeUserData(String userEmail, String userId, String userToken) {
         System.out.println("=== INITIALIZING USER DATA ===");
@@ -476,7 +478,7 @@ public class DashboardController {
     }
 
     /**
-     * FIX APPLIED: Now passes the currentUserToken to the SupabaseService.
+     * Fetches user profile data from 'passenger_info' table.
      */
     private void loadUserProfileData() {
         if (currentUserEmail == null || currentUserToken == null) {
@@ -511,8 +513,7 @@ public class DashboardController {
     }
 
     /**
-     * ✅ FIX APPLIED: Now passes the currentUserId and currentUserToken to the SupabaseService
-     * to match the 6-argument signature.
+     * Creates a new 'passenger_info' record if one does not exist.
      */
     private void createNewPassengerRecord() {
         if (currentUserId == null || currentUserToken == null) {
@@ -524,7 +525,7 @@ public class DashboardController {
         System.out.println("Creating new passenger record for: " + currentUserEmail);
         String[] nameParts = extractNamesFromEmail(currentUserEmail);
 
-        // 🟢 FIX: Pass the userId (6th argument)
+        // Pass the userId (5th argument) and token (6th argument)
         supabaseService.insertPassenger(nameParts[0], nameParts[1], currentUserEmail, "Not provided", currentUserId, currentUserToken)
                 .thenAccept(response -> {
                     System.out.println("Create passenger response - Status: " + response.statusCode());
@@ -545,7 +546,7 @@ public class DashboardController {
     }
 
     /**
-     * FIX APPLIED: Now passes the currentUserToken to the SupabaseService.
+     * Finalizes profile data load after a new record is created.
      */
     private void fetchAndFinalizeProfileData() {
         if (currentUserToken == null) {
@@ -673,6 +674,7 @@ public class DashboardController {
             double totalPrice = baseFare * passengers;
 
             JSONObject bookingData = new JSONObject();
+            // Note: This dashboard button creates a record in 'flight_bookings' (legacy method)
             bookingData.put("user_email", currentUserEmail);
             bookingData.put("user_id", currentUserId);
             bookingData.put("origin", originCode);
@@ -769,10 +771,7 @@ public class DashboardController {
     private void handleViewDashboard() {
         // Since this controller IS the Dashboard, reloading it essentially means
         // replacing the current scene with the dashboard FXML again.
-        // We assume Dashboard.fxml is located in the same package root as the controllers.
         loadAndSwitchScene("/groupassingment/airlinesreservations/Dashboard.fxml", "Dashboard", null);
-        // Note: For a real app, you would swap a pane, not the entire scene,
-        // but for this structure, scene replacement is the most reliable method.
     }
 
     /**
@@ -795,8 +794,7 @@ public class DashboardController {
             // Get the controller and pass the session data
             ReservationFormController reservationController = loader.getController();
 
-            // NOTE: The token is already trimmed in initializeUserData() of this DashboardController,
-            // but we pass the clean token on to the next controller.
+            // Pass the clean token on to the next controller.
             reservationController.initializeSessionData(currentUserToken, currentUserId, currentUserEmail);
 
             // Switch the scene
@@ -806,17 +804,13 @@ public class DashboardController {
             stage.centerOnScreen();
         } catch (IOException e) {
             e.printStackTrace();
-            showAlert("Navigation Error", "Unable to load New Reservation view. Check that Reservation-Form.fxml exists: " + e.getMessage());
+            showAlert("Navigation Error", "Unable to load New Reservation view. Check that ReservationForm.fxml exists: " + e.getMessage());
         }
     }
 
     /**
-     * Placeholder for Manage Reservations view.
+     * Navigates to the Manage Reservations view.
      */
-    // Inside DashboardController.java
-
-// ... (Other navigation handlers)
-
     @FXML
     private void handleManageReservations() {
         if (currentUserEmail == null) {
@@ -832,11 +826,15 @@ public class DashboardController {
             Parent root = loader.load();
 
             // 2. Get the controller and pass the session data
-            // NOTE: Replace 'ManageReservationsController' with your actual controller class name
-            ManageReservationsController manageReservationsController = loader.getController();
+            // NOTE: Assuming 'ManageReservationsController' is the class name
+            // The class must be available in your project for this to work
+            Object controller = loader.getController();
 
-            // Pass the session data (token, ID, email)
-            manageReservationsController.initializeSessionData(currentUserToken, currentUserId, currentUserEmail);
+            // If the controller implements the correct method, initialize session data
+            if (controller instanceof ManageReservationsController) {
+                ManageReservationsController manageReservationsController = (ManageReservationsController) controller;
+                manageReservationsController.initializeSessionData(currentUserToken, currentUserId, currentUserEmail);
+            }
 
             // 3. Switch the scene
             Scene scene = new Scene(root);
@@ -845,16 +843,21 @@ public class DashboardController {
             stage.centerOnScreen();
         } catch (IOException e) {
             e.printStackTrace();
-            showAlert("Navigation Error", "Unable to load Manage Reservations view. Check that ManageReservations.fxml exists: " + e.getMessage());
+            showAlert("Navigation Error", "Unable to load Manage Reservations view. Check that ManageReservations.fxml and its controller exist: " + e.getMessage());
+        } catch (ClassCastException e) {
+            e.printStackTrace();
+            showAlert("Controller Error", "The controller for ManageReservations.fxml is not recognized or missing the initializeSessionData method.");
         }
     }
+
     /**
      * Placeholder for Feedback view.
      */
     @FXML
     private void handleViewFeedback() {
         showAlert("Feature Coming Soon", "The Feedback section is where you can share your experience with Bokamoso Airlines.");
-        loadAndSwitchScene("/groupassingment/airlinesreservations/Feedback.fxml", "Feedback", null);
+        // If the FXML file exists:
+        // loadAndSwitchScene("/groupassingment/airlinesreservations/Feedback.fxml", "Feedback", null);
     }
 
     /**
@@ -863,7 +866,8 @@ public class DashboardController {
     @FXML
     private void handleViewSupport() {
         showAlert("Feature Coming Soon", "Access our support resources and contact us for assistance here.");
-        loadAndSwitchScene("/groupassingment/airlinesreservations/Support.fxml", "Support", null);
+        // If the FXML file exists:
+        // loadAndSwitchScene("/groupassingment/airlinesreservations/Support.fxml", "Support", null);
     }
 
     /**
@@ -872,12 +876,13 @@ public class DashboardController {
     @FXML
     private void handleViewSettings() {
         showAlert("Feature Coming Soon", "Settings will allow you to update your profile and preferences.");
-        loadAndSwitchScene("/groupassingment/airlinesreservations/Settings.fxml", "Settings", null);
+        // If the FXML file exists:
+        // loadAndSwitchScene("/groupassingment/airlinesreservations/Settings.fxml", "Settings", null);
     }
 
     @FXML
     private void handleReservationView() {
-        // This old placeholder is replaced by handleViewManageReservations for consistency
+        // This old method is routed to the correct handler for consistency
         handleManageReservations();
     }
 
