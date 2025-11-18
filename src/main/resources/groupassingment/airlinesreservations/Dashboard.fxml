@@ -270,36 +270,46 @@
                         </HBox>
 
                         <!-- Main Content Area with Flight Booking and Details Cards -->
-                        <HBox prefHeight="271.0" prefWidth="620.0" spacing="20.0">
+                        <HBox prefHeight="388.0" prefWidth="648.0" spacing="20.0">
                             <children>
                                 <!-- Book Flight Card -->
-                                <VBox prefHeight="369.0" prefWidth="393.0" styleClass="Search_bar" stylesheets="@../../styles/Dashboard.css">
+                                <VBox prefHeight="391.0" prefWidth="391.0" styleClass="Search_bar" stylesheets="@../../styles/Dashboard.css">
                                     <children>
                                         <Label styleClass="section-title" text="Book New Flight" />
                                         <HBox prefHeight="185.0" prefWidth="395.0" spacing="10.0">
                                             <children>
-                                                <ImageView fitHeight="106.0" fitWidth="155.0" pickOnBounds="true" preserveRatio="true">
-                                                    <image>
-                                                        <Image url="@../../images/flight.png" />
-                                                    </image>
-                                                    <HBox.margin>
-                                                        <Insets left="10.0" />
-                                                    </HBox.margin>
-                                                </ImageView>
-                                                <VBox prefHeight="160.0" prefWidth="231.0" spacing="10.0">
+                                    <VBox prefHeight="200.0" prefWidth="100.0">
+                                       <children>
+                                                      <ImageView fitHeight="106.0" fitWidth="155.0" pickOnBounds="true" preserveRatio="true">
+                                                          <image>
+                                                              <Image url="@../../images/flight.png" />
+                                                          </image>
+                                                      </ImageView>
+                                          <VBox prefHeight="200.0" prefWidth="100.0" spacing="20.0">
+                                             <children>
+                                                                  <ComboBox fx:id="customFareComboBox" prefWidth="250.0" promptText="Select fare type" styleClass="combo-box" />
+                                                                  <ComboBox fx:id="classComboBox" prefWidth="250.0" promptText="Select class" styleClass="combo-box" />
+                                             </children>
+                                             <VBox.margin>
+                                                <Insets left="10.0" />
+                                             </VBox.margin>
+                                          </VBox>
+                                       </children>
+                                    </VBox>
+                                                <VBox prefHeight="293.0" prefWidth="248.0" spacing="10.0">
                                                     <children>
                                                         <HBox spacing="10.0">
                                                             <children>
                                                                 <VBox spacing="5.0">
                                                                     <children>
                                                                         <Label styleClass="form-label" text="From" />
-                                                                        <ComboBox fx:id="originComboBox" prefWidth="120.0" promptText="Select origin" styleClass="combo-box" />
+                                                                        <ComboBox fx:id="originComboBox" prefHeight="40.0" prefWidth="140.0" promptText="Select origin" styleClass="combo-box" />
                                                                     </children>
                                                                 </VBox>
                                                                 <VBox spacing="5.0">
                                                                     <children>
                                                                         <Label styleClass="form-label" text="To" />
-                                                                        <ComboBox fx:id="destinationComboBox" prefWidth="120.0" promptText="Select destination" styleClass="combo-box" />
+                                                                        <ComboBox fx:id="destinationComboBox" prefHeight="40.0" prefWidth="136.0" promptText="Select destination" styleClass="combo-box" />
                                                                     </children>
                                                                 </VBox>
                                                             </children>
@@ -344,24 +354,22 @@
                                                                 <Label fx:id="priceLabel" styleClass="price-display" text="M0.00" />
                                                             </children>
                                                         </HBox>
-                                                        <Button fx:id="bookFlightButton" mnemonicParsing="false" onAction="#handleBookFlight" styleClass="book-button" text="Book Flight">
-                                                            <VBox.margin>
-                                                                <Insets left="63.0" top="20.0" />
-                                                            </VBox.margin>
-                                                        </Button>
                                                     </children>
                                                     <padding>
                                                         <Insets right="10.0" />
                                                     </padding>
                                                 </VBox>
-                                    <HBox prefHeight="218.0" prefWidth="100.0">
-                                       <children>
-                                                            <ComboBox fx:id="customFareComboBox" prefWidth="250.0" promptText="Select fare type" styleClass="combo-box" />
-                                                            <ComboBox fx:id="classComboBox" prefWidth="250.0" promptText="Select class" styleClass="combo-box" />
-                                       </children>
-                                    </HBox>
                                             </children>
                                         </HBox>
+                              <HBox prefHeight="122.0" prefWidth="391.0">
+                                 <children>
+                                                  <Button fx:id="bookFlightButton" mnemonicParsing="false" onAction="#handleBookFlight" styleClass="book-button" text="Book Flight">
+                                       <HBox.margin>
+                                          <Insets left="147.0" top="23.0" />
+                                       </HBox.margin>
+                                                  </Button>
+                                 </children>
+                              </HBox>
                                     </children>
                                 </VBox>
 
