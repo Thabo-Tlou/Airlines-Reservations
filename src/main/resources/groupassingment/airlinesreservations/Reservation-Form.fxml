@@ -2,9 +2,12 @@
 
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
+<?import javafx.scene.control.CheckBox?>
 <?import javafx.scene.control.ComboBox?>
 <?import javafx.scene.control.DatePicker?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ProgressBar?>
+<?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.control.Separator?>
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.image.Image?>
@@ -12,423 +15,373 @@
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.HBox?>
-<?import javafx.scene.layout.Pane?>
+<?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.VBox?>
 
-<AnchorPane prefHeight="600.0" prefWidth="900.0" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="groupassingment.airlinesreservations.controllers.ReservationFormController">
+<AnchorPane prefHeight="800.0" prefWidth="1200.0" styleClass="main-container" xmlns="http://javafx.com/javafx/20.0.2" xmlns:fx="http://javafx.com/fxml/1" fx:controller="groupassingment.airlinesreservations.controllers.ReservationFormController">
+
     <children>
-        <BorderPane layoutX="77.0" layoutY="148.0" prefHeight="600.0" prefWidth="900.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+        <BorderPane layoutX="77.0" layoutY="148.0" prefHeight="800.0" prefWidth="1200.0" styleClass="border-pane-main" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+
             <left>
-                <VBox prefHeight="600.0" prefWidth="240.0" spacing="5.0" styleClass="con_left" stylesheets="@../../styles/Dashboard.css" BorderPane.alignment="CENTER">
+                <!-- Stunning Sidebar -->
+                <VBox prefHeight="800.0" prefWidth="300.0" spacing="0" styleClass="sidebar-main">
                     <children>
-                        <HBox prefHeight="48.0" prefWidth="231.0">
+                        <!-- Logo Section -->
+                        <HBox alignment="CENTER" prefHeight="140.0" prefWidth="300.0" styleClass="sidebar-header" stylesheets="@../../styles/reserveform.css">
                             <children>
-                                <ImageView fitHeight="57.0" fitWidth="79.0" pickOnBounds="true" preserveRatio="true">
-                                    <image>
-                                        <Image url="@../../images/logo2.png" />
-                                    </image>
-                                </ImageView>
-                                <Label styleClass="lbl_logo" stylesheets="@../../styles/Dashboard.css" text="Bokamoso">
-                                    <HBox.margin>
-                                        <Insets top="16.0" />
-                                    </HBox.margin>
-                                </Label>
-                                <Label styleClass="lbl_logo2" stylesheets="@../../styles/Dashboard.css" text="Airlines">
-                                    <HBox.margin>
-                                        <Insets left="10.0" top="17.0" />
-                                    </HBox.margin></Label>
+                                <VBox alignment="CENTER" spacing="10">
+                                    <ImageView fitHeight="70.0" fitWidth="70.0" pickOnBounds="true" preserveRatio="true" styleClass="logo-image">
+                                        <image>
+                                            <Image url="@../../images/logo2.png" />
+                                        </image>
+                                    </ImageView>
+                                    <VBox alignment="CENTER" spacing="2">
+                                        <Label styleClass="logo-text-main" text="Bokamoso" />
+                                        <Label styleClass="logo-text-sub" text="Airlines" />
+                                    </VBox>
+                                </VBox>
                             </children>
-                            <VBox.margin>
-                                <Insets top="10.0" />
-                            </VBox.margin>
                         </HBox>
-                        <Separator prefWidth="200.0" />
-                        <HBox prefHeight="38.0" prefWidth="199.0" stylesheets="@../../styles/Dashboard.css">
+
+                        <Separator styleClass="sidebar-separator" />
+
+                        <!-- Navigation Menu -->
+                        <VBox spacing="2" styleClass="nav-menu" stylesheets="@../../styles/reserveform.css" VBox.vgrow="ALWAYS">
                             <children>
-                                <ImageView fitHeight="16.0" fitWidth="16.0" pickOnBounds="true" preserveRatio="true">
-                                    <image>
-                                        <Image url="@../../images/icons/dashboard.png" />
-                                    </image>
-                                    <HBox.margin>
-                                        <Insets left="10.0" top="12.0" />
-                                    </HBox.margin>
-                                </ImageView>
-                                <Button mnemonicParsing="false" styleClass="btn_dashboard" text="Dashboard">
-                                    <HBox.margin>
-                                        <Insets top="7.0" />
-                                    </HBox.margin></Button>
-                            </children>
-                            <VBox.margin>
-                                <Insets right="30.0" />
-                            </VBox.margin>
-                        </HBox>
-                        <HBox prefHeight="38.0" prefWidth="230.0" styleClass="active">
-                            <children>
-                                <ImageView fitHeight="18.0" fitWidth="18.0" pickOnBounds="true" preserveRatio="true">
-                                    <image>
-                                        <Image url="@../../images/icons/eservation.png" />
-                                    </image>
-                                    <HBox.margin>
-                                        <Insets left="10.0" top="12.0" />
-                                    </HBox.margin>
-                                </ImageView>
-                                <Button mnemonicParsing="false" styleClass="btn_dashboard" stylesheets="@../../styles/Dashboard.css" text="Reservation">
-                                    <HBox.margin>
-                                        <Insets top="3.0" />
-                                    </HBox.margin></Button>
-                            </children>
-                            <VBox.margin>
-                                <Insets right="30.0" />
-                            </VBox.margin>
-                        </HBox>
-                        <HBox prefHeight="38.0" prefWidth="229.0">
-                            <children>
-                                <ImageView fitHeight="18.0" fitWidth="18.0" pickOnBounds="true" preserveRatio="true">
-                                    <image>
-                                        <Image url="@../../images/icons/manage.png" />
-                                    </image>
-                                    <HBox.margin>
-                                        <Insets left="10.0" top="12.0" />
-                                    </HBox.margin>
-                                </ImageView>
-                                <Button mnemonicParsing="false" styleClass="btn_dashboard" text="Manage Reservations">
-                                    <HBox.margin>
-                                        <Insets top="3.0" />
-                                    </HBox.margin></Button>
-                            </children>
-                            <VBox.margin>
-                                <Insets right="30.0" />
-                            </VBox.margin>
-                        </HBox>
-                        <HBox prefHeight="38.0" prefWidth="229.0">
-                            <children>
-                                <ImageView fitHeight="18.0" fitWidth="18.0" pickOnBounds="true" preserveRatio="true">
-                                    <image>
-                                        <Image url="@../../images/icons/feedback.png" />
-                                    </image>
-                                    <HBox.margin>
-                                        <Insets left="10.0" top="12.0" />
-                                    </HBox.margin>
-                                </ImageView>
-                                <Button mnemonicParsing="false" styleClass="btn_dashboard" stylesheets="@../../styles/Dashboard.css" text="Feedback">
-                                    <HBox.margin>
-                                        <Insets top="3.0" />
-                                    </HBox.margin></Button>
-                            </children>
-                            <VBox.margin>
-                                <Insets right="30.0" />
-                            </VBox.margin>
-                        </HBox>
-                        <VBox prefHeight="342.0" prefWidth="231.0" spacing="5.0">
-                            <children>
-                                <HBox prefHeight="38.0" prefWidth="229.0">
+                                <HBox alignment="CENTER_LEFT" prefHeight="60.0" prefWidth="300.0" styleClass="nav-item" stylesheets="@../../styles/reserveform.css">
                                     <children>
-                                        <ImageView fitHeight="18.0" fitWidth="18.0" pickOnBounds="true" preserveRatio="true">
+                                        <ImageView fitHeight="24.0" fitWidth="24.0" pickOnBounds="true" preserveRatio="true" styleClass="nav-icon">
+                                            <image>
+                                                <Image url="@../../images/icons/dashboard.png" />
+                                            </image>
+                                        </ImageView>
+                                        <Label styleClass="nav-label" text="Dashboard" />
+                                    </children>
+                                    <padding>
+                                        <Insets left="30.0" />
+                                    </padding>
+                                </HBox>
+
+                                <HBox alignment="CENTER_LEFT" prefHeight="60.0" prefWidth="300.0" styleClass="nav-item-active">
+                                    <children>
+                                        <ImageView fitHeight="24.0" fitWidth="24.0" pickOnBounds="true" preserveRatio="true" styleClass="nav-icon">
+                                            <image>
+                                                <Image url="@../../images/icons/eservation.png" />
+                                            </image>
+                                        </ImageView>
+                                        <Label styleClass="nav-label-active" text="Reservation" />
+                                    </children>
+                                    <padding>
+                                        <Insets left="30.0" />
+                                    </padding>
+                                </HBox>
+
+                                <HBox alignment="CENTER_LEFT" prefHeight="60.0" prefWidth="300.0" styleClass="nav-item" stylesheets="@../../styles/reserveform.css">
+                                    <children>
+                                        <ImageView fitHeight="24.0" fitWidth="24.0" pickOnBounds="true" preserveRatio="true" styleClass="nav-icon">
+                                            <image>
+                                                <Image url="@../../images/icons/manage.png" />
+                                            </image>
+                                        </ImageView>
+                                        <Label styleClass="nav-label" text="Manage Reservations" />
+                                    </children>
+                                    <padding>
+                                        <Insets left="30.0" />
+                                    </padding>
+                                </HBox>
+
+                                <HBox alignment="CENTER_LEFT" prefHeight="60.0" prefWidth="300.0" styleClass="nav-item" stylesheets="@../../styles/reserveform.css">
+                                    <children>
+                                        <ImageView fitHeight="24.0" fitWidth="24.0" pickOnBounds="true" preserveRatio="true" styleClass="nav-icon">
+                                            <image>
+                                                <Image url="@../../images/icons/feedback.png" />
+                                            </image>
+                                        </ImageView>
+                                        <Label styleClass="nav-label" text="Feedback" />
+                                    </children>
+                                    <padding>
+                                        <Insets left="30.0" />
+                                    </padding>
+                                </HBox>
+                            </children>
+                        </VBox>
+
+                        <!-- Bottom Navigation -->
+                        <VBox spacing="2" styleClass="nav-menu-bottom" stylesheets="@../../styles/reserveform.css">
+                            <children>
+                                <HBox alignment="CENTER_LEFT" prefHeight="60.0" prefWidth="300.0" styleClass="nav-item" stylesheets="@../../styles/reserveform.css">
+                                    <children>
+                                        <ImageView fitHeight="24.0" fitWidth="24.0" pickOnBounds="true" preserveRatio="true" styleClass="nav-icon">
                                             <image>
                                                 <Image url="@../../images/icons/support.png" />
                                             </image>
-                                            <HBox.margin>
-                                                <Insets left="10.0" top="12.0" />
-                                            </HBox.margin>
                                         </ImageView>
-                                        <Button mnemonicParsing="false" styleClass="btn_dashboard" stylesheets="@../../styles/Dashboard.css" text="Support">
-                                            <HBox.margin>
-                                                <Insets top="3.0" />
-                                            </HBox.margin></Button>
+                                        <Label styleClass="nav-label" text="Support" />
                                     </children>
-                                    <VBox.margin>
-                                        <Insets right="30.0" top="207.0" />
-                                    </VBox.margin>
+                                    <padding>
+                                        <Insets left="30.0" />
+                                    </padding>
                                 </HBox>
-                                <HBox prefHeight="38.0" prefWidth="229.0">
+
+                                <HBox alignment="CENTER_LEFT" prefHeight="60.0" prefWidth="300.0" styleClass="nav-item" stylesheets="@../../styles/reserveform.css">
                                     <children>
-                                        <ImageView fitHeight="18.0" fitWidth="18.0" pickOnBounds="true" preserveRatio="true">
+                                        <ImageView fitHeight="24.0" fitWidth="24.0" pickOnBounds="true" preserveRatio="true" styleClass="nav-icon">
                                             <image>
                                                 <Image url="@../../images/icons/settings.png" />
                                             </image>
-                                            <HBox.margin>
-                                                <Insets left="10.0" top="12.0" />
-                                            </HBox.margin>
                                         </ImageView>
-                                        <Button mnemonicParsing="false" styleClass="btn_dashboard" stylesheets="@../../styles/Dashboard.css" text="Settings">
-                                            <HBox.margin>
-                                                <Insets top="3.0" />
-                                            </HBox.margin></Button>
+                                        <Label styleClass="nav-label" text="Settings" />
                                     </children>
-                                    <VBox.margin>
-                                        <Insets right="30.0" />
-                                    </VBox.margin>
+                                    <padding>
+                                        <Insets left="30.0" />
+                                    </padding>
                                 </HBox>
-                                <HBox prefHeight="38.0" prefWidth="229.0">
+
+                                <HBox alignment="CENTER_LEFT" prefHeight="60.0" prefWidth="300.0" styleClass="nav-item-logout" stylesheets="@../../styles/reserveform.css">
                                     <children>
-                                        <ImageView fitHeight="18.0" fitWidth="18.0" pickOnBounds="true" preserveRatio="true">
+                                        <ImageView fitHeight="24.0" fitWidth="24.0" pickOnBounds="true" preserveRatio="true" styleClass="nav-icon">
                                             <image>
                                                 <Image url="@../../images/icons/logout.png" />
                                             </image>
-                                            <HBox.margin>
-                                                <Insets left="10.0" top="12.0" />
-                                            </HBox.margin>
                                         </ImageView>
-                                        <Button mnemonicParsing="false" styleClass="btn_dashboard" stylesheets="@../../styles/Dashboard.css" text="Logout">
-                                            <HBox.margin>
-                                                <Insets top="3.0" />
-                                            </HBox.margin></Button>
+                                        <Label styleClass="nav-label-logout" text="Logout" />
                                     </children>
-                                    <VBox.margin>
-                                        <Insets right="30.0" />
-                                    </VBox.margin>
+                                    <padding>
+                                        <Insets left="30.0" />
+                                    </padding>
                                 </HBox>
                             </children>
-                            <VBox.margin>
-                                <Insets />
-                            </VBox.margin>
                         </VBox>
                     </children>
-                    <padding>
-                        <Insets left="10.0" />
-                    </padding>
                 </VBox>
             </left>
+
             <center>
-                <VBox prefHeight="200.0" prefWidth="100.0" BorderPane.alignment="CENTER">
-                    <children>
-                        <Pane prefHeight="602.0" prefWidth="660.0">
+                <!-- Main Content with Scrolling -->
+                <ScrollPane fitToHeight="true" fitToWidth="true" hbarPolicy="NEVER" styleClass="main-scroll-pane" vbarPolicy="AS_NEEDED">
+                    <content>
+                        <VBox spacing="0" styleClass="scroll-content">
                             <children>
-                                <VBox layoutX="10.0" layoutY="68.0" prefHeight="450.0" prefWidth="314.0" styleClass="vbox_background" stylesheets="@../../styles/reserveform.css">
+                                <!-- Premium Header -->
+                                <HBox alignment="CENTER_LEFT" prefHeight="81.0" prefWidth="953.0" styleClass="main-header" stylesheets="@../../styles/reserveform.css">
                                     <children>
-                                        <Label fx:id="lbl_customer" styleClass="lbl-header" stylesheets="@../../styles/reserveform.css" text="Customer Data">
-                                            <VBox.margin>
-                                                <Insets left="25.0" top="20.0" />
-                                            </VBox.margin>
-                                        </Label>
-                                        <HBox prefHeight="66.0" prefWidth="292.0" spacing="83.0" styleClass="hbox_back" stylesheets="@../../styles/reserveform.css">
-                                            <VBox.margin>
-                                                <Insets />
-                                            </VBox.margin>
+                                        <VBox spacing="8">
                                             <children>
-                                                <Label styleClass="lbl-headings" stylesheets="@../../styles/reserveform.css" text="Name">
-                                                    <HBox.margin>
-                                                        <Insets left="10.0" top="10.0" />
-                                                    </HBox.margin>
-                                                </Label>
-                                                <TextField fx:id="txt_entername" prefHeight="42.0" prefWidth="273.0" promptText="Enter Name" styleClass="txt_enter" stylesheets="@../../styles/reserveform.css">
-                                                    <HBox.margin>
-                                                        <Insets left="-60.0" />
-                                                    </HBox.margin>
-                                                </TextField>
+                                                <Label styleClass="main-title" stylesheets="@../../styles/reserveform.css" text="FLIGHT RESERVATION">
+                                       <VBox.margin>
+                                          <Insets left="10.0" />
+                                       </VBox.margin></Label>
+                                                <Label styleClass="main-subtitle" stylesheets="@../../styles/reserveform.css" text="Experience luxury in the skies with Bokamoso Airlines">
+                                       <VBox.margin>
+                                          <Insets left="10.0" />
+                                       </VBox.margin></Label>
                                             </children>
-                                        </HBox>
-                                        <HBox prefHeight="63.0" prefWidth="200.0" spacing="72.0" styleClass="hbox_back" stylesheets="@../../styles/reserveform.css">
-                                            <VBox.margin>
-                                                <Insets />
-                                            </VBox.margin>
-                                            <children>
-                                                <Label styleClass="lbl-headings" stylesheets="@../../styles/reserveform.css" text="ID Num">
-                                                    <HBox.margin>
-                                                        <Insets left="10.0" top="10.0" />
-                                                    </HBox.margin>
-                                                </Label>
-                                                <TextField fx:id="txt_idnumber" prefWidth="186.6" promptText="Enter ID Number" styleClass="txt_enter" stylesheets="@../../styles/reserveform.css">
-                                                    <HBox.margin>
-                                                        <Insets left="-50.0" />
-                                                    </HBox.margin>
-                                                </TextField>
-                                            </children>
-                                        </HBox>
-                                        <HBox prefHeight="80.0" prefWidth="200.0" spacing="3.0" styleClass="hbox_back" stylesheets="@../../styles/reserveform.css">
-                                            <VBox.margin>
-                                                <Insets />
-                                            </VBox.margin>
-                                            <children>
-                                                <Label minWidth="77.0" prefHeight="17.0" prefWidth="77.0" styleClass="lbl-headings" stylesheets="@../../styles/reserveform.css" text="Address">
-                                                    <HBox.margin>
-                                                        <Insets left="10.0" top="10.0" />
-                                                    </HBox.margin>
-                                                </Label>
-                                                <HBox prefHeight="100.0" prefWidth="66.0" />
-                                                <TextField fx:id="txt_enteraddress" prefHeight="42.0" prefWidth="227.0" promptText="Enter Address" styleClass="txt_enter" stylesheets="@../../styles/reserveform.css">
-                                                    <HBox.margin>
-                                                        <Insets left="-50.0" />
-                                                    </HBox.margin>
-                                                </TextField>
-                                            </children>
-                                        </HBox>
-                                        <HBox prefHeight="80.0" prefWidth="200.0" spacing="83.0" styleClass="hbox_back" stylesheets="@../../styles/reserveform.css">
-                                            <VBox.margin>
-                                                <Insets />
-                                            </VBox.margin>
-                                            <children>
-                                                <Label styleClass="lbl-headings" stylesheets="@../../styles/reserveform.css" text="Email">
-                                                    <HBox.margin>
-                                                        <Insets left="10.0" top="10.0" />
-                                                    </HBox.margin>
-                                                </Label>
-                                                <TextField fx:id="txt_enteremail" prefHeight="41.0" prefWidth="211.0" promptText="Enter Email" styleClass="txt_enter" stylesheets="@../../styles/reserveform.css">
-                                                    <HBox.margin>
-                                                        <Insets left="-60.0" />
-                                                    </HBox.margin>
-                                                </TextField>
-                                            </children>
-                                        </HBox>
-                                        <HBox prefHeight="80.0" prefWidth="200.0" spacing="78.0" styleClass="hbox_back" stylesheets="@../../styles/reserveform.css">
-                                            <VBox.margin>
-                                                <Insets />
-                                            </VBox.margin>
-                                            <children>
-                                                <Label styleClass="lbl-headings" stylesheets="@../../styles/reserveform.css" text="Phone">
-                                                    <HBox.margin>
-                                                        <Insets left="10.0" top="10.0" />
-                                                    </HBox.margin>
-                                                </Label>
-                                                <TextField fx:id="txt_enterphone" prefHeight="28.0" prefWidth="186.6" promptText="Enter Phone Number" styleClass="txt_enter" stylesheets="@../../styles/reserveform.css">
-                                                    <HBox.margin>
-                                                        <Insets left="-55.0" />
-                                                    </HBox.margin>
-                                                </TextField>
-                                            </children>
-                                        </HBox>
-                                        <HBox prefHeight="81.0" prefWidth="348.0" spacing="26.0" styleClass="hbox_back" stylesheets="@../../styles/reserveform.css">
-                                            <VBox.margin>
-                                                <Insets bottom="10.0" />
-                                            </VBox.margin>
-                                            <children>
-                                                <Label styleClass="lbl-headings" stylesheets="@../../styles/reserveform.css" text="Category Fare">
-                                                    <HBox.margin>
-                                                        <Insets left="10.0" top="10.0" />
-                                                    </HBox.margin>
-                                                </Label>
-                                                <ComboBox fx:id="combo_categoryfare" prefHeight="30.0" prefWidth="153.0" promptText="choose fare eg. student" styleClass="combo-boxes" stylesheets="@../../styles/reserveform.css" />
-                                            </children>
-                                        </HBox>
-                                    </children>
-                                </VBox>
-                                <VBox layoutX="329.0" layoutY="68.0" prefHeight="450.0" prefWidth="322.0" styleClass="vbox_background" stylesheets="@../../styles/reserveform.css">
-                                    <children>
-                                        <Label fx:id="lbl_flight" styleClass="lbl-header" stylesheets="@../../styles/reserveform.css" text="Flight Details">
-                                            <VBox.margin>
-                                                <Insets left="25.0" top="20.0" />
-                                            </VBox.margin>
-                                        </Label>
-                                        <HBox prefHeight="80.0" prefWidth="200.0" spacing="76.0" styleClass="hbox_back" stylesheets="@../../styles/reserveform.css">
-                                            <VBox.margin>
-                                                <Insets />
-                                            </VBox.margin>
-                                            <children>
-                                                <Label styleClass="lbl-headings" stylesheets="@../../styles/reserveform.css" text="Flight Code">
-                                                    <HBox.margin>
-                                                        <Insets left="10.0" top="10.0" />
-                                                    </HBox.margin>
-                                                </Label>
-                                                <TextField fx:id="txt_enterflightcode" prefHeight="32.0" prefWidth="186.6" promptText="Auto" styleClass="txt_enter" stylesheets="@../../styles/reserveform.css">
-                                                    <HBox.margin>
-                                                        <Insets left="-60.0" />
-                                                    </HBox.margin>
-                                                </TextField>
-                                            </children>
-                                        </HBox>
-                                        <HBox prefHeight="80.0" prefWidth="200.0" spacing="80.0" styleClass="hbox_back" stylesheets="@../../styles/reserveform.css">
-                                            <VBox.margin>
-                                                <Insets />
-                                            </VBox.margin>
-                                            <children>
-                                                <Label styleClass="lbl-headings" stylesheets="@../../styles/reserveform.css" text="Travel date">
-                                                    <HBox.margin>
-                                                        <Insets left="10.0" top="10.0" />
-                                                    </HBox.margin>
-                                                </Label>
-                                                <DatePicker fx:id="dp_traveldate" prefWidth="186.6" promptText="Select Travel Date" styleClass="txt_enter" stylesheets="@../../styles/reserveform.css">
-                                                    <HBox.margin>
-                                                        <Insets left="-60.0" />
-                                                    </HBox.margin>
-                                                </DatePicker>
-                                            </children>
-                                        </HBox>
-                                        <HBox prefHeight="80.0" prefWidth="200.0" spacing="19.0" styleClass="hbox_back" stylesheets="@../../styles/reserveform.css">
-                                            <VBox.margin>
-                                                <Insets />
-                                            </VBox.margin>
-                                            <children>
-                                                <Label styleClass="lbl-headings" stylesheets="@../../styles/reserveform.css" text="Travel from">
-                                                    <HBox.margin>
-                                                        <Insets left="10.0" top="10.0" />
-                                                    </HBox.margin>
-                                                </Label>
-                                                <ComboBox fx:id="combo_travelfrom" prefWidth="150.0" promptText="choose depature" styleClass="combo-boxes" stylesheets="@../../styles/reserveform.css">
-                                                    <HBox.margin>
-                                                        <Insets right="10.0" />
-                                                    </HBox.margin>
-                                                </ComboBox>
-                                            </children>
-                                        </HBox>
-                                        <HBox prefHeight="80.0" prefWidth="200.0" spacing="20.0" styleClass="hbox_back" stylesheets="@../../styles/reserveform.css">
-                                            <VBox.margin>
-                                                <Insets />
-                                            </VBox.margin>
-                                            <children>
-                                                <Label styleClass="lbl-headings" stylesheets="@../../styles/reserveform.css" text="Travel to">
-                                                    <HBox.margin>
-                                                        <Insets left="10.0" top="10.0" />
-                                                    </HBox.margin>
-                                                </Label>
-                                                <ComboBox fx:id="combo_travelto" prefHeight="26.0" prefWidth="150.0" promptText="choose destination" styleClass="combo-boxes" stylesheets="@../../styles/reserveform.css" />
-                                            </children>
-                                        </HBox>
-                                        <HBox prefHeight="80.0" prefWidth="200.0" spacing="20.0" styleClass="hbox_back" stylesheets="@../../styles/reserveform.css">
-                                            <VBox.margin>
-                                                <Insets />
-                                            </VBox.margin>
-                                            <children>
-                                                <Label styleClass="lbl-headings" stylesheets="@../../styles/reserveform.css" text="Seat class">
-                                                    <HBox.margin>
-                                                        <Insets left="10.0" top="10.0" />
-                                                    </HBox.margin>
-                                                </Label>
-                                                <ComboBox fx:id="combo_seatclass" prefHeight="30.0" prefWidth="150.0" promptText="choose seat class" styleClass="combo-boxes" stylesheets="@../../styles/reserveform.css">
-                                                    <HBox.margin>
-                                                        <Insets right="15.0" />
-                                                    </HBox.margin>
-                                                </ComboBox>
-                                            </children>
-                                        </HBox>
-                                        <HBox prefHeight="76.0" prefWidth="320.0" spacing="19.0" styleClass="hbox_back" stylesheets="@../../styles/reserveform.css">
-                                            <VBox.margin>
-                                                <Insets bottom="10.0" />
-                                            </VBox.margin>
-                                            <children>
-                                                <Label styleClass="lbl-headings" stylesheets="@../../styles/reserveform.css" text="Seat pref">
-                                                    <HBox.margin>
-                                                        <Insets left="10.0" top="10.0" />
-                                                    </HBox.margin>
-                                                </Label>
-                                                <ComboBox fx:id="combo_seatpref" prefHeight="26.0" prefWidth="150.0" promptText="choose seat preference" styleClass="combo-boxes" stylesheets="@../../styles/reserveform.css">
-                                                    <HBox.margin>
-                                                        <Insets right="13.0" />
-                                                    </HBox.margin>
-                                                </ComboBox>
-                                            </children>
-                                        </HBox>
-                                    </children>
-                                </VBox>
-                                <Button fx:id="btn_submit" layoutX="106.0" layoutY="535.0" mnemonicParsing="false" onAction="#submit_form" prefHeight="37.0" prefWidth="128.0" styleClass="btn_reserve" stylesheets="@../../styles/reserveform.css" text="Reserve" />
-                                <HBox layoutX="-7.0" layoutY="-1.0" prefHeight="59.0" prefWidth="670.0" styleClass="hbox_head" stylesheets="@../../styles/reserveform.css">
-                                    <children>
-                                        <Label styleClass="lbl_logo3" stylesheets="@../../styles/reserveform.css" text="Flight Reservation">
-                                            <HBox.margin>
-                                                <Insets left="40.0" top="30.0" />
-                                            </HBox.margin>
-                                        </Label>
+                                        </VBox>
+                                        <Region HBox.hgrow="ALWAYS" />
+                                        <ImageView fitHeight="80.0" fitWidth="80.0" pickOnBounds="true" preserveRatio="true" styleClass="header-decoration">
+                                            <image>
+                                                <Image url="@../../images/logo2.png" />
+                                            </image>
+                                        </ImageView>
                                     </children>
                                 </HBox>
-                                <Button fx:id="btn_submit1" layoutX="430.0" layoutY="536.0" mnemonicParsing="false" onAction="#handlePrintTicket" styleClass="btn_print_ticket" stylesheets="@../../styles/reserveform.css" text="Print Ticket" />
-                                <Label fx:id="lbl_status" layoutX="106.0" layoutY="580.0" prefHeight="25.0" prefWidth="300.0" styleClass="lbl-status" stylesheets="@../../styles/reserveform.css" text="" />
 
+                                <!-- Main Form Content -->
+                                <VBox spacing="30" styleClass="form-container">
+                                    <children>
+                                        <!-- Two Column Layout -->
+                                        <HBox alignment="TOP_CENTER" spacing="30" styleClass="form-columns-container">
+                                            <children>
+                                                <!-- Passenger Information Card -->
+                                                <VBox prefWidth="420" spacing="20" styleClass="form-card premium-card" stylesheets="@../../styles/reserveform.css">
+                                                    <children>
+                                                        <HBox alignment="CENTER_LEFT" styleClass="card-header">
+                                                            <children>
+                                                                <Label styleClass="card-title" text="👤 PASSENGER INFORMATION" />
+                                                                <Region HBox.hgrow="ALWAYS" />
+                                                                <Label styleClass="step-indicator" text="STEP 1" />
+                                                            </children>
+                                                        </HBox>
+
+                                                        <!-- Passenger Count -->
+                                                        <VBox spacing="12" styleClass="input-group">
+                                                            <Label styleClass="input-label" text="Number of Passengers" />
+                                                            <HBox alignment="CENTER_LEFT" spacing="15">
+                                                                <VBox spacing="5" HBox.hgrow="ALWAYS">
+                                                                    <Label styleClass="input-sublabel" stylesheets="@../../styles/reserveform.css" text="Adults" />
+                                                                    <ComboBox fx:id="combo_adults" prefWidth="110" promptText="Adults" styleClass="combo-box-premium" />
+                                                                </VBox>
+                                                                <VBox spacing="5" HBox.hgrow="ALWAYS">
+                                                                    <Label styleClass="input-sublabel" text="Children" />
+                                                                    <ComboBox fx:id="combo_children" prefWidth="110" promptText="Children" styleClass="combo-box-premium" />
+                                                                </VBox>
+                                                                <VBox spacing="5" HBox.hgrow="ALWAYS">
+                                                                    <Label styleClass="input-sublabel" text="Infants" />
+                                                                    <ComboBox fx:id="combo_infants" prefWidth="110" promptText="Infants" styleClass="combo-box-premium" />
+                                                                </VBox>
+                                                            </HBox>
+                                                        </VBox>
+
+                                                        <VBox spacing="12" styleClass="input-group">
+                                                            <Label styleClass="input-label" text="Full Name" />
+                                                            <TextField fx:id="txt_entername" promptText="Enter your full name" styleClass="text-field-premium" />
+                                                        </VBox>
+
+                                                        <VBox spacing="12" styleClass="input-group">
+                                                            <Label styleClass="input-label" text="ID Number" />
+                                                            <TextField fx:id="txt_idnumber" promptText="Enter ID number" styleClass="text-field-premium" />
+                                                        </VBox>
+
+                                                        <VBox spacing="12" styleClass="input-group">
+                                                            <Label styleClass="input-label" text="Address" />
+                                                            <TextField fx:id="txt_enteraddress" promptText="Enter full address" styleClass="text-field-premium" />
+                                                        </VBox>
+
+                                                        <VBox spacing="12" styleClass="input-group">
+                                                            <Label styleClass="input-label" text="Email" />
+                                                            <TextField fx:id="txt_enteremail" promptText="Enter email address" styleClass="text-field-premium" />
+                                                        </VBox>
+
+                                                        <VBox spacing="12" styleClass="input-group">
+                                                            <Label styleClass="input-label" text="Phone" />
+                                                            <TextField fx:id="txt_enterphone" promptText="Enter phone number" styleClass="text-field-premium" />
+                                                        </VBox>
+
+                                                        <VBox spacing="12" styleClass="input-group">
+                                                            <Label styleClass="input-label" text="Category Fare" />
+                                                            <ComboBox fx:id="combo_categoryfare" promptText="Select fare category" styleClass="combo-box-premium" />
+                                                        </VBox>
+                                                    </children>
+                                                </VBox>
+
+                                                <!-- Flight Details Card -->
+                                                <VBox prefWidth="420" spacing="20" styleClass="form-card premium-card" stylesheets="@../../styles/reserveform.css">
+                                                    <children>
+                                                        <HBox alignment="CENTER_LEFT" styleClass="card-header">
+                                                            <children>
+                                                                <Label styleClass="card-title" text="✈️ FLIGHT DETAILS" />
+                                                                <Region HBox.hgrow="ALWAYS" />
+                                                                <Label styleClass="step-indicator" text="STEP 2" />
+                                                            </children>
+                                                        </HBox>
+
+                                                        <VBox spacing="12" styleClass="input-group">
+                                                            <Label styleClass="input-label" text="Trip Type" />
+                                                            <ComboBox fx:id="combo_triptype" promptText="Select trip type" styleClass="combo-box-premium" />
+                                                        </VBox>
+
+                                                        <VBox spacing="12" styleClass="input-group">
+                                                            <Label styleClass="input-label" text="Flight Code" />
+                                                            <TextField fx:id="txt_enterflightcode" editable="false" promptText="Auto-generated" styleClass="text-field-premium auto-generated" />
+                                                        </VBox>
+
+                                                        <HBox spacing="15" styleClass="input-group">
+                                                            <VBox spacing="12" HBox.hgrow="ALWAYS">
+                                                                <Label styleClass="input-label" text="Departure Date" />
+                                                                <DatePicker fx:id="dp_traveldate" promptText="Select date" styleClass="date-picker-premium" />
+                                                            </VBox>
+                                                            <VBox spacing="12" HBox.hgrow="ALWAYS">
+                                                                <Label styleClass="input-label" text="Return Date" />
+                                                                <DatePicker fx:id="dp_returndate" promptText="Return date" styleClass="date-picker-premium" />
+                                                            </VBox>
+                                                        </HBox>
+
+                                                        <HBox spacing="15" styleClass="input-group">
+                                                            <VBox spacing="12" HBox.hgrow="ALWAYS">
+                                                                <Label styleClass="input-label" text="From" />
+                                                                <ComboBox fx:id="combo_travelfrom" promptText="Departure city" styleClass="combo-box-premium" />
+                                                            </VBox>
+                                                            <VBox spacing="12" HBox.hgrow="ALWAYS">
+                                                                <Label styleClass="input-label" text="To" />
+                                                                <ComboBox fx:id="combo_travelto" promptText="Destination city" styleClass="combo-box-premium" />
+                                                            </VBox>
+                                                        </HBox>
+
+                                                        <HBox spacing="15" styleClass="input-group">
+                                                            <VBox spacing="12" HBox.hgrow="ALWAYS">
+                                                                <Label styleClass="input-label" text="Seat Class" />
+                                                                <ComboBox fx:id="combo_seatclass" promptText="Select class" styleClass="combo-box-premium" />
+                                                            </VBox>
+                                                            <VBox spacing="12" HBox.hgrow="ALWAYS">
+                                                                <Label styleClass="input-label" text="Seat Preference" />
+                                                                <ComboBox fx:id="combo_seatpref" promptText="Seat type" styleClass="combo-box-premium" />
+                                                            </VBox>
+                                                        </HBox>
+
+                                                        <VBox spacing="12" styleClass="input-group">
+                                                            <Label styleClass="input-label" text="Total Fare" />
+                                                            <TextField fx:id="txt_totalfare" editable="false" promptText="Auto-calculated" styleClass="text-field-premium auto-generated price-display" />
+                                                        </VBox>
+                                                    </children>
+                                                </VBox>
+                                            </children>
+                                        </HBox>
+
+                                        <!-- Payment Information Card -->
+                                        <VBox spacing="20" styleClass="form-card premium-card payment-card">
+                                            <children>
+                                                <HBox alignment="CENTER_LEFT" styleClass="card-header" stylesheets="@../../styles/reserveform.css">
+                                                    <children>
+                                                        <Label styleClass="card-title" text="💳 PAYMENT INFORMATION" />
+                                                        <Region HBox.hgrow="ALWAYS" />
+                                                        <Label styleClass="step-indicator" text="STEP 3" />
+                                                    </children>
+                                                </HBox>
+
+                                                <HBox alignment="CENTER_LEFT" spacing="20" styleClass="input-group" stylesheets="@../../styles/reserveform.css">
+                                                    <VBox spacing="12" HBox.hgrow="ALWAYS">
+                                                        <Label styleClass="input-label" text="Payment Method" />
+                                                        <ComboBox fx:id="combo_paymentmethod" promptText="Select payment method" styleClass="combo-box-premium" />
+                                                    </VBox>
+
+                                                    <VBox spacing="12" HBox.hgrow="ALWAYS">
+                                                        <Label styleClass="input-label" text="Card Number" />
+                                                        <TextField fx:id="txt_cardnumber" promptText="Enter card number" styleClass="text-field-premium" />
+                                                    </VBox>
+
+                                                    <VBox spacing="12" HBox.hgrow="ALWAYS">
+                                                        <Label styleClass="input-label" text="Expiry Date" />
+                                                        <TextField fx:id="txt_expirydate" promptText="MM/YY" styleClass="text-field-premium" />
+                                                    </VBox>
+
+                                                    <VBox spacing="12" HBox.hgrow="ALWAYS">
+                                                        <Label styleClass="input-label" text="CVV" />
+                                                        <TextField fx:id="txt_cvv" promptText="CVV" styleClass="text-field-premium" />
+                                                    </VBox>
+                                                </HBox>
+
+                                                <HBox alignment="CENTER_LEFT" spacing="30" styleClass="checkbox-group" stylesheets="@../../styles/reserveform.css">
+                                                    <CheckBox fx:id="chk_terms" styleClass="premium-checkbox" text="I agree to the terms and conditions" />
+                                                    <CheckBox fx:id="chk_newsletter" styleClass="premium-checkbox" text="Subscribe to newsletter for exclusive offers" />
+                                                </HBox>
+                                            </children>
+                                        </VBox>
+
+                                        <!-- Action Buttons -->
+                                        <HBox alignment="CENTER" spacing="25" styleClass="action-buttons-container" stylesheets="@../../styles/reserveform.css">
+                                            <children>
+                                                <Button fx:id="btn_submit" mnemonicParsing="false" onAction="#submit_form" prefHeight="55.0" prefWidth="200.0" styleClass="btn-reserve-premium" text="RESERVE FLIGHT ✈️" />
+                                                <Button fx:id="btn_clear" mnemonicParsing="false" onAction="#clear_form" prefHeight="55.0" prefWidth="180.0" styleClass="btn-clear-premium" text="CLEAR FORM" />
+                                                <Button fx:id="btn_print" mnemonicParsing="false" onAction="#handlePrintTicket" prefHeight="55.0" prefWidth="200.0" styleClass="btn-print-premium" text="PRINT TICKET 🎫" />
+                                            </children>
+                                        </HBox>
+
+                                        <!-- Status Display -->
+                                        <VBox alignment="CENTER" spacing="10" styleClass="status-container" stylesheets="@../../styles/reserveform.css">
+                                            <Label fx:id="lbl_status" styleClass="status-label" text="Ready to book your journey..." />
+                                            <ProgressBar prefWidth="400" styleClass="status-progress" visible="false " fx:id="progress_bar" />
+                                        </VBox>
+                                    </children>
+                                    <padding>
+                                        <Insets bottom="40.0" left="40.0" right="40.0" top="20.0" />
+                                    </padding>
+                                </VBox>
                             </children>
-
-                        </Pane>
-                    </children>
-                </VBox>
+                        </VBox>
+                    </content>
+                </ScrollPane>
             </center>
         </BorderPane>
-        <VBox prefHeight="0.0" prefWidth="100.0" />
     </children>
 </AnchorPane>

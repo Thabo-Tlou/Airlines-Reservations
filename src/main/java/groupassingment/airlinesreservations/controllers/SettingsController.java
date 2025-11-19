@@ -332,7 +332,7 @@ public class SettingsController {
         alert.showAndWait().ifPresent(response -> {
             if (response == ButtonType.OK) {
                 System.out.println("Logging out...");
-                // Add your logout logic here
+                // logout logic here
             }
         });
     }
