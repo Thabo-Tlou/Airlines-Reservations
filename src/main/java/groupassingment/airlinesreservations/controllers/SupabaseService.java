@@ -368,17 +368,17 @@ public class SupabaseService {
     }
 
     /**
-     * FIXED: Includes token validation.
+     * FIXED: Gets ALL reservation columns for a specific customer ID
      */
     public CompletableFuture<HttpResponse<String>> getReservationsByCustomerId(Long customerId, String userAuthToken) {
         CompletableFuture<HttpResponse<String>> validationResult = validateAuthToken(userAuthToken);
         if (validationResult != null) return validationResult; // Token invalid, fail early
 
-        // Selecting direct columns from the reservations table
+        // Selecting ALL columns from the reservations table
         String url = SUPABASE_URL + "/rest/v1/reservations?customer_id=eq." + customerId +
-                "&select=reservation_id,reservation_code,flight_id,seat_id,seat_class,total_fare,reservation_status,payment_status";
+                "&select=*&order=reservation_date.desc";
 
-        System.out.println("DEBUG: Reservations query URL: " + url);
+        System.out.println("DEBUG: Full reservations query URL: " + url);
 
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(url))
@@ -392,6 +392,9 @@ public class SupabaseService {
         return client.sendAsync(request, HttpResponse.BodyHandlers.ofString());
     }
 
+    /**
+     * NEW: Gets ALL reservation columns for a specific customer email
+     */
     public CompletableFuture<HttpResponse<String>> getReservationsByCustomerEmail(String email, String userAuthToken) {
         CompletableFuture<HttpResponse<String>> validationResult = validateAuthToken(userAuthToken);
         if (validationResult != null) return validationResult; // Token invalid, fail early
@@ -400,7 +403,9 @@ public class SupabaseService {
             String encodedEmail = URLEncoder.encode(email, StandardCharsets.UTF_8.toString());
             // This relies on a relationship or RLS policy to resolve customer ID from email
             String url = SUPABASE_URL + "/rest/v1/reservations?customer_id.email=eq." + encodedEmail +
-                    "&select=reservation_id,reservation_code,flight_id,seat_id,seat_class,total_fare,reservation_status,payment_status";
+                    "&select=*&order=reservation_date.desc";
+
+            System.out.println("DEBUG: Full reservations by email query URL: " + url);
 
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(url))
@@ -418,9 +423,54 @@ public class SupabaseService {
         }
     }
 
+    /**
+     * NEW: Gets ALL reservations with ALL columns (for admin/manage reservations view)
+     */
+    public CompletableFuture<HttpResponse<String>> getAllReservations(String userAuthToken) {
+        CompletableFuture<HttpResponse<String>> validationResult = validateAuthToken(userAuthToken);
+        if (validationResult != null) return validationResult; // Token invalid, fail early
+
+        String url = SUPABASE_URL + "/rest/v1/reservations?select=*&order=reservation_date.desc";
+
+        System.out.println("DEBUG: All reservations query URL: " + url);
+
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(url))
+                .header("apikey", SUPABASE_KEY)
+                .header("Authorization", "Bearer " + userAuthToken)
+                .header("Content-Type", "application/json")
+                .header("Prefer", "return=representation")
+                .GET()
+                .build();
+
+        return client.sendAsync(request, HttpResponse.BodyHandlers.ofString());
+    }
 
     /**
-     * FIXED: Includes token validation.
+     * NEW: Gets reservation by ID with ALL columns
+     */
+    public CompletableFuture<HttpResponse<String>> getReservationById(Long reservationId, String userAuthToken) {
+        CompletableFuture<HttpResponse<String>> validationResult = validateAuthToken(userAuthToken);
+        if (validationResult != null) return validationResult; // Token invalid, fail early
+
+        String url = SUPABASE_URL + "/rest/v1/reservations?reservation_id=eq." + reservationId + "&select=*";
+
+        System.out.println("DEBUG: Reservation by ID query URL: " + url);
+
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(url))
+                .header("apikey", SUPABASE_KEY)
+                .header("Authorization", "Bearer " + userAuthToken)
+                .header("Content-Type", "application/json")
+                .header("Prefer", "return=representation")
+                .GET()
+                .build();
+
+        return client.sendAsync(request, HttpResponse.BodyHandlers.ofString());
+    }
+
+    /**
+     * FIXED: Includes token validation and fetches ALL columns
      */
     public CompletableFuture<HttpResponse<String>> fetchManagedReservations(
             int page, int pageSize, String searchTerm, String userAuthToken) {
@@ -434,14 +484,16 @@ public class SupabaseService {
             StringBuilder query = new StringBuilder("?select=*");
             query.append("&offset=").append(offset);
             query.append("&limit=").append(pageSize);
-            query.append("&order=reservation_date.desc"); // Fixed column name
+            query.append("&order=reservation_date.desc");
 
             if (searchTerm != null && !searchTerm.isBlank()) {
                 String encodedSearch = URLEncoder.encode(searchTerm, StandardCharsets.UTF_8.toString());
-                query.append("&reservation_code=ilike.*").append(encodedSearch).append("*"); // Search by reservation code
+                query.append("&or=(reservation_code.ilike.*").append(encodedSearch).append("*,customer_id.full_name.ilike.*").append(encodedSearch).append("*)");
             }
 
             String url = SUPABASE_URL + "/rest/v1/reservations" + query.toString();
+
+            System.out.println("DEBUG: Managed reservations query URL: " + url);
 
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(url))

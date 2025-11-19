@@ -17,7 +17,12 @@ public class SessionManager {
         authToken = token != null ? token.trim() : null;
         userId = id;
         userEmail = email;
-        System.out.println("SessionManager: Session data successfully set.");
+        System.out.println("=== SESSION MANAGER DEBUG ===");
+        System.out.println("Session data set successfully:");
+        System.out.println("User ID: " + userId);
+        System.out.println("User Email: " + userEmail);
+        System.out.println("Auth Token: " + (authToken != null ? "PRESENT (" + authToken.length() + " chars)" : "NULL"));
+        System.out.println("=== END DEBUG ===");
     }
 
     /**
@@ -26,7 +31,11 @@ public class SessionManager {
     public static void setCustomerData(Long custId, String fareCategory) {
         customerID = custId;
         customerFareCategory = fareCategory;
-        System.out.println("SessionManager: Customer data set. ID: " + custId + ", Category: " + fareCategory);
+        System.out.println("=== SESSION MANAGER DEBUG ===");
+        System.out.println("Customer data set:");
+        System.out.println("Customer ID: " + custId);
+        System.out.println("Fare Category: " + fareCategory);
+        System.out.println("=== END DEBUG ===");
     }
 
     /**
@@ -38,15 +47,24 @@ public class SessionManager {
         userEmail = null;
         customerID = null;
         customerFareCategory = null;
-        System.out.println("SessionManager: Session data cleared.");
+        System.out.println("=== SESSION MANAGER DEBUG ===");
+        System.out.println("Session data cleared");
+        System.out.println("=== END DEBUG ===");
     }
 
     // --- Getters for Controllers ---
     public static boolean isAuthenticated() {
-        return authToken != null;
+        boolean authenticated = authToken != null;
+        System.out.println("=== SESSION MANAGER DEBUG ===");
+        System.out.println("Authentication check: " + authenticated);
+        System.out.println("=== END DEBUG ===");
+        return authenticated;
     }
 
     public static String getAuthToken() {
+        System.out.println("=== SESSION MANAGER DEBUG ===");
+        System.out.println("Getting auth token: " + (authToken != null ? "PRESENT" : "NULL"));
+        System.out.println("=== END DEBUG ===");
         return authToken;
     }
 
@@ -60,6 +78,9 @@ public class SessionManager {
 
     // --- CRITICAL Getters for Reservation Controller ---
     public static Long getCustomerID() {
+        System.out.println("=== SESSION MANAGER DEBUG ===");
+        System.out.println("Getting Customer ID: " + customerID);
+        System.out.println("=== END DEBUG ===");
         return customerID;
     }
 
@@ -67,10 +88,34 @@ public class SessionManager {
         return customerFareCategory;
     }
 
+    // ADD THIS MISSING METHOD - this might be what's causing the issue
+    public static String getCustomerCategory() {
+        return customerFareCategory; // Alias for compatibility
+    }
+
     /**
      * Check if customer data is available for reservations
      */
     public static boolean hasCustomerData() {
-        return customerID != null && customerFareCategory != null;
+        boolean hasData = customerID != null && customerFareCategory != null;
+        System.out.println("=== SESSION MANAGER DEBUG ===");
+        System.out.println("Has customer data: " + hasData);
+        System.out.println("Customer ID: " + customerID);
+        System.out.println("Fare Category: " + customerFareCategory);
+        System.out.println("=== END DEBUG ===");
+        return hasData;
+    }
+
+    /**
+     * Debug method to print current session state
+     */
+    public static void debugSessionState() {
+        System.out.println("=== CURRENT SESSION STATE ===");
+        System.out.println("User ID: " + userId);
+        System.out.println("User Email: " + userEmail);
+        System.out.println("Auth Token: " + (authToken != null ? "PRESENT" : "NULL"));
+        System.out.println("Customer ID: " + customerID);
+        System.out.println("Customer Fare Category: " + customerFareCategory);
+        System.out.println("=== END SESSION STATE ===");
     }
 }
