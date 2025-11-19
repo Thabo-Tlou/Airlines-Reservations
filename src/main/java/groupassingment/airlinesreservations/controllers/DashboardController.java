@@ -932,4 +932,8 @@ public class DashboardController {
     public String getCurrentUserName() {
         return currentUserName != null ? currentUserName : "Guest";
     }
+
+    public void initializeSessionData(String authToken, String userId, String userEmail) {
+
+    }
 }

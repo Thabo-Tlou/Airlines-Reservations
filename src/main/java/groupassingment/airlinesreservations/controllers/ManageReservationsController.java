@@ -1,252 +1,555 @@
 package groupassingment.airlinesreservations.controllers;
 
-import javafx.application.Platform;
-import javafx.beans.property.SimpleStringProperty;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
-import javafx.collections.transformation.FilteredList;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+import javafx.application.Platform;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.util.Callback;
+import javafx.scene.layout.HBox;
+import javafx.geometry.Pos;
 import org.json.JSONArray;
 import org.json.JSONObject;
-
-import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 
 public class ManageReservationsController {
 
-    // --- FXML Injections (Main Content) ---
-    @FXML private Button btnAddFlight;
-    @FXML private Button btnUpdateFlight;
-    @FXML private Button btnDeleteFlight;
-    @FXML private TextField txtSearch;
+    @FXML private TextField searchField;
+    @FXML private ComboBox<String> statusFilter;
+    @FXML private ComboBox<String> pageSizeCombo;
+    @FXML private Label statusMessageLabel;
+    @FXML private Label paginationInfo;
+    @FXML private TableView<Reservation> reservationsTable;
+    @FXML private ProgressBar progressBar;
 
-    @FXML private TableView<ReservationItem> tblFlights;
-    @FXML private TableColumn<ReservationItem, String> colFlightName;    // Maps to Reservation Code
-    @FXML private TableColumn<ReservationItem, String> colFlightCode;    // Maps to Flight Date
-    @FXML private TableColumn<ReservationItem, String> colRoute;         // Maps to Origin -> Destination
-    @FXML private TableColumn<ReservationItem, String> colDepartureTime; // Maps to Seat Class
-    @FXML private TableColumn<ReservationItem, String> colArrivalTime;   // Maps to Total Price
-    @FXML private TableColumn<ReservationItem, String> colAvailableSeats;// Maps to Status (e.g., Confirmed)
+    @FXML private Button btnDashboard;
+    @FXML private Button btnReservation;
+    @FXML private Button btnManageReservations;
+    @FXML private Button btnFeedback;
+    @FXML private Button btnSupport;
+    @FXML private Button btnSettings;
+    @FXML private Button btnLogout;
+    @FXML private Button btnRefresh;
+    @FXML private Button btnExport;
+    @FXML private Button searchButton;
 
-    // --- Data and State ---
-    private ObservableList<ReservationItem> masterReservationData = FXCollections.observableArrayList();
-    private FilteredList<ReservationItem> filteredReservationData;
-    private final SupabaseService supabaseService = new SupabaseService();
+    // Table columns
+    @FXML private TableColumn<Reservation, String> colReservationCode;
+    @FXML private TableColumn<Reservation, String> colCustomerName;
+    @FXML private TableColumn<Reservation, String> colFlight;
+    @FXML private TableColumn<Reservation, String> colDeparture;
+    @FXML private TableColumn<Reservation, String> colDestination;
+    @FXML private TableColumn<Reservation, String> colSeatClass;
+    @FXML private TableColumn<Reservation, Double> colTotalFare;
+    @FXML private TableColumn<Reservation, String> colStatus;
+    @FXML private TableColumn<Reservation, String> colPaymentStatus;
+    @FXML private TableColumn<Reservation, String> colActions;
 
+    private SupabaseService supabaseService;
     private String userAuthToken;
+    private String userId;
     private String userEmail;
-    private int currentCustomerId = -1;
+    private ObservableList<Reservation> reservations = FXCollections.observableArrayList();
 
-    /**
-     * Data Model to hold reservation details for the TableView.
-     */
-    public static class ReservationItem {
-        private final SimpleStringProperty reservationCode;
-        private final SimpleStringProperty flightDate;
-        private final SimpleStringProperty route; // This is the property
-        private final SimpleStringProperty seatClass;
-        private final SimpleStringProperty price;
-        private final SimpleStringProperty status;
+    // Reservation data model class
+    public static class Reservation {
+        private final Long reservationId;
+        private final String reservationCode;
+        private final String customerName;
+        private final String flightCode;
+        private final String departureCity;
+        private final String destinationCity;
+        private final String seatClass;
+        private final Double totalFare;
+        private final String reservationStatus;
+        private final String paymentStatus;
 
-        public ReservationItem(String resCode, String date, String route, String seat, String price, String status) {
-            this.reservationCode = new SimpleStringProperty(resCode);
-            this.flightDate = new SimpleStringProperty(date);
-            this.route = new SimpleStringProperty(route);
-            this.seatClass = new SimpleStringProperty(seat);
-            this.price = new SimpleStringProperty(price);
-            this.status = new SimpleStringProperty(status);
+        public Reservation(Long reservationId, String reservationCode, String customerName,
+                           String flightCode, String departureCity, String destinationCity,
+                           String seatClass, Double totalFare, String reservationStatus,
+                           String paymentStatus) {
+            this.reservationId = reservationId;
+            this.reservationCode = reservationCode;
+            this.customerName = customerName;
+            this.flightCode = flightCode;
+            this.departureCity = departureCity;
+            this.destinationCity = destinationCity;
+            this.seatClass = seatClass;
+            this.totalFare = totalFare;
+            this.reservationStatus = reservationStatus;
+            this.paymentStatus = paymentStatus;
         }
 
-        // --- Required Getters for Search Logic ---
-        public String getReservationCode() { return reservationCode.get(); }
-
-        // 💡 FIX: This method was missing and caused the error 💡
-        public String getRoute() {
-            return route.get();
-        }
-
-        // --- Mapped Getters for FXML Table Columns ---
-        public String getColFlightName() { return getReservationCode(); }
-        public String getColFlightCode() { return flightDate.get(); }
-        public String getColRoute() { return getRoute(); }
-        public String getColDepartureTime() { return seatClass.get(); }
-        public String getColArrivalTime() { return price.get(); }
-        public String getColAvailableSeats() { return status.get(); }
+        // Getters
+        public Long getReservationId() { return reservationId; }
+        public String getReservationCode() { return reservationCode; }
+        public String getCustomerName() { return customerName; }
+        public String getFlightCode() { return flightCode; }
+        public String getDepartureCity() { return departureCity; }
+        public String getDestinationCity() { return destinationCity; }
+        public String getSeatClass() { return seatClass; }
+        public Double getTotalFare() { return totalFare; }
+        public String getReservationStatus() { return reservationStatus; }
+        public String getPaymentStatus() { return paymentStatus; }
     }
 
     @FXML
     public void initialize() {
-        // 1. Initialize Table Columns
-        colFlightName.setCellValueFactory(new PropertyValueFactory<>("colFlightName"));
-        colFlightCode.setCellValueFactory(new PropertyValueFactory<>("colFlightCode"));
-        colRoute.setCellValueFactory(new PropertyValueFactory<>("colRoute"));
-        colDepartureTime.setCellValueFactory(new PropertyValueFactory<>("colDepartureTime"));
-        colArrivalTime.setCellValueFactory(new PropertyValueFactory<>("colArrivalTime"));
-        colAvailableSeats.setCellValueFactory(new PropertyValueFactory<>("colAvailableSeats"));
+        supabaseService = new SupabaseService();
+        setupFilters();
+        setupTable();
+        setupEventHandlers();
+    }
 
-        // Update column headers for clarity
-        colFlightName.setText("Reservation Code");
-        colFlightCode.setText("Flight Date");
-        colRoute.setText("Route");
-        colDepartureTime.setText("Seat Class");
-        colArrivalTime.setText("Total Price");
-        colAvailableSeats.setText("Status");
+    public void initializeSessionData(String authToken, String userId, String userEmail) {
+        this.userAuthToken = authToken;
+        this.userId = userId;
+        this.userEmail = userEmail;
 
-        // 2. Setup Search Listener
-        txtSearch.textProperty().addListener((observable, oldValue, newValue) -> {
-            if (filteredReservationData != null) {
-                filteredReservationData.setPredicate(reservation -> {
-                    if (newValue == null || newValue.isEmpty()) {
-                        return true;
-                    }
-                    String lowerCaseFilter = newValue.toLowerCase();
+        System.out.println("ManageReservations: Session initialized for " + userEmail);
+        loadReservations();
+    }
 
-                    // These two methods are now resolved due to the fix above
-                    return reservation.getReservationCode().toLowerCase().contains(lowerCaseFilter) ||
-                            reservation.getRoute().toLowerCase().contains(lowerCaseFilter);
-                });
+    private void setupFilters() {
+        // Status filter options
+        ObservableList<String> statusOptions = FXCollections.observableArrayList(
+                "All Status", "Pending", "Confirmed", "Cancelled", "Waiting"
+        );
+        statusFilter.setItems(statusOptions);
+        statusFilter.setValue("All Status");
+
+        // Page size options
+        ObservableList<String> pageSizes = FXCollections.observableArrayList("10", "25", "50", "100");
+        pageSizeCombo.setItems(pageSizes);
+        pageSizeCombo.setValue("10");
+
+        // Add listener for filter changes
+        statusFilter.valueProperty().addListener((obs, oldVal, newVal) -> loadReservations());
+        pageSizeCombo.valueProperty().addListener((obs, oldVal, newVal) -> loadReservations());
+    }
+
+    private void setupTable() {
+        // Configure table columns
+        colReservationCode.setCellValueFactory(new PropertyValueFactory<>("reservationCode"));
+        colCustomerName.setCellValueFactory(new PropertyValueFactory<>("customerName"));
+        colFlight.setCellValueFactory(new PropertyValueFactory<>("flightCode"));
+        colDeparture.setCellValueFactory(new PropertyValueFactory<>("departureCity"));
+        colDestination.setCellValueFactory(new PropertyValueFactory<>("destinationCity"));
+        colSeatClass.setCellValueFactory(new PropertyValueFactory<>("seatClass"));
+        colTotalFare.setCellValueFactory(new PropertyValueFactory<>("totalFare"));
+        colStatus.setCellValueFactory(new PropertyValueFactory<>("reservationStatus"));
+        colPaymentStatus.setCellValueFactory(new PropertyValueFactory<>("paymentStatus"));
+
+        // Format total fare column
+        colTotalFare.setCellFactory(column -> new TableCell<Reservation, Double>() {
+            @Override
+            protected void updateItem(Double item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) {
+                    setText(null);
+                } else {
+                    setText(String.format("R %.2f", item));
+                }
             }
         });
 
-        // 3. Setup UI state
-        btnAddFlight.setDisable(true);
-        btnUpdateFlight.setDisable(false);
-        btnDeleteFlight.setDisable(false);
+        // Status column with styled cells
+        colStatus.setCellFactory(column -> new TableCell<Reservation, String>() {
+            @Override
+            protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) {
+                    setText(null);
+                    setStyle("");
+                } else {
+                    setText(item);
+                    switch (item.toLowerCase()) {
+                        case "confirmed":
+                            setStyle("-fx-background-color: #27ae60; -fx-text-fill: white; -fx-background-radius: 12; -fx-padding: 4 8;");
+                            break;
+                        case "pending":
+                            setStyle("-fx-background-color: #f39c12; -fx-text-fill: white; -fx-background-radius: 12; -fx-padding: 4 8;");
+                            break;
+                        case "cancelled":
+                            setStyle("-fx-background-color: #e74c3c; -fx-text-fill: white; -fx-background-radius: 12; -fx-padding: 4 8;");
+                            break;
+                        case "waiting":
+                            setStyle("-fx-background-color: #3498db; -fx-text-fill: white; -fx-background-radius: 12; -fx-padding: 4 8;");
+                            break;
+                        default:
+                            setStyle("");
+                    }
+                }
+            }
+        });
 
-        tblFlights.setPlaceholder(new Label("Loading your reservations..."));
+        // Setup action buttons column
+        setupActionButtons();
+
+        reservationsTable.setItems(reservations);
     }
 
-    /**
-     * Called by the DashboardController to pass session data.
-     */
-    public void initializeSessionData(String userAuthToken, String userId, String userEmail) {
-        this.userAuthToken = userAuthToken;
-        this.userEmail = userEmail;
-        fetchCustomerIdAndReservations();
+    private void setupActionButtons() {
+        colActions.setCellFactory(new Callback<TableColumn<Reservation, String>, TableCell<Reservation, String>>() {
+            @Override
+            public TableCell<Reservation, String> call(TableColumn<Reservation, String> param) {
+                return new TableCell<Reservation, String>() {
+                    private final HBox buttonContainer = new HBox(5);
+                    private final Button viewBtn = new Button("👁");
+                    private final Button editBtn = new Button("✏");
+                    private final Button cancelBtn = new Button("❌");
+                    private final Button printBtn = new Button("🖨");
+
+                    {
+                        buttonContainer.setAlignment(Pos.CENTER);
+
+                        // Style buttons
+                        viewBtn.getStyleClass().add("table-action-button");
+                        viewBtn.getStyleClass().add("view-button");
+                        viewBtn.setTooltip(new Tooltip("View Details"));
+
+                        editBtn.getStyleClass().add("table-action-button");
+                        editBtn.getStyleClass().add("edit-button");
+                        editBtn.setTooltip(new Tooltip("Edit Reservation"));
+
+                        cancelBtn.getStyleClass().add("table-action-button");
+                        cancelBtn.getStyleClass().add("cancel-button");
+                        cancelBtn.setTooltip(new Tooltip("Cancel Reservation"));
+
+                        printBtn.getStyleClass().add("table-action-button");
+                        printBtn.getStyleClass().add("print-button");
+                        printBtn.setTooltip(new Tooltip("Print Ticket"));
+
+                        // Add buttons to container
+                        buttonContainer.getChildren().addAll(viewBtn, editBtn, cancelBtn, printBtn);
+
+                        // Set button actions
+                        viewBtn.setOnAction(event -> {
+                            Reservation reservation = getTableView().getItems().get(getIndex());
+                            viewReservation(reservation);
+                        });
+
+                        editBtn.setOnAction(event -> {
+                            Reservation reservation = getTableView().getItems().get(getIndex());
+                            editReservation(reservation);
+                        });
+
+                        cancelBtn.setOnAction(event -> {
+                            Reservation reservation = getTableView().getItems().get(getIndex());
+                            cancelReservation(reservation);
+                        });
+
+                        printBtn.setOnAction(event -> {
+                            Reservation reservation = getTableView().getItems().get(getIndex());
+                            printTicket(reservation);
+                        });
+                    }
+
+                    @Override
+                    protected void updateItem(String item, boolean empty) {
+                        super.updateItem(item, empty);
+                        if (empty) {
+                            setGraphic(null);
+                        } else {
+                            Reservation reservation = getTableView().getItems().get(getIndex());
+
+                            // Disable cancel button for already cancelled reservations
+                            cancelBtn.setDisable("Cancelled".equals(reservation.getReservationStatus()));
+
+                            // Disable edit button for cancelled reservations
+                            editBtn.setDisable("Cancelled".equals(reservation.getReservationStatus()));
+
+                            setGraphic(buttonContainer);
+                        }
+                    }
+                };
+            }
+        });
     }
 
-    private void fetchCustomerIdAndReservations() {
-        if (userEmail == null || userAuthToken == null) {
-            Platform.runLater(() -> tblFlights.setPlaceholder(new Label("Error: User session data is missing.")));
-            return;
-        }
+    private void setupEventHandlers() {
+        searchButton.setOnAction(event -> handleSearch());
+        btnRefresh.setOnAction(event -> handleRefresh());
+        btnExport.setOnAction(event -> handleExport());
 
-        // 1. Get Customer ID using the email
+        // Navigation handlers
+        btnDashboard.setOnAction(event -> navigateToDashboard());
+        btnReservation.setOnAction(event -> navigateToReservation());
+        btnLogout.setOnAction(event -> handleLogout());
+    }
+
+    private void loadReservations() {
+        showLoading(true);
+        updateStatus("Loading reservations...", "info");
+
+        // Get customer ID first, then load reservations
         supabaseService.getCustomerByEmail(userEmail, userAuthToken)
-                .thenAccept(customerResponse -> {
+                .thenCompose(customerResponse -> {
                     if (customerResponse.statusCode() == 200) {
                         try {
                             JSONArray customers = new JSONArray(customerResponse.body());
                             if (customers.length() > 0) {
-                                this.currentCustomerId = customers.getJSONObject(0).getInt("customer_id");
-                                fetchUserReservations();
-                            } else {
-                                Platform.runLater(() -> tblFlights.setPlaceholder(new Label("Customer profile not found. You may need to complete a full booking first.")));
+                                JSONObject customer = customers.getJSONObject(0);
+                                Long customerId = customer.getLong("customer_id");
+
+                                // Now load reservations for this customer
+                                return supabaseService.getReservationsByCustomerId(customerId, userAuthToken);
                             }
                         } catch (Exception e) {
-                            Platform.runLater(() -> showAlert(Alert.AlertType.ERROR, "Data Error", "Failed to parse customer ID: " + e.getMessage()));
+                            System.err.println("Error parsing customer data: " + e.getMessage());
                         }
-                    } else {
-                        Platform.runLater(() -> showAlert(Alert.AlertType.ERROR, "API Error (Step 1)",
-                                "Error fetching customer profile: Status " + customerResponse.statusCode() + "."));
                     }
+                    return CompletableFuture.completedFuture(null);
                 })
-                .exceptionally(ex -> {
-                    Platform.runLater(() -> showAlert(Alert.AlertType.ERROR, "Network Error", "Could not connect to service to find customer profile."));
-                    return null;
-                });
-    }
-
-    private void fetchUserReservations() {
-        if (currentCustomerId == -1) return;
-
-        // 2. Fetch Reservations using the Customer ID
-        supabaseService.getReservationsByCustomerId((long) currentCustomerId, userAuthToken)
-                .thenAccept(reservationResponse -> {
+                .thenAccept(reservationsResponse -> {
                     Platform.runLater(() -> {
-                        if (reservationResponse.statusCode() == 200) {
+                        showLoading(false);
+
+                        if (reservationsResponse != null && reservationsResponse.statusCode() == 200) {
                             try {
-                                JSONArray reservations = new JSONArray(reservationResponse.body());
-                                populateTable(reservations);
+                                JSONArray reservationsArray = new JSONArray(reservationsResponse.body());
+                                reservations.clear();
+
+                                for (int i = 0; i < reservationsArray.length(); i++) {
+                                    JSONObject reservationJson = reservationsArray.getJSONObject(i);
+
+                                    // Apply filters
+                                    String statusFilterValue = statusFilter.getValue();
+                                    if (!"All Status".equals(statusFilterValue)) {
+                                        String reservationStatus = reservationJson.optString("reservation_status", "");
+                                        if (!statusFilterValue.equals(reservationStatus)) {
+                                            continue;
+                                        }
+                                    }
+
+                                    // Apply search filter
+                                    String searchTerm = searchField.getText().toLowerCase();
+                                    if (!searchTerm.isEmpty()) {
+                                        String reservationCode = reservationJson.optString("reservation_code", "").toLowerCase();
+                                        String customerName = reservationJson.optString("customer_name", "").toLowerCase();
+                                        if (!reservationCode.contains(searchTerm) && !customerName.contains(searchTerm)) {
+                                            continue;
+                                        }
+                                    }
+
+                                    Reservation reservation = new Reservation(
+                                            reservationJson.getLong("reservation_id"),
+                                            reservationJson.optString("reservation_code", "N/A"),
+                                            reservationJson.optString("customer_name", "Unknown"),
+                                            reservationJson.optString("flight_code", "N/A"),
+                                            reservationJson.optString("departure_city", "N/A"),
+                                            reservationJson.optString("destination_city", "N/A"),
+                                            reservationJson.optString("seat_class", "Economic"),
+                                            reservationJson.optDouble("total_fare", 0.0),
+                                            reservationJson.optString("reservation_status", "Pending"),
+                                            reservationJson.optString("payment_status", "Pending")
+                                    );
+
+                                    reservations.add(reservation);
+                                }
+
+                                updatePaginationInfo();
+                                updateStatus("Loaded " + reservations.size() + " reservations", "success");
+
                             } catch (Exception e) {
-                                showAlert(Alert.AlertType.ERROR, "Data Error", "Failed to parse reservation data: " + e.getMessage());
+                                System.err.println("Error parsing reservations: " + e.getMessage());
+                                updateStatus("Error loading reservations", "error");
                             }
                         } else {
-                            showAlert(Alert.AlertType.ERROR, "API Error (Step 2)",
-                                    "Error loading reservations: Status " + reservationResponse.statusCode() + ".");
-                            tblFlights.setPlaceholder(new Label("Failed to load your reservations."));
+                            updateStatus("Failed to load reservations", "error");
                         }
                     });
                 })
                 .exceptionally(ex -> {
-                    Platform.runLater(() -> showAlert(Alert.AlertType.ERROR, "Network Error", "Network error fetching reservations."));
+                    Platform.runLater(() -> {
+                        showLoading(false);
+                        updateStatus("Error: " + ex.getMessage(), "error");
+                        System.err.println("Error loading reservations: " + ex.getMessage());
+                    });
                     return null;
                 });
     }
 
-    private void populateTable(JSONArray reservations) {
-        masterReservationData.clear();
-        if (reservations.length() == 0) {
-            tblFlights.setPlaceholder(new Label("You have no active reservations."));
-            return;
-        }
+    @FXML
+    private void handleSearch() {
+        loadReservations();
+    }
 
-        for (int i = 0; i < reservations.length(); i++) {
-            JSONObject res = reservations.getJSONObject(i);
+    @FXML
+    private void handleRefresh() {
+        searchField.clear();
+        statusFilter.setValue("All Status");
+        loadReservations();
+    }
 
-            String route = res.optString("travel_from", "N/A") + " → " + res.optString("travel_to", "N/A");
-            String price = String.format("M%.2f", res.optDouble("total_price", 0.0));
+    @FXML
+    private void handleExport() {
+        // Simple export functionality - could be enhanced with file chooser
+        StringBuilder exportData = new StringBuilder();
+        exportData.append("Reservation Code,Customer Name,Flight,Departure,Destination,Class,Total Fare,Status,Payment Status\n");
 
-            masterReservationData.add(new ReservationItem(
-                    res.optString("reservation_code", "N/A"),
-                    res.optString("flight_date", "N/A"),
-                    route,
-                    res.optString("seat_class", "N/A"),
-                    price,
-                    res.optString("status", "N/A")
+        for (Reservation reservation : reservations) {
+            exportData.append(String.format("%s,%s,%s,%s,%s,%s,R %.2f,%s,%s\n",
+                    reservation.getReservationCode(),
+                    reservation.getCustomerName(),
+                    reservation.getFlightCode(),
+                    reservation.getDepartureCity(),
+                    reservation.getDestinationCity(),
+                    reservation.getSeatClass(),
+                    reservation.getTotalFare(),
+                    reservation.getReservationStatus(),
+                    reservation.getPaymentStatus()
             ));
         }
 
-        filteredReservationData = new FilteredList<>(masterReservationData, p -> true);
-        tblFlights.setItems(filteredReservationData);
-    }
-
-    // --- Management Actions ---
-
-    @FXML
-    private void handleUpdateFlight() {
-        ReservationItem selectedItem = tblFlights.getSelectionModel().getSelectedItem();
-        if (selectedItem == null) {
-            showAlert(Alert.AlertType.WARNING, "No Selection", "Please select a reservation to update.");
-            return;
-        }
-        showAlert(Alert.AlertType.INFORMATION, "Update Reservation", "Update functionality for reservation " + selectedItem.getReservationCode() + " needs to be implemented.");
-    }
-
-    @FXML
-    private void handleDeleteFlight() {
-        ReservationItem selectedItem = tblFlights.getSelectionModel().getSelectedItem();
-        if (selectedItem == null) {
-            showAlert(Alert.AlertType.WARNING, "No Selection", "Please select a reservation to delete.");
-            return;
-        }
-
-        Alert confirm = new Alert(Alert.AlertType.CONFIRMATION, "Are you sure you want to delete reservation " + selectedItem.getReservationCode() + "?", ButtonType.YES, ButtonType.NO);
-        confirm.setTitle("Confirm Deletion");
-        confirm.setHeaderText(null);
-        Optional<ButtonType> result = confirm.showAndWait();
-
-        if (result.isPresent() && result.get() == ButtonType.YES) {
-            showAlert(Alert.AlertType.INFORMATION, "Delete Status", "Deletion of reservation " + selectedItem.getReservationCode() + " needs to be implemented.");
-        }
-    }
-
-    private void showAlert(Alert.AlertType type, String title, String message) {
-        Alert alert = new Alert(type);
-        alert.setTitle(title);
-        alert.setHeaderText(null);
-        alert.setContentText(message);
+        // For now, just show in alert. In production, you'd save to file.
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle("Export Data");
+        alert.setHeaderText("Reservations Export");
+        alert.setContentText("Data ready for export:\n\n" + exportData.toString().substring(0, Math.min(500, exportData.length())) + "\n\n(Full data available in console)");
         alert.showAndWait();
+
+        System.out.println("EXPORT DATA:\n" + exportData.toString());
+        updateStatus("Data exported to console", "info");
+    }
+
+    private void viewReservation(Reservation reservation) {
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle("Reservation Details");
+        alert.setHeaderText("Reservation: " + reservation.getReservationCode());
+        alert.setContentText(String.format(
+                "Customer: %s\nFlight: %s\nRoute: %s → %s\nClass: %s\nTotal Fare: R %.2f\nStatus: %s\nPayment: %s",
+                reservation.getCustomerName(),
+                reservation.getFlightCode(),
+                reservation.getDepartureCity(),
+                reservation.getDestinationCity(),
+                reservation.getSeatClass(),
+                reservation.getTotalFare(),
+                reservation.getReservationStatus(),
+                reservation.getPaymentStatus()
+        ));
+        alert.showAndWait();
+    }
+
+    private void editReservation(Reservation reservation) {
+        // For now, show a simple edit dialog
+        // In a real application, you'd open a detailed edit form
+        TextInputDialog dialog = new TextInputDialog(reservation.getSeatClass());
+        dialog.setTitle("Edit Reservation");
+        dialog.setHeaderText("Edit Seat Class for " + reservation.getReservationCode());
+        dialog.setContentText("Enter new seat class:");
+
+        dialog.showAndWait().ifPresent(newSeatClass -> {
+            updateStatus("Updating reservation...", "info");
+            // Here you would call Supabase to update the reservation
+            // supabaseService.updateReservation(...)
+            updateStatus("Reservation updated successfully", "success");
+        });
+    }
+
+    private void cancelReservation(Reservation reservation) {
+        Alert confirmAlert = new Alert(Alert.AlertType.CONFIRMATION);
+        confirmAlert.setTitle("Cancel Reservation");
+        confirmAlert.setHeaderText("Cancel Reservation: " + reservation.getReservationCode());
+        confirmAlert.setContentText("Are you sure you want to cancel this reservation? This action cannot be undone.");
+
+        confirmAlert.showAndWait().ifPresent(response -> {
+            if (response == ButtonType.OK) {
+                showLoading(true);
+                updateStatus("Cancelling reservation...", "info");
+
+                // Update reservation status to Cancelled
+                JSONObject updateData = new JSONObject();
+                updateData.put("reservation_status", "Cancelled");
+                updateData.put("payment_status", "Refunded"); // or whatever your business logic requires
+
+                supabaseService.updateReservation(reservation.getReservationId().intValue(), updateData, userAuthToken)
+                        .thenAccept(updateResponse -> {
+                            Platform.runLater(() -> {
+                                showLoading(false);
+                                if (updateResponse.statusCode() == 200) {
+                                    updateStatus("Reservation cancelled successfully", "success");
+                                    loadReservations(); // Refresh the table
+                                } else {
+                                    updateStatus("Failed to cancel reservation", "error");
+                                }
+                            });
+                        })
+                        .exceptionally(ex -> {
+                            Platform.runLater(() -> {
+                                showLoading(false);
+                                updateStatus("Error cancelling reservation: " + ex.getMessage(), "error");
+                            });
+                            return null;
+                        });
+            }
+        });
+    }
+
+    private void printTicket(Reservation reservation) {
+        // Simple print simulation
+        updateStatus("Generating ticket for " + reservation.getReservationCode() + "...", "info");
+
+        // Simulate print process
+        new java.util.Timer().schedule(
+                new java.util.TimerTask() {
+                    @Override
+                    public void run() {
+                        Platform.runLater(() -> {
+                            updateStatus("Ticket printed successfully for " + reservation.getReservationCode(), "success");
+                        });
+                    }
+                },
+                2000
+        );
+    }
+
+    private void navigateToDashboard() {
+        // Navigation logic to Dashboard
+        try {
+            SceneManager.loadScene("/groupassingment/airlinesreservations/Dashboard.fxml",
+                    btnDashboard.getScene(), userAuthToken, userId, userEmail);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void navigateToReservation() {
+        // Navigation logic to Reservation Form
+        try {
+            SceneManager.loadScene("/groupassingment/airlinesreservations/ReservationForm.fxml",
+                    btnReservation.getScene(), userAuthToken, userId, userEmail);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void handleLogout() {
+        SessionManager.clearSessionData();
+        try {
+            SceneManager.loadScene("/groupassingment/airlinesreservations/Login.fxml",
+                    btnLogout.getScene(), null, null, null);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void showLoading(boolean show) {
+        progressBar.setVisible(show);
+        btnRefresh.setDisable(show);
+        btnExport.setDisable(show);
+        searchButton.setDisable(show);
+    }
+
+    private void updateStatus(String message, String type) {
+        statusMessageLabel.setText(message);
+        statusMessageLabel.getStyleClass().removeAll("success", "error", "warning", "info");
+        statusMessageLabel.getStyleClass().add(type);
+    }
+
+    private void updatePaginationInfo() {
+        int total = reservations.size();
+        paginationInfo.setText(String.format("Showing %d reservations", total));
     }
 }

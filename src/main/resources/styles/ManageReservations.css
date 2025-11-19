@@ -1,160 +1,488 @@
-/* =============================================================================
-   CENTER CONTENT STYLING
-   (Header, Buttons, Table, Pagination)
-   ============================================================================= */
+/* ManageReservations.css */
 
-/* 1. HEADER SECTION (The top bar with the title) */
-.hbox_head {
-    -fx-background-color: #272838; /* Dark Navy */
-
-
-    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.15), 10, 0, 0, 3);
+/* Main Container */
+.main-container {
+    -fx-background-color: #f8fafc;
 }
 
-.lbl_header {
+/* Header Section */
+.header-container {
+    -fx-background-color: linear-gradient(to right, #272838, #3a3d5a);
+    -fx-padding: 25 0;
+    -fx-effect: dropshadow(three-pass-box, rgba(39, 40, 56, 0.3), 10, 0, 0, 4);
+}
+
+.main-title {
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-font-size: 28px;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.3), 3, 0, 1, 1);
+}
+
+.subtitle {
+    -fx-text-fill: #e2e8f0;
     -fx-font-size: 14px;
-    -fx-font-weight: bold;
-    -fx-text-fill: #ffffff; /* White text */
 }
 
-/* 2. CONTROLS SECTION (The bar with buttons) */
-.hbox_controls {
-    -fx-background-color: #ffffff;
-    -fx-padding: 10px;
-    -fx-background-radius: 8px;
-    -fx-border-color: #e0e0e0;
-    -fx-border-radius: 8px;
+.header-icon {
+    -fx-effect: dropshadow(gaussian, #F2B418, 15, 0.7, 0, 0);
 }
 
-/* 3. BUTTONS (Add, Update, Delete) */
-.btn_primary {
-    -fx-background-color: #272838; /* Navy */
-    -fx-text-fill: white;
-    -fx-font-weight: bold;
-    -fx-background-radius: 5px;
-    -fx-cursor: hand;
-}
-.btn_primary:hover { -fx-background-color: #1a1a2e; }
-
-.btn_secondary {
-    -fx-background-color: #F2B418; /* Gold */
-    -fx-text-fill: #272838; /* Navy Text */
-    -fx-font-weight: bold;
-    -fx-background-radius: 5px;
-    -fx-cursor: hand;
-}
-.btn_secondary:hover { -fx-background-color: #d9a214; }
-
-.btn_danger {
-    -fx-background-color: #dc3545; /* Red */
-    -fx-text-fill: white;
-    -fx-font-weight: bold;
-    -fx-background-radius: 5px;
-    -fx-cursor: hand;
-}
-.btn_danger:hover { -fx-background-color: #bd2130; }
-
-/* 4. SEARCH BAR */
-.txt_search {
+/* Search Section */
+.search-container {
     -fx-background-color: white;
-    -fx-border-color: #272838;
-    -fx-border-radius: 5px;
-    -fx-background-radius: 5px;
-    -fx-padding: 5px;
-}
-.txt_search:focused {
-    -fx-border-color: #F2B418; /* Gold glow */
-    -fx-effect: dropshadow(gaussian, rgba(242, 180, 24, 0.4), 5, 0, 0, 0);
+    -fx-padding: 20 0;
+    -fx-border-color: #e2e8f0;
+    -fx-border-width: 0 0 1 0;
 }
 
-/* 5. TABLE STYLING (The main data view) */
-.table-view {
+.search-field {
+    -fx-pref-height: 45px;
+    -fx-background-radius: 10px;
+    -fx-border-radius: 10px;
+    -fx-border-color: #e2e8f0;
+    -fx-background-color: #f8fafc;
+    -fx-padding: 0 15px;
+    -fx-font-size: 14px;
+    -fx-text-fill: #272838;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.05), 3, 0, 1, 1);
+}
+
+.search-field:focused {
+    -fx-border-color: #F2B418;
     -fx-background-color: white;
-    -fx-border-color: #e0e0e0;
-    -fx-background-radius: 8px;
-    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.05), 8, 0, 0, 2);
+    -fx-effect: dropshadow(gaussian, #F2B418, 8, 0.2, 0, 0);
 }
 
-/* The Header Row (Navy Background) */
-.table-view .column-header-background {
-    -fx-background-color: #272838;
-    -fx-background-radius: 8px 8px 0 0;
+.filter-combo {
+    -fx-pref-height: 35px;
+    -fx-pref-width: 160px;
+    -fx-background-radius: 10px;
+    -fx-border-radius: 10px;
+    -fx-border-color: #e2e8f0;
+    -fx-background-color: #f8fafc;
+    -fx-text-fill: #272838;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.05), 3, 0, 1, 1);
 }
 
-.table-view .column-header {
+.filter-combo .arrow-button {
+    -fx-background-color: #F2B418;
+    -fx-background-radius: 0 10 10 0;
+}
+
+.filter-combo .arrow {
+    -fx-background-color: white;
+}
+
+.filter-combo .list-cell {
+    -fx-text-fill: #272838;
+    -fx-padding: 10px 15px;
+    -fx-background-color: white;
+}
+
+.filter-combo .list-cell:hover {
+    -fx-background-color: #F2B418;
+    -fx-text-fill: white;
+}
+
+.search-button {
+    -fx-pref-height: 45px;
+    -fx-pref-width: 120px;
+    -fx-background-color: linear-gradient(to right, #F2B418, #e0a416);
+    -fx-text-fill: white;
+    -fx-background-radius: 10px;
+    -fx-border-radius: 10px;
+    -fx-font-weight: bold;
+    -fx-font-size: 14px;
+    -fx-cursor: hand;
+    -fx-effect: dropshadow(gaussian, rgba(242, 180, 24, 0.4), 8, 0, 2, 2);
+}
+
+.search-button:hover {
+    -fx-background-color: linear-gradient(to right, #e0a416, #d19a14);
+    -fx-effect: dropshadow(gaussian, rgba(242, 180, 24, 0.6), 12, 0, 3, 3);
+}
+
+/* Status Message */
+.status-message {
+    -fx-text-fill: #64748b;
+    -fx-font-size: 13px;
+    -fx-padding: 8px 0;
+    -fx-font-style: italic;
+}
+
+/* Table Styling */
+.table-scroll-pane {
     -fx-background-color: transparent;
-    -fx-size: 45px; /* Height of header */
+    -fx-border-color: #e2e8f0;
+    -fx-border-radius: 12px;
+    -fx-background-radius: 12px;
+    -fx-padding: 0;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.08), 8, 0, 2, 2);
+}
+
+.table-scroll-pane .viewport {
+    -fx-background-color: white;
+    -fx-background-radius: 12px;
+}
+
+.reservations-table {
+    -fx-background-color: white;
+    -fx-border-color: transparent;
+    -fx-background-radius: 12px;
+}
+
+.reservations-table .table-cell {
+    -fx-text-fill: #64748b; /* Medium gray - much softer */
+    -fx-font-size: 13px;
+    -fx-padding: 12px 10px;
+    -fx-border-color: transparent;
+    -fx-font-family: "Segoe UI", "System", sans-serif;
+}
+
+.reservations-table .column-header {
+    -fx-background-color: white;
+    -fx-text-fill: #ffffff;
+    -fx-font-weight: bold;
+    -fx-font-size: 13px;
+    -fx-border-color: #4b5563;
+    -fx-border-width: 0 1px 0 0;
+    -fx-padding: 12px 10px;
+}
+
+.reservations-table .column-header:last-child {
+    -fx-border-width: 0;
+}
+
+.reservations-table .table-row-cell {
+    -fx-border-color: #f1f5f9;
+    -fx-border-width: 0 0 1px 0;
+    -fx-background-color: transparent;
+}
+
+.reservations-table .table-row-cell:even {
+    -fx-background-color: white;
+}
+
+.reservations-table .table-row-cell:odd {
+    -fx-background-color: #f8fafc;
+}
+
+.reservations-table .table-row-cell:filled:hover {
+    -fx-background-color: #fff7ed;
+    -fx-border-color: #F2B418;
+}
+
+.reservations-table .table-row-cell:filled:selected {
+    -fx-background-color: #F2B418;
+    -fx-text-fill: white;
+}
+
+.reservations-table .table-cell {
+    -fx-text-fill: #334155;
+    -fx-font-size: 13px;
+    -fx-padding: 12px 10px;
     -fx-border-color: transparent;
 }
 
-.table-view .column-header .label {
+.reservations-table .table-cell:selected {
     -fx-text-fill: white;
+}
+
+/* Status Badges */
+.status-badge {
+    -fx-padding: 2px 6px;
+    -fx-background-radius: 20px;
+    -fx-border-radius: 20px;
+    -fx-font-size: 11px;
     -fx-font-weight: bold;
+    -fx-text-fill: white;
+    -fx-alignment: CENTER;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 2, 0, 1, 1);
+}
+
+.status-confirmed {
+    -fx-background-color: linear-gradient(to right, #10b981, #059669);
+    -fx-pref-height: 40px;
+}
+
+.status-pending {
+    -fx-background-color: linear-gradient(to right, #f59e0b, #d97706);
+    -fx-pref-height: 40px;
+}
+
+.status-cancelled {
+    -fx-background-color: linear-gradient(to right, #ef4444, #dc2626);
+    -fx-pref-height: 40px;
+}
+
+.status-waiting {
+    -fx-background-color: linear-gradient(to right, #3b82f6, #2563eb);
+    -fx-pref-height: 40px;
+}
+
+/* Action Buttons Container */
+.action-container {
+    -fx-background-color: white;
+    -fx-padding: 20 0;
+    -fx-border-color: #e2e8f0;
+    -fx-border-width: 1px 0 0 0;
+}
+
+/* Main Action Buttons */
+.action-button {
+    -fx-pref-height: 40px;
+    -fx-background-radius: 8px;
+    -fx-border-radius: 8px;
+    -fx-font-weight: bold;
+    -fx-cursor: hand;
+    -fx-font-size: 13px;
+    -fx-padding: 0 16px;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 4, 0, 1, 1);
+}
+
+.refresh-button {
+    -fx-background-color: linear-gradient(to right, #3b82f6, #2563eb);
+    -fx-text-fill: white;
+}
+
+.refresh-button:hover {
+    -fx-background-color: linear-gradient(to right, #2563eb, #1d4ed8);
+    -fx-effect: dropshadow(gaussian, rgba(59, 130, 246, 0.4), 8, 0, 2, 2);
+}
+
+.export-button {
+    -fx-background-color: linear-gradient(to right, #10b981, #059669);
+    -fx-text-fill: white;
+}
+
+.export-button:hover {
+    -fx-background-color: linear-gradient(to right, #059669, #047857);
+    -fx-effect: dropshadow(gaussian, rgba(16, 185, 129, 0.4), 8, 0, 2, 2);
+}
+
+/* Table Action Buttons */
+.table-action-button {
+    -fx-pref-height: 32px;
+    -fx-pref-width: 32px;
+    -fx-background-radius: 6px;
+    -fx-border-radius: 6px;
+    -fx-font-size: 12px;
+    -fx-cursor: hand;
+    -fx-padding: 0;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 3, 0, 1, 1);
+}
+
+.edit-button {
+    -fx-background-color: linear-gradient(to bottom, #3b82f6, #2563eb);
+    -fx-text-fill: white;
+}
+
+.edit-button:hover {
+    -fx-background-color: linear-gradient(to bottom, #2563eb, #1d4ed8);
+}
+
+.cancel-button {
+    -fx-background-color: linear-gradient(to bottom, #ef4444, #dc2626);
+    -fx-text-fill: white;
+}
+
+.cancel-button:hover {
+    -fx-background-color: linear-gradient(to bottom, #dc2626, #b91c1c);
+}
+
+.view-button {
+    -fx-background-color: linear-gradient(to bottom, #10b981, #059669);
+    -fx-text-fill: white;
+}
+
+.view-button:hover {
+    -fx-background-color: linear-gradient(to bottom, #059669, #047857);
+}
+
+.print-button {
+    -fx-background-color: linear-gradient(to bottom, #f59e0b, #d97706);
+    -fx-text-fill: white;
+}
+
+.print-button:hover {
+    -fx-background-color: linear-gradient(to bottom, #d97706, #b45309);
+}
+
+/* Pagination Controls */
+.pagination-label {
+    -fx-text-fill: #64748b;
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+}
+
+.page-size-combo {
+    -fx-pref-height: 35px;
+    -fx-pref-width: 80px;
+    -fx-background-radius: 6px;
+    -fx-border-radius: 6px;
+    -fx-border-color: #e2e8f0;
+    -fx-background-color: white;
+    -fx-text-fill: #272838;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.05), 2, 0, 1, 1);
+}
+
+.page-size-combo .arrow-button {
+    -fx-background-color: #F2B418;
+    -fx-background-radius: 0 6 6 0;
+}
+
+.page-size-combo .arrow {
+    -fx-background-color: white;
+}
+
+.pagination-info {
+    -fx-text-fill: #64748b;
+    -fx-font-size: 13px;
+    -fx-font-weight: 500;
+}
+
+/* Progress Bar */
+.progress-bar {
+    -fx-accent: #F2B418;
+    -fx-pref-height: 6px;
+    -fx-background-radius: 10px;
+}
+
+.progress-bar .track {
+    -fx-background-color: #e2e8f0;
+    -fx-background-radius: 10px;
+    -fx-pref-height: 6px;
+}
+
+.progress-bar .bar {
+    -fx-background-radius: 10px;
+    -fx-pref-height: 6px;
+}
+
+/* Context Menu */
+.context-menu {
+    -fx-background-color: white;
+    -fx-border-color: #e2e8f0;
+    -fx-border-radius: 8px;
+    -fx-background-radius: 8px;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.15), 8, 0, 2, 2);
+    -fx-padding: 6px 0;
+}
+
+.menu-item {
+    -fx-background-color: transparent;
+    -fx-padding: 10px 16px;
+    -fx-text-fill: #334155;
+}
+
+.menu-item:hover {
+    -fx-background-color: #F2B418;
+    -fx-text-fill: white;
+}
+
+/* Tooltip Styling */
+.tooltip {
+    -fx-background-color: #272838;
+    -fx-text-fill: white;
+    -fx-background-radius: 6px;
+    -fx-border-radius: 6px;
+    -fx-padding: 8px 12px;
+    -fx-font-size: 12px;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.2), 4, 0, 1, 1);
+}
+
+/* Table column alignment */
+.numeric-column {
+    -fx-alignment: CENTER_RIGHT;
+}
+
+.center-column {
+    -fx-alignment: CENTER;
+}
+
+.left-column {
     -fx-alignment: CENTER_LEFT;
 }
 
-/* Table Rows */
-.table-view .table-row-cell {
-    -fx-cell-size: 40px;
-    -fx-border-color: transparent transparent #f0f0f0 transparent; /* Subtle divider */
-}
-.table-view .table-row-cell:odd { -fx-background-color: #f9f9f9; }
-.table-view .table-row-cell:selected {
-    -fx-background-color: #F2B418;
-    -fx-text-fill: #272838;
+/* Focus states */
+.button:focused,
+.text-field:focused,
+.combo-box:focused {
+    -fx-effect: dropshadow(gaussian, #F2B418, 8, 0.3, 0, 0);
 }
 
-/* 6. FOOTER / NAVIGATION */
-.hbox_navigation {
-    -fx-background-color: #ffffff;
-    -fx-padding: 8px;
+/* Add these styles to your ManageReservations.css */
+
+/* Main Action Buttons */
+.action-button {
+    -fx-pref-height: 40px;
     -fx-background-radius: 8px;
-    -fx-border-color: #e0e0e0;
     -fx-border-radius: 8px;
+    -fx-font-weight: bold;
+    -fx-cursor: hand;
+    -fx-font-size: 13px;
+    -fx-padding: 0 16px;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 4, 0, 1, 1);
 }
 
-.btn_nav {
-    -fx-background-color: #e0e0e0;
-    -fx-text-fill: #555;
-}
-.btn_nav:hover { -fx-background-color: #d0d0d0; }
-
-/* 1. TABLE VIEW CONTAINER */
-.table-view {
-    -fx-background-color: white;
-    -fx-border-color: #e0e0e0;
-    -fx-border-width: 1px; /* Add an outer border */
-    -fx-background-radius: 8px;
-    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.05), 8, 0.2, 0, 2);
+.refresh-button {
+    -fx-background-color: linear-gradient(to right, #3b82f6, #2563eb);
+    -fx-text-fill: white;
 }
 
-/* 2. TABLE ROWS (Addressing the "one big row" issue) */
-.table-view .table-row-cell {
-    -fx-cell-size: 40px;
-    /* Add a visible border at the bottom of each row */
-    -fx-border-color: transparent transparent #cccccc transparent;
-    -fx-border-width: 0.5px; /* Use a thin, light gray line */
+.refresh-button:hover {
+    -fx-background-color: linear-gradient(to right, #2563eb, #1d4ed8);
+    -fx-effect: dropshadow(gaussian, rgba(59, 130, 246, 0.4), 8, 0, 2, 2);
 }
 
-/* 3. ALTERNATING ROW COLORS (Further distinguishing rows) */
-.table-view .table-row-cell:odd {
-    -fx-background-color: #f9f9f9; /* Very light gray for odd rows */
+.export-button {
+    -fx-background-color: linear-gradient(to right, #10b981, #059669);
+    -fx-text-fill: white;
 }
 
-.table-view .table-row-cell:even {
-    -fx-background-color: #ffffff; /* Pure white for even rows */
+.export-button:hover {
+    -fx-background-color: linear-gradient(to right, #059669, #047857);
+    -fx-effect: dropshadow(gaussian, rgba(16, 185, 129, 0.4), 8, 0, 2, 2);
 }
 
-/* 4. TABLE CELLS (Addressing the "one big column" issue) */
-.table-view .table-cell {
-    /* Add a subtle vertical border to separate columns */
-    -fx-border-color: transparent #f0f0f0 transparent transparent;
-    -fx-border-width: 0.5px;
-    -fx-padding: 0 5px 0 5px; /* Ensure content isn't cramped */
+/* If you want individual button styles for other actions, add these too: */
+.print-button {
+    -fx-background-color: linear-gradient(to right, #f59e0b, #d97706);
+    -fx-text-fill: white;
 }
 
-/* 5. SELECTION STYLE */
-.table-view .table-row-cell:selected {
-    -fx-background-color: #F2B418; /* Gold selection */
-    -fx-text-fill: #272838;
+.print-button:hover {
+    -fx-background-color: linear-gradient(to right, #d97706, #b45309);
+    -fx-effect: dropshadow(gaussian, rgba(245, 158, 11, 0.4), 8, 0, 2, 2);
+}
+
+.cancel-button {
+    -fx-background-color: linear-gradient(to right, #ef4444, #dc2626);
+    -fx-text-fill: white;
+}
+
+.cancel-button:hover {
+    -fx-background-color: linear-gradient(to right, #dc2626, #b91c1c);
+    -fx-effect: dropshadow(gaussian, rgba(239, 68, 68, 0.4), 8, 0, 2, 2);
+}
+
+.edit-button {
+    -fx-background-color: linear-gradient(to right, #8b5cf6, #7c3aed);
+    -fx-text-fill: white;
+}
+
+.edit-button:hover {
+    -fx-background-color: linear-gradient(to right, #7c3aed, #6d28d9);
+    -fx-effect: dropshadow(gaussian, rgba(139, 92, 246, 0.4), 8, 0, 2, 2);
+}
+
+.view-button {
+    -fx-background-color: linear-gradient(to right, #06b6d4, #0891b2);
+    -fx-text-fill: white;
+}
+
+.view-button:hover {
+    -fx-background-color: linear-gradient(to right, #0891b2, #0e7490);
+    -fx-effect: dropshadow(gaussian, rgba(6, 182, 212, 0.4), 8, 0, 2, 2);
 }
