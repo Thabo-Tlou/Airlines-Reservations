@@ -404,3 +404,39 @@
     -fx-accent: #F2B418;
     -fx-pref-height: 6;
 }
+
+/* Navigation Button Styles */
+.nav-button {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-text-fill: transparent;
+    -fx-cursor: hand;
+    -fx-pref-height: 60px;
+    -fx-pref-width: 300px;
+}
+
+.nav-button:hover {
+    -fx-background-color: #2d3748;
+}
+
+.nav-button-active {
+    -fx-background-color: black;
+    -fx-border-color: transparent;
+    -fx-text-fill: transparent;
+    -fx-cursor: default;
+    -fx-pref-height: 60px;
+    -fx-pref-width: 300px;
+}
+
+.nav-button-logout {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-text-fill: transparent;
+    -fx-cursor: hand;
+    -fx-pref-height: 60px;
+    -fx-pref-width: 300px;
+}
+
+.nav-button-logout:hover {
+    -fx-background-color: #dc2626;
+}

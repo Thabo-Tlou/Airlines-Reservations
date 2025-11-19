@@ -7,6 +7,8 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import org.json.JSONObject;
 import org.json.JSONArray;
@@ -283,19 +285,65 @@ public class SupabaseService {
     }
 
     // ---------------- SEATS ----------------
-    // Uses anon key, assuming public read access for available seats. No userAuthToken check needed.
 
     /**
-     * Fetches all available seats for a specific flight.
+     * UPDATED: Uses database function for accurate seat availability checking
      */
     public CompletableFuture<HttpResponse<String>> getAvailableSeatsByFlight(Long flightId) {
-        // Query for seats on the flight that are marked as available
-        String url = SUPABASE_URL + "/rest/v1/seats?flight_id=eq." + flightId + "&is_available=eq.true&select=*";
+        return getActuallyAvailableSeats(flightId);
+    }
+
+    /**
+     * NEW: Calls the database function get_available_seats to get actually available seats
+     * (excluding those with confirmed reservations)
+     */
+    public CompletableFuture<HttpResponse<String>> getActuallyAvailableSeats(Long flightId) {
+        try {
+            System.out.println("DEBUG: Calling database function get_available_seats for flight: " + flightId);
+
+            String url = SUPABASE_URL + "/rest/v1/rpc/get_available_seats";
+
+            JSONObject requestBody = new JSONObject();
+            requestBody.put("p_flight_id", flightId);
+
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(url))
+                    .header("apikey", SUPABASE_KEY)
+                    .header("Authorization", "Bearer " + SUPABASE_KEY)
+                    .header("Content-Type", "application/json")
+                    .header("Prefer", "return=representation")
+                    .POST(HttpRequest.BodyPublishers.ofString(requestBody.toString()))
+                    .build();
+
+            return client.sendAsync(request, HttpResponse.BodyHandlers.ofString())
+                    .thenApply(response -> {
+                        System.out.println("DEBUG: Database function response status: " + response.statusCode());
+                        if (response.statusCode() != 200) {
+                            System.err.println("DEBUG: Database function error: " + response.body());
+                        }
+                        return response;
+                    });
+
+        } catch (Exception e) {
+            System.err.println("Error calling get_available_seats function: " + e.getMessage());
+            CompletableFuture<HttpResponse<String>> future = new CompletableFuture<>();
+            future.completeExceptionally(e);
+            return future;
+        }
+    }
+
+    /**
+     * Fallback method using direct query (keep as backup)
+     */
+    public CompletableFuture<HttpResponse<String>> getAvailableSeatsByFlightFallback(Long flightId) {
+        System.out.println("DEBUG: Using fallback seat availability check for flight: " + flightId);
+
+        String url = SUPABASE_URL + "/rest/v1/seats?flight_id=eq." + flightId +
+                "&is_available=eq.true&select=seat_id,seat_number,seat_class,seat_position,is_available,premium_seat_surcharge";
 
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(url))
                 .header("apikey", SUPABASE_KEY)
-                // Authorization header is often unnecessary for public reads, but retained existing logic.
                 .header("Authorization", "Bearer " + SUPABASE_KEY)
                 .header("Content-Type", "application/json")
                 .header("Prefer", "return=representation")
@@ -304,7 +352,6 @@ public class SupabaseService {
 
         return client.sendAsync(request, HttpResponse.BodyHandlers.ofString());
     }
-
 
     // ---------------- RESERVATIONS ----------------
 
@@ -620,7 +667,6 @@ public class SupabaseService {
 
         return client.sendAsync(request, HttpResponse.BodyHandlers.ofString());
     }
-// Inside SupabaseService.java
 
     /**
      * Inserts a new flight record into the 'flights' table.
@@ -650,6 +696,7 @@ public class SupabaseService {
             return CompletableFuture.failedFuture(e);
         }
     }
+
     /**
      * Inserts a new waiting list entry.
      * FIXED: Includes token validation.
@@ -701,6 +748,7 @@ public class SupabaseService {
             return CompletableFuture.failedFuture(e);
         }
     }
+
     public CompletableFuture<HttpResponse<String>> getMaxWaitingPosition(Long flightId, String seatClass, String userAuthToken) {
         CompletableFuture<HttpResponse<String>> validationResult = validateAuthToken(userAuthToken);
         if (validationResult != null) return validationResult;
@@ -728,6 +776,7 @@ public class SupabaseService {
             return CompletableFuture.failedFuture(e);
         }
     }
+
     // ---------------- CONNECTION TEST ----------------
 
     public CompletableFuture<Boolean> testConnection() {

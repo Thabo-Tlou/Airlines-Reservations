@@ -421,7 +421,7 @@ public class ReservationFormController {
     }
 
     // ==========================================
-    // SEAT AVAILABILITY CHECKING
+    // ENHANCED SEAT AVAILABILITY CHECKING (UPDATED)
     // ==========================================
 
     private void checkAvailableSeats(Long flightId, String flightCode, String seatClass, String seatPreference) {
@@ -431,27 +431,112 @@ public class ReservationFormController {
         System.out.println("Flight ID: " + flightId);
         System.out.println("Seat Class: " + seatClass);
         System.out.println("Seat Preference: " + seatPreference);
+        System.out.println("Using Database Function: get_available_seats");
 
         supabaseService.getAvailableSeatsByFlight(flightId)
                 .thenAccept(seatsResponse -> {
-                    System.out.println("Seat check response - Status: " + seatsResponse.statusCode());
-                    System.out.println("Seat check response - Body: " + seatsResponse.body());
+                    System.out.println("Database function response - Status: " + seatsResponse.statusCode());
+                    System.out.println("Database function response - Body: " + seatsResponse.body());
 
                     if (seatsResponse.statusCode() == 200) {
                         try {
                             JSONArray seatsArray = new JSONArray(seatsResponse.body());
                             Long availableSeatId = null;
                             String seatNumber = "";
+                            String matchedSeatPosition = "";
 
-                            System.out.println("Found " + seatsArray.length() + " available seats");
+                            System.out.println("Database function returned " + seatsArray.length() + " actually available seats");
+
+                            // Debug: Log all available seats
+                            for (int i = 0; i < seatsArray.length(); i++) {
+                                JSONObject seat = seatsArray.getJSONObject(i);
+                                System.out.println("Available Seat: " +
+                                        seat.optString("seat_number") + " - " +
+                                        seat.optString("seat_class") + " - " +
+                                        seat.optString("seat_position"));
+                            }
+
+                            // Strategy: Find best matching seat
+                            for (int i = 0; i < seatsArray.length(); i++) {
+                                JSONObject seat = seatsArray.getJSONObject(i);
+                                String seatClassDb = seat.optString("seat_class", "");
+                                String currentSeatPosition = seat.optString("seat_position", "");
+
+                                if (seatClass.equalsIgnoreCase(seatClassDb)) {
+                                    // Priority 1: Exact preference match
+                                    if (seatPreference.equalsIgnoreCase(currentSeatPosition)) {
+                                        availableSeatId = seat.getLong("seat_id");
+                                        seatNumber = seat.optString("seat_number", "");
+                                        matchedSeatPosition = currentSeatPosition;
+                                        System.out.println("Found exact match: " + seatNumber);
+                                        break; // Stop at first exact match
+                                    }
+                                    // Priority 2: First available in class (fallback)
+                                    else if (availableSeatId == null) {
+                                        availableSeatId = seat.getLong("seat_id");
+                                        seatNumber = seat.optString("seat_number", "");
+                                        matchedSeatPosition = currentSeatPosition;
+                                        System.out.println("Found fallback seat: " + seatNumber);
+                                    }
+                                }
+                            }
+
+                            if (availableSeatId != null) {
+                                System.out.println("CONFIRMED: Seat " + seatNumber +
+                                        " (" + matchedSeatPosition + ") - ID: " + availableSeatId);
+                                createConfirmedReservation(flightId, flightCode, availableSeatId, seatNumber);
+                            } else {
+                                System.out.println("NO SEATS: Adding to waiting list");
+                                createWaitingListReservation(flightId, flightCode);
+                            }
+                        } catch (Exception e) {
+                            System.err.println("Error processing seat data: " + e.getMessage());
+                            Platform.runLater(() -> {
+                                updateStatus("Error checking seats", false);
+                                showAlert("Error", "Failed to process seat availability: " + e.getMessage());
+                            });
+                        }
+                    } else {
+                        // Handle function call errors - try fallback method
+                        Platform.runLater(() -> {
+                            updateStatus("Failed to check seat availability", false);
+                            System.err.println("Database function error: " + seatsResponse.body());
+
+                            // Try fallback method
+                            tryFallbackSeatCheck(flightId, flightCode, seatClass, seatPreference);
+                        });
+                    }
+                })
+                .exceptionally(ex -> {
+                    System.err.println("Exception during seat check: " + ex.getMessage());
+                    Platform.runLater(() -> {
+                        updateStatus("Network error checking seats", false);
+                        // Try fallback on network errors
+                        tryFallbackSeatCheck(flightId, flightCode, seatClass, seatPreference);
+                    });
+                    return null;
+                });
+    }
+
+    // Fallback method for error scenarios
+    private void tryFallbackSeatCheck(Long flightId, String flightCode, String seatClass, String seatPreference) {
+        System.out.println("Attempting fallback seat check...");
+
+        supabaseService.getAvailableSeatsByFlightFallback(flightId)
+                .thenAccept(fallbackResponse -> {
+                    if (fallbackResponse.statusCode() == 200) {
+                        try {
+                            JSONArray seatsArray = new JSONArray(fallbackResponse.body());
+                            Long availableSeatId = null;
+                            String seatNumber = "";
+
+                            System.out.println("Fallback found " + seatsArray.length() + " seats");
 
                             for (int i = 0; i < seatsArray.length(); i++) {
                                 JSONObject seat = seatsArray.getJSONObject(i);
                                 String seatClassDb = seat.optString("seat_class", "");
                                 String seatPosition = seat.optString("seat_position", "");
                                 boolean isAvailable = seat.optBoolean("is_available", false);
-
-                                System.out.println("Seat " + i + ": " + seatClassDb + " - " + seatPosition + " - Available: " + isAvailable);
 
                                 if (seatClass.equals(seatClassDb) && isAvailable) {
                                     if (seatPreference.equals(seatPosition) || availableSeatId == null) {
@@ -465,28 +550,31 @@ public class ReservationFormController {
                             }
 
                             if (availableSeatId != null) {
-                                System.out.println("Found available seat: " + seatNumber + " (ID: " + availableSeatId + ")");
+                                System.out.println("Fallback found available seat: " + seatNumber + " (ID: " + availableSeatId + ")");
                                 createConfirmedReservation(flightId, flightCode, availableSeatId, seatNumber);
                             } else {
-                                System.out.println("No seats available - adding to waiting list");
+                                System.out.println("Fallback: No seats available - adding to waiting list");
                                 createWaitingListReservation(flightId, flightCode);
                             }
                         } catch (Exception e) {
-                            System.err.println("Error checking seats: " + e.getMessage());
-                            Platform.runLater(() -> updateStatus("Error checking seats", false));
+                            System.err.println("Error in fallback seat check: " + e.getMessage());
+                            Platform.runLater(() -> {
+                                updateStatus("Error in fallback seat check", false);
+                                createWaitingListReservation(flightId, flightCode); // Default to waiting list
+                            });
                         }
                     } else {
                         Platform.runLater(() -> {
-                            updateStatus("Failed to check seat availability", false);
-                            showAlert("Error", "Failed to check available seats: " + seatsResponse.body());
+                            updateStatus("Both seat checks failed", false);
+                            showAlert("Error", "Unable to check seat availability. Please try again later.");
                         });
                     }
                 })
                 .exceptionally(ex -> {
-                    System.err.println("Exception during seat check: " + ex.getMessage());
+                    System.err.println("Exception during fallback seat check: " + ex.getMessage());
                     Platform.runLater(() -> {
-                        updateStatus("Network error checking seats", false);
-                        showAlert("Error", "Network error: " + ex.getMessage());
+                        updateStatus("All seat checks failed", false);
+                        createWaitingListReservation(flightId, flightCode); // Default to waiting list
                     });
                     return null;
                 });
@@ -762,11 +850,6 @@ public class ReservationFormController {
         reservationData.put("reservation_date", "now()");
         reservationData.put("is_confirmed", false);
         // Note: waiting_list_position will be set separately after we calculate it
-
-        // REMOVED: category_fare - this column doesn't exist in your table
-        // REMOVED: payment_due - this is a generated column, cannot insert values
-        // REMOVED: payment_method - you can add this if you want to use the payment_method column
-
         return reservationData;
     }
 
@@ -1119,49 +1202,30 @@ public class ReservationFormController {
     }
 
     // ==========================================
-    // NAVIGATION METHODS
+    // UPDATED NAVIGATION METHODS USING SCENEMANAGER
     // ==========================================
 
     private void navigateToDashboard() {
-        try {
-            SceneManager.loadScene("/groupassingment/airlinesreservations/Dashboard.fxml",
-                    btnDashboard.getScene(), userAuthToken, userId, userEmail);
-        } catch (Exception e) {
-            showAlert("Navigation Error", "Unable to load dashboard");
-        }
+        SceneManager.navigateToDashboard(btnDashboard.getScene(), userAuthToken, userId, userEmail);
     }
 
     private void navigateToManageReservations() {
-        try {
-            SceneManager.loadScene("/groupassingment/airlinesreservations/ManageReservations.fxml",
-                    btnManageReservations.getScene(), userAuthToken, userId, userEmail);
-        } catch (Exception e) {
-            showAlert("Navigation Error", "Unable to load manage reservations");
-        }
+        SceneManager.navigateToManageReservations(btnManageReservations.getScene(), userAuthToken, userId, userEmail);
     }
 
     private void navigateToFeedback() {
-        showAlert("Info", "Feedback feature coming soon!");
+        SceneManager.navigateToFeedback(btnFeedback.getScene(), userAuthToken, userId, userEmail);
     }
 
     private void navigateToSupport() {
-        showAlert("Info", "Support feature coming soon!");
+        SceneManager.navigateToSupport(btnSupport.getScene(), userAuthToken, userId, userEmail);
     }
 
     private void navigateToSettings() {
-        showAlert("Info", "Settings feature coming soon!");
+        SceneManager.navigateToSettings(btnSettings.getScene(), userAuthToken, userId, userEmail);
     }
 
     private void handleLogout() {
-        SessionManager.clearSessionData();
-        try {
-            Stage stage = (Stage) btnLogout.getScene().getWindow();
-            Parent root = FXMLLoader.load(getClass().getResource("/groupassingment/airlinesreservations/Login.fxml"));
-            Scene scene = new Scene(root);
-            stage.setScene(scene);
-            stage.centerOnScreen();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        SceneManager.handleLogout(btnLogout.getScene());
     }
 }

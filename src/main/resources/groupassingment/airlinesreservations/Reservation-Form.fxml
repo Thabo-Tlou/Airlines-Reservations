@@ -49,108 +49,136 @@
                         <!-- Navigation Menu -->
                         <VBox spacing="2" styleClass="nav-menu" stylesheets="@../../styles/reserveform.css" VBox.vgrow="ALWAYS">
                             <children>
-                                <HBox alignment="CENTER_LEFT" prefHeight="60.0" prefWidth="300.0" styleClass="nav-item" stylesheets="@../../styles/reserveform.css">
-                                    <children>
-                                        <ImageView fitHeight="24.0" fitWidth="24.0" pickOnBounds="true" preserveRatio="true" styleClass="nav-icon">
-                                            <image>
-                                                <Image url="@../../images/icons/dashboard.png" />
-                                            </image>
-                                        </ImageView>
-                                        <Label styleClass="nav-label" text="Dashboard" />
-                                    </children>
-                                    <padding>
-                                        <Insets left="30.0" />
-                                    </padding>
-                                </HBox>
+                                <Button fx:id="btnDashboard" styleClass="nav-button" stylesheets="@../../styles/reserveform.css">
+                                    <graphic>
+                                        <HBox alignment="CENTER_LEFT">
+                                            <children>
+                                                <ImageView fitHeight="24.0" fitWidth="24.0" pickOnBounds="true" preserveRatio="true" styleClass="nav-icon">
+                                                    <image>
+                                                        <Image url="@../../images/icons/dashboard.png" />
+                                                    </image>
+                                                </ImageView>
+                                                <Label styleClass="nav-label" text="Dashboard" />
+                                            </children>
+                                            <padding>
+                                                <Insets left="30.0" />
+                                            </padding>
+                                        </HBox>
+                                    </graphic>
+                                </Button>
 
-                                <HBox alignment="CENTER_LEFT" prefHeight="60.0" prefWidth="300.0" styleClass="nav-item-active">
-                                    <children>
-                                        <ImageView fitHeight="24.0" fitWidth="24.0" pickOnBounds="true" preserveRatio="true" styleClass="nav-icon">
-                                            <image>
-                                                <Image url="@../../images/icons/eservation.png" />
-                                            </image>
-                                        </ImageView>
-                                        <Label styleClass="nav-label-active" text="Reservation" />
-                                    </children>
-                                    <padding>
-                                        <Insets left="30.0" />
-                                    </padding>
-                                </HBox>
+                                <Button fx:id="btnReservation" styleClass="nav-button-active">
+                                    <graphic>
+                                        <HBox alignment="CENTER_LEFT" prefHeight="51.0" prefWidth="255.0">
+                                            <children>
+                                                <ImageView fitHeight="24.0" fitWidth="24.0" pickOnBounds="true" preserveRatio="true" styleClass="nav-icon">
+                                                    <image>
+                                                        <Image url="@../../images/icons/eservation.png" />
+                                                    </image>
+                                                </ImageView>
+                                                <Label styleClass="nav-label-active" text="Reservation" />
+                                            </children>
+                                            <padding>
+                                                <Insets left="30.0" />
+                                            </padding>
+                                        </HBox>
+                                    </graphic>
+                                </Button>
 
-                                <HBox alignment="CENTER_LEFT" prefHeight="60.0" prefWidth="300.0" styleClass="nav-item" stylesheets="@../../styles/reserveform.css">
-                                    <children>
-                                        <ImageView fitHeight="24.0" fitWidth="24.0" pickOnBounds="true" preserveRatio="true" styleClass="nav-icon">
-                                            <image>
-                                                <Image url="@../../images/icons/manage.png" />
-                                            </image>
-                                        </ImageView>
-                                        <Label styleClass="nav-label" text="Manage Reservations" />
-                                    </children>
-                                    <padding>
-                                        <Insets left="30.0" />
-                                    </padding>
-                                </HBox>
+                                <Button fx:id="btnManageReservations" styleClass="nav-button" stylesheets="@../../styles/reserveform.css">
+                                    <graphic>
+                                        <HBox alignment="CENTER_LEFT">
+                                            <children>
+                                                <ImageView fitHeight="24.0" fitWidth="24.0" pickOnBounds="true" preserveRatio="true" styleClass="nav-icon">
+                                                    <image>
+                                                        <Image url="@../../images/icons/manage.png" />
+                                                    </image>
+                                                </ImageView>
+                                                <Label styleClass="nav-label" text="Manage Reservations" />
+                                            </children>
+                                            <padding>
+                                                <Insets left="30.0" />
+                                            </padding>
+                                        </HBox>
+                                    </graphic>
+                                </Button>
 
-                                <HBox alignment="CENTER_LEFT" prefHeight="60.0" prefWidth="300.0" styleClass="nav-item" stylesheets="@../../styles/reserveform.css">
-                                    <children>
-                                        <ImageView fitHeight="24.0" fitWidth="24.0" pickOnBounds="true" preserveRatio="true" styleClass="nav-icon">
-                                            <image>
-                                                <Image url="@../../images/icons/feedback.png" />
-                                            </image>
-                                        </ImageView>
-                                        <Label styleClass="nav-label" text="Feedback" />
-                                    </children>
-                                    <padding>
-                                        <Insets left="30.0" />
-                                    </padding>
-                                </HBox>
+                                <Button fx:id="btnFeedback" styleClass="nav-button" stylesheets="@../../styles/reserveform.css">
+                                    <graphic>
+                                        <HBox alignment="CENTER_LEFT">
+                                            <children>
+                                                <ImageView fitHeight="24.0" fitWidth="24.0" pickOnBounds="true" preserveRatio="true" styleClass="nav-icon">
+                                                    <image>
+                                                        <Image url="@../../images/icons/feedback.png" />
+                                                    </image>
+                                                </ImageView>
+                                                <Label styleClass="nav-label" text="Feedback" />
+                                            </children>
+                                            <padding>
+                                                <Insets left="30.0" />
+                                            </padding>
+                                        </HBox>
+                                    </graphic>
+                                </Button>
                             </children>
                         </VBox>
 
                         <!-- Bottom Navigation -->
                         <VBox spacing="2" styleClass="nav-menu-bottom" stylesheets="@../../styles/reserveform.css">
                             <children>
-                                <HBox alignment="CENTER_LEFT" prefHeight="60.0" prefWidth="300.0" styleClass="nav-item" stylesheets="@../../styles/reserveform.css">
-                                    <children>
-                                        <ImageView fitHeight="24.0" fitWidth="24.0" pickOnBounds="true" preserveRatio="true" styleClass="nav-icon">
-                                            <image>
-                                                <Image url="@../../images/icons/support.png" />
-                                            </image>
-                                        </ImageView>
-                                        <Label styleClass="nav-label" text="Support" />
-                                    </children>
-                                    <padding>
-                                        <Insets left="30.0" />
-                                    </padding>
-                                </HBox>
+                                <Button fx:id="btnSupport" styleClass="nav-button" stylesheets="@../../styles/reserveform.css">
+                                    <graphic>
+                                        <HBox alignment="CENTER_LEFT">
+                                            <children>
+                                                <ImageView fitHeight="24.0" fitWidth="24.0" pickOnBounds="true" preserveRatio="true" styleClass="nav-icon">
+                                                    <image>
+                                                        <Image url="@../../images/icons/support.png" />
+                                                    </image>
+                                                </ImageView>
+                                                <Label styleClass="nav-label" text="Support" />
+                                            </children>
+                                            <padding>
+                                                <Insets left="30.0" />
+                                            </padding>
+                                        </HBox>
+                                    </graphic>
+                                </Button>
 
-                                <HBox alignment="CENTER_LEFT" prefHeight="60.0" prefWidth="300.0" styleClass="nav-item" stylesheets="@../../styles/reserveform.css">
-                                    <children>
-                                        <ImageView fitHeight="24.0" fitWidth="24.0" pickOnBounds="true" preserveRatio="true" styleClass="nav-icon">
-                                            <image>
-                                                <Image url="@../../images/icons/settings.png" />
-                                            </image>
-                                        </ImageView>
-                                        <Label styleClass="nav-label" text="Settings" />
-                                    </children>
-                                    <padding>
-                                        <Insets left="30.0" />
-                                    </padding>
-                                </HBox>
+                                <Button fx:id="btnSettings" styleClass="nav-button" stylesheets="@../../styles/reserveform.css">
+                                    <graphic>
+                                        <HBox alignment="CENTER_LEFT">
+                                            <children>
+                                                <ImageView fitHeight="24.0" fitWidth="24.0" pickOnBounds="true" preserveRatio="true" styleClass="nav-icon">
+                                                    <image>
+                                                        <Image url="@../../images/icons/settings.png" />
+                                                    </image>
+                                                </ImageView>
+                                                <Label styleClass="nav-label" text="Settings" />
+                                            </children>
+                                            <padding>
+                                                <Insets left="30.0" />
+                                            </padding>
+                                        </HBox>
+                                    </graphic>
+                                </Button>
 
-                                <HBox alignment="CENTER_LEFT" prefHeight="60.0" prefWidth="300.0" styleClass="nav-item-logout" stylesheets="@../../styles/reserveform.css">
-                                    <children>
-                                        <ImageView fitHeight="24.0" fitWidth="24.0" pickOnBounds="true" preserveRatio="true" styleClass="nav-icon">
-                                            <image>
-                                                <Image url="@../../images/icons/logout.png" />
-                                            </image>
-                                        </ImageView>
-                                        <Label styleClass="nav-label-logout" text="Logout" />
-                                    </children>
-                                    <padding>
-                                        <Insets left="30.0" />
-                                    </padding>
-                                </HBox>
+                                <Button fx:id="btnLogout" styleClass="nav-button-logout" stylesheets="@../../styles/reserveform.css">
+                                    <graphic>
+                                        <HBox alignment="CENTER_LEFT">
+                                            <children>
+                                                <ImageView fitHeight="24.0" fitWidth="24.0" pickOnBounds="true" preserveRatio="true" styleClass="nav-icon">
+                                                    <image>
+                                                        <Image url="@../../images/icons/logout.png" />
+                                                    </image>
+                                                </ImageView>
+                                                <Label styleClass="nav-label-logout" text="Logout" />
+                                            </children>
+                                            <padding>
+                                                <Insets left="30.0" />
+                                            </padding>
+                                        </HBox>
+                                    </graphic>
+                                </Button>
                             </children>
                         </VBox>
                     </children>
@@ -169,13 +197,13 @@
                                         <VBox spacing="8">
                                             <children>
                                                 <Label styleClass="main-title" stylesheets="@../../styles/reserveform.css" text="FLIGHT RESERVATION">
-                                       <VBox.margin>
-                                          <Insets left="10.0" />
-                                       </VBox.margin></Label>
+                                                    <VBox.margin>
+                                                        <Insets left="10.0" />
+                                                    </VBox.margin></Label>
                                                 <Label styleClass="main-subtitle" stylesheets="@../../styles/reserveform.css" text="Experience luxury in the skies with Bokamoso Airlines">
-                                       <VBox.margin>
-                                          <Insets left="10.0" />
-                                       </VBox.margin></Label>
+                                                    <VBox.margin>
+                                                        <Insets left="10.0" />
+                                                    </VBox.margin></Label>
                                             </children>
                                         </VBox>
                                         <Region HBox.hgrow="ALWAYS" />
@@ -267,22 +295,22 @@
                                                         </HBox>
 
                                                         <VBox spacing="12" styleClass="input-group">
-                                             <HBox prefHeight="100.0" prefWidth="200.0" spacing="20.0">
-                                                <children>
-                                                   <VBox prefHeight="100.0" prefWidth="210.0" spacing="10.0">
-                                                      <children>
-                                                                        <Label styleClass="input-label" text="Trip Type" />
-                                                                        <ComboBox fx:id="combo_triptype" prefHeight="69.0" prefWidth="206.0" promptText="Select trip type" styleClass="combo-box-premium" />
-                                                      </children>
-                                                   </VBox>
-                                                   <VBox prefHeight="100.0" prefWidth="214.0" spacing="10.0">
-                                                      <children>
-                                                         <Label styleClass="input-label" text="Available flights" />
-                                                         <ComboBox fx:id="combo_available_flights" prefHeight="69.0" prefWidth="206.0" promptText="See Avaiable Flights" styleClass="combo-box-premium" />
-                                                      </children>
-                                                   </VBox>
-                                                </children>
-                                             </HBox>
+                                                            <HBox prefHeight="100.0" prefWidth="200.0" spacing="20.0">
+                                                                <children>
+                                                                    <VBox prefHeight="100.0" prefWidth="210.0" spacing="10.0">
+                                                                        <children>
+                                                                            <Label styleClass="input-label" text="Trip Type" />
+                                                                            <ComboBox fx:id="combo_triptype" prefHeight="69.0" prefWidth="206.0" promptText="Select trip type" styleClass="combo-box-premium" />
+                                                                        </children>
+                                                                    </VBox>
+                                                                    <VBox prefHeight="100.0" prefWidth="214.0" spacing="10.0">
+                                                                        <children>
+                                                                            <Label styleClass="input-label" text="Available flights" />
+                                                                            <ComboBox fx:id="combo_available_flights" prefHeight="69.0" prefWidth="206.0" promptText="See Avaiable Flights" styleClass="combo-box-premium" />
+                                                                        </children>
+                                                                    </VBox>
+                                                                </children>
+                                                            </HBox>
                                                         </VBox>
 
                                                         <VBox spacing="12" styleClass="input-group">
