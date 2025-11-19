@@ -267,8 +267,22 @@
                                                         </HBox>
 
                                                         <VBox spacing="12" styleClass="input-group">
-                                                            <Label styleClass="input-label" text="Trip Type" />
-                                                            <ComboBox fx:id="combo_triptype" promptText="Select trip type" styleClass="combo-box-premium" />
+                                             <HBox prefHeight="100.0" prefWidth="200.0" spacing="20.0">
+                                                <children>
+                                                   <VBox prefHeight="100.0" prefWidth="210.0" spacing="10.0">
+                                                      <children>
+                                                                        <Label styleClass="input-label" text="Trip Type" />
+                                                                        <ComboBox fx:id="combo_triptype" prefHeight="69.0" prefWidth="206.0" promptText="Select trip type" styleClass="combo-box-premium" />
+                                                      </children>
+                                                   </VBox>
+                                                   <VBox prefHeight="100.0" prefWidth="214.0" spacing="10.0">
+                                                      <children>
+                                                         <Label styleClass="input-label" text="Available flights" />
+                                                         <ComboBox fx:id="combo_available_flights" prefHeight="69.0" prefWidth="206.0" promptText="See Avaiable Flights" styleClass="combo-box-premium" />
+                                                      </children>
+                                                   </VBox>
+                                                </children>
+                                             </HBox>
                                                         </VBox>
 
                                                         <VBox spacing="12" styleClass="input-group">
@@ -370,7 +384,7 @@
                                         <!-- Status Display -->
                                         <VBox alignment="CENTER" spacing="10" styleClass="status-container" stylesheets="@../../styles/reserveform.css">
                                             <Label fx:id="lbl_status" styleClass="status-label" text="Ready to book your journey..." />
-                                            <ProgressBar prefWidth="400" styleClass="status-progress" visible="false " fx:id="progress_bar" />
+                                            <ProgressBar fx:id="progress_bar" prefWidth="400" styleClass="status-progress" visible="false " />
                                         </VBox>
                                     </children>
                                     <padding>

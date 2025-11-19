@@ -679,7 +679,55 @@ public class SupabaseService {
         }
     }
 
+    public CompletableFuture<HttpResponse<String>> addToWaitingList(JSONObject waitingListData, String authToken) {
+        CompletableFuture<HttpResponse<String>> validationResult = validateAuthToken(authToken);
+        if (validationResult != null) return validationResult; // Token invalid, fail early
 
+        try {
+            String url = SUPABASE_URL + "/rest/v1/waiting_list";
+
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(url))
+                    .header("apikey", SUPABASE_KEY)
+                    .header("Authorization", "Bearer " + authToken)
+                    .header("Content-Type", "application/json")
+                    .header("Prefer", "return=minimal")
+                    .POST(HttpRequest.BodyPublishers.ofString("[" + waitingListData.toString() + "]"))
+                    .build();
+
+            return client.sendAsync(request, HttpResponse.BodyHandlers.ofString());
+        } catch (Exception e) {
+            System.err.println("Error in addToWaitingList: " + e.getMessage());
+            return CompletableFuture.failedFuture(e);
+        }
+    }
+    public CompletableFuture<HttpResponse<String>> getMaxWaitingPosition(Long flightId, String seatClass, String userAuthToken) {
+        CompletableFuture<HttpResponse<String>> validationResult = validateAuthToken(userAuthToken);
+        if (validationResult != null) return validationResult;
+
+        try {
+            String encodedSeatClass = URLEncoder.encode(seatClass, StandardCharsets.UTF_8.toString());
+            String url = SUPABASE_URL + "/rest/v1/reservations?flight_id=eq." + flightId +
+                    "&seat_class=eq." + encodedSeatClass +
+                    "&select=waiting_list_position&order=waiting_list_position.desc&limit=1";
+
+            System.out.println("DEBUG: Max waiting position query URL: " + url);
+
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(url))
+                    .header("apikey", SUPABASE_KEY)
+                    .header("Authorization", "Bearer " + userAuthToken)
+                    .header("Content-Type", "application/json")
+                    .header("Prefer", "return=representation")
+                    .GET()
+                    .build();
+
+            return client.sendAsync(request, HttpResponse.BodyHandlers.ofString());
+        } catch (Exception e) {
+            System.err.println("Error in getMaxWaitingPosition: " + e.getMessage());
+            return CompletableFuture.failedFuture(e);
+        }
+    }
     // ---------------- CONNECTION TEST ----------------
 
     public CompletableFuture<Boolean> testConnection() {

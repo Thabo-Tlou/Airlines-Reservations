@@ -1,10 +1,25 @@
 package groupassingment.airlinesreservations.controllers;
 
+import groupassingment.airlinesreservations.controllers.SceneManager;
+import groupassingment.airlinesreservations.controllers.SessionManager;
+import groupassingment.airlinesreservations.controllers.SupabaseService;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
+import javafx.scene.layout.VBox;
+import javafx.scene.layout.HBox;
+import javafx.scene.text.Text;
+import javafx.scene.text.Font;
+import javafx.scene.text.FontWeight;
+import javafx.geometry.Pos;
+import javafx.geometry.Insets;
+import javafx.print.PrinterJob;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.application.Platform;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
+import javafx.stage.Stage;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import java.time.LocalDate;
@@ -35,6 +50,9 @@ public class ReservationFormController {
     @FXML private ComboBox<String> combo_seatpref;
     @FXML private TextField txt_totalfare;
 
+    // NEW: Available Flights ComboBox
+    @FXML private ComboBox<String> combo_available_flights;
+
     // Payment Information Fields
     @FXML private ComboBox<String> combo_paymentmethod;
     @FXML private TextField txt_cardnumber;
@@ -50,6 +68,15 @@ public class ReservationFormController {
     @FXML private Label lbl_status;
     @FXML private ProgressBar progress_bar;
 
+    // Navigation Buttons
+    @FXML private Button btnDashboard;
+    @FXML private Button btnReservation;
+    @FXML private Button btnManageReservations;
+    @FXML private Button btnFeedback;
+    @FXML private Button btnSupport;
+    @FXML private Button btnSettings;
+    @FXML private Button btnLogout;
+
     private SupabaseService supabaseService;
     private String userAuthToken;
     private String userId;
@@ -59,19 +86,35 @@ public class ReservationFormController {
     // Store loaded data
     private ObservableList<String> airportsList = FXCollections.observableArrayList();
     private ObservableList<String> fareCategoriesList = FXCollections.observableArrayList();
+    private ObservableList<String> availableFlightsList = FXCollections.observableArrayList();
+
+    // Store flight data for quick lookup
+    private JSONArray allFlightsData = new JSONArray();
 
     // Initialize method called by FXML loader
     public void initialize() {
         supabaseService = new SupabaseService();
         setupFormDefaults();
         setupEventHandlers();
+        setupNavigationHandlers();
 
         // Load dynamic data from Supabase
         loadAirports();
         loadFareCategories();
+        loadAvailableFlights();
 
-        // Debug: Test connection and session
+        // Initially disable print button until reservation is confirmed
+        if(btn_print != null) btn_print.setDisable(true);
         debugSessionInfo();
+    }
+
+    private void setupNavigationHandlers() {
+        if (btnDashboard != null) btnDashboard.setOnAction(event -> navigateToDashboard());
+        if (btnManageReservations != null) btnManageReservations.setOnAction(event -> navigateToManageReservations());
+        if (btnFeedback != null) btnFeedback.setOnAction(event -> navigateToFeedback());
+        if (btnSupport != null) btnSupport.setOnAction(event -> navigateToSupport());
+        if (btnSettings != null) btnSettings.setOnAction(event -> navigateToSettings());
+        if (btnLogout != null) btnLogout.setOnAction(event -> handleLogout());
     }
 
     private void debugSessionInfo() {
@@ -89,17 +132,13 @@ public class ReservationFormController {
         this.userEmail = userEmail;
 
         System.out.println("=== DEBUG: SESSION DATA RECEIVED ===");
-        System.out.println("Auth Token: " + (authToken != null ? "Present (" + authToken.substring(0, Math.min(20, authToken.length())) + "...)" : "NULL"));
-        System.out.println("User ID: " + userId);
         System.out.println("User Email: " + userEmail);
-        System.out.println("=== DEBUG END ===");
 
         // Pre-fill customer email and load customer data
         prefillCustomerData();
     }
 
     private void setupFormDefaults() {
-        // Setup passenger count comboboxes
         ObservableList<String> passengerCounts = FXCollections.observableArrayList("0", "1", "2", "3", "4", "5", "6");
         combo_adults.setItems(passengerCounts);
         combo_children.setItems(passengerCounts);
@@ -108,38 +147,34 @@ public class ReservationFormController {
         combo_children.setValue("0");
         combo_infants.setValue("0");
 
-        // Setup trip types
         ObservableList<String> tripTypes = FXCollections.observableArrayList("One-way", "Round-trip");
         combo_triptype.setItems(tripTypes);
         combo_triptype.setValue("One-way");
 
-        // Setup seat classes
         ObservableList<String> seatClasses = FXCollections.observableArrayList("Economic", "Business");
         combo_seatclass.setItems(seatClasses);
         combo_seatclass.setValue("Economic");
 
-        // Setup seat preferences
         ObservableList<String> seatPrefs = FXCollections.observableArrayList("Window", "Aisle", "Middle");
         combo_seatpref.setItems(seatPrefs);
         combo_seatpref.setValue("Window");
 
-        // Setup payment methods
         ObservableList<String> paymentMethods = FXCollections.observableArrayList(
                 "Credit Card", "Debit Card", "Bank Transfer"
         );
         combo_paymentmethod.setItems(paymentMethods);
         combo_paymentmethod.setValue("Credit Card");
 
-        // Set today's date as default
         dp_traveldate.setValue(LocalDate.now());
 
-        // Auto-generate flight code
         generateFlightCode();
 
-        // Initialize empty comboboxes (will be populated from Supabase)
         combo_travelfrom.setItems(airportsList);
         combo_travelto.setItems(airportsList);
         combo_categoryfare.setItems(fareCategoriesList);
+
+        // NEW: Set up available flights combo box
+        combo_available_flights.setItems(availableFlightsList);
     }
 
     private void setupEventHandlers() {
@@ -158,214 +193,860 @@ public class ReservationFormController {
                 dp_returndate.setManaged(isRoundTrip);
             }
         });
+
+        // NEW: Handle flight selection from available flights combo box
+        combo_available_flights.valueProperty().addListener((obs, oldVal, newVal) -> {
+            if (newVal != null && !newVal.isEmpty()) {
+                handleFlightSelection(newVal);
+            }
+        });
     }
 
-    private void loadAirports() {
-        updateStatus("Loading airports...", true);
+    // NEW: Load available flights from the flights table
+    private void loadAvailableFlights() {
+        updateStatus("Loading available flights...", true);
 
-        supabaseService.getAirports()
-                .thenAccept(response -> {
-                    System.out.println("=== AIRPORTS API RESPONSE ===");
-                    System.out.println("Status: " + response.statusCode());
-                    System.out.println("Body: " + response.body());
+        supabaseService.getFlights()
+                .thenAccept(flightsResponse -> {
+                    if (flightsResponse.statusCode() == 200) {
+                        try {
+                            JSONArray flightsArray = new JSONArray(flightsResponse.body());
+                            allFlightsData = flightsArray; // Store for later lookup
 
-                    if (response.statusCode() == 200) {
-                        String responseBody = response.body();
-                        if (responseBody != null && !responseBody.trim().isEmpty()) {
-                            try {
-                                JSONArray airports = new JSONArray(responseBody);
-                                Platform.runLater(() -> {
-                                    airportsList.clear();
-                                    for (int i = 0; i < airports.length(); i++) {
-                                        JSONObject airport = airports.getJSONObject(i);
-                                        String airportCode = airport.optString("airport_code", "");
-                                        String airportName = airport.optString("airport_name", "");
-                                        String city = airport.optString("city", "");
-                                        String country = airport.optString("country", "");
+                            Platform.runLater(() -> {
+                                availableFlightsList.clear();
 
-                                        String displayText = String.format("%s (%s) - %s, %s",
-                                                airportName, airportCode, city, country);
-                                        airportsList.add(displayText);
-                                    }
+                                for (int i = 0; i < flightsArray.length(); i++) {
+                                    JSONObject flight = flightsArray.getJSONObject(i);
 
-                                    // Set the combobox items
-                                    combo_travelfrom.setItems(airportsList);
-                                    combo_travelto.setItems(airportsList);
+                                    String flightCode = flight.optString("flight_code", "Unknown");
+                                    String departureCity = flight.optString("departure_city", "Unknown");
+                                    String destinationCity = flight.optString("destination_city", "Unknown");
+                                    String departureDate = flight.optString("departure_date", "");
+                                    String departureTime = flight.optString("departure_time", "");
+                                    String arrivalDate = flight.optString("arrival_date", "");
+                                    String arrivalTime = flight.optString("arrival_time", "");
+                                    int availableEconomicSeats = flight.optInt("available_economic_seats", 0);
+                                    int availableBusinessSeats = flight.optInt("available_business_seats", 0);
 
-                                    if (!airportsList.isEmpty()) {
-                                        combo_travelfrom.setValue(airportsList.get(0));
-                                        if (airportsList.size() > 1) {
-                                            combo_travelto.setValue(airportsList.get(1));
-                                        }
-                                    }
+                                    // Format: Flight Code | Route | Date | Time | Available Seats
+                                    String displayText = String.format("%s | %s → %s | %s %s | Eco: %d Bus: %d",
+                                            flightCode,
+                                            departureCity,
+                                            destinationCity,
+                                            departureDate,
+                                            departureTime,
+                                            availableEconomicSeats,
+                                            availableBusinessSeats);
 
-                                    updateStatus("Airports loaded successfully", false);
-                                    System.out.println("Success: Loaded " + airportsList.size() + " airports");
-                                });
-                            } catch (Exception e) {
-                                System.err.println("Error parsing airports data: " + e.getMessage());
-                                Platform.runLater(() -> {
-                                    updateStatus("Error parsing airports data", false);
-                                });
-                            }
+                                    availableFlightsList.add(displayText);
+                                }
+
+                                combo_available_flights.setItems(availableFlightsList);
+                                updateStatus("Available flights loaded", false);
+
+                                if (availableFlightsList.isEmpty()) {
+                                    showAlert("Info", "No available flights found in the system.");
+                                }
+                            });
+                        } catch (Exception e) {
+                            Platform.runLater(() -> {
+                                updateStatus("Error loading flights", false);
+                                showAlert("Error", "Failed to load available flights: " + e.getMessage());
+                            });
                         }
                     } else {
-                        System.err.println("Failed to load airports: " + response.body());
                         Platform.runLater(() -> {
-                            updateStatus("Failed to load airports", false);
+                            updateStatus("Failed to load flights", false);
+                            showAlert("Error", "Failed to load available flights from server.");
                         });
                     }
                 })
                 .exceptionally(ex -> {
-                    System.err.println("Exception loading airports: " + ex.getMessage());
-                    ex.printStackTrace();
                     Platform.runLater(() -> {
-                        updateStatus("Error loading airports", false);
+                        updateStatus("Network error loading flights", false);
+                        showAlert("Error", "Network error: " + ex.getMessage());
                     });
                     return null;
                 });
     }
 
-    private void loadFareCategories() {
-        System.out.println("=== LOADING FARE CATEGORIES ===");
+    // NEW: Handle when user selects a flight from the available flights combo box
+    private void handleFlightSelection(String selectedFlightDisplay) {
+        try {
+            // Extract flight code from the display text (format: "FLIGHT123 | CityA → CityB | ...")
+            String flightCode = selectedFlightDisplay.split("\\|")[0].trim();
 
-        supabaseService.getAllFareCategories()
-                .thenAccept(response -> {
-                    System.out.println("Fare Categories Response - Status: " + response.statusCode());
-                    System.out.println("Fare Categories Response - Body: " + response.body());
+            // Find the flight data from our stored array
+            for (int i = 0; i < allFlightsData.length(); i++) {
+                JSONObject flight = allFlightsData.getJSONObject(i);
+                String currentFlightCode = flight.optString("flight_code", "");
 
-                    if (response.statusCode() == 200) {
-                        String responseBody = response.body();
-                        if (responseBody != null && !responseBody.trim().isEmpty()) {
+                if (flightCode.equals(currentFlightCode)) {
+                    // Extract and set the flight details
+                    String departureCity = flight.optString("departure_city", "");
+                    String destinationCity = flight.optString("destination_city", "");
+                    String departureDate = flight.optString("departure_date", "");
+                    String arrivalDate = flight.optString("arrival_date", "");
+                    String departureTime = flight.optString("departure_time", "");
+                    String arrivalTime = flight.optString("arrival_time", "");
+
+                    // Update the form fields
+                    Platform.runLater(() -> {
+                        // Set departure and destination cities
+                        combo_travelfrom.setValue(departureCity);
+                        combo_travelto.setValue(destinationCity);
+
+                        // Set dates
+                        if (!departureDate.isEmpty()) {
                             try {
-                                JSONArray categories = new JSONArray(responseBody);
-                                Platform.runLater(() -> {
-                                    fareCategoriesList.clear();
-                                    for (int i = 0; i < categories.length(); i++) {
-                                        JSONObject category = categories.getJSONObject(i);
-                                        String categoryName = category.optString("category_name", "");
-                                        double multiplier = category.optDouble("fare_multiplier", 1.0);
-                                        String description = category.optString("description", "");
-
-                                        String displayText = String.format("%s (%.0f%% discount)",
-                                                categoryName, (1 - multiplier) * 100);
-                                        fareCategoriesList.add(displayText);
-                                    }
-
-                                    combo_categoryfare.setItems(fareCategoriesList);
-                                    if (!fareCategoriesList.isEmpty()) {
-                                        combo_categoryfare.setValue(fareCategoriesList.get(0));
-                                    }
-
-                                    System.out.println("Success: Loaded " + fareCategoriesList.size() + " fare categories");
-                                });
+                                dp_traveldate.setValue(LocalDate.parse(departureDate));
                             } catch (Exception e) {
-                                System.err.println("Error parsing fare categories: " + e.getMessage());
-                                e.printStackTrace();
+                                System.err.println("Error parsing departure date: " + e.getMessage());
                             }
                         }
+
+                        if (!arrivalDate.isEmpty() && dp_returndate != null) {
+                            try {
+                                dp_returndate.setValue(LocalDate.parse(arrivalDate));
+                            } catch (Exception e) {
+                                System.err.println("Error parsing arrival date: " + e.getMessage());
+                            }
+                        }
+
+                        // Set flight code
+                        txt_enterflightcode.setText(flightCode);
+
+                        // Update status
+                        updateStatus("Flight " + flightCode + " selected", false);
+                    });
+
+                    break;
+                }
+            }
+        } catch (Exception e) {
+            Platform.runLater(() -> {
+                showAlert("Error", "Failed to process selected flight: " + e.getMessage());
+            });
+        }
+    }
+
+    // ==========================================
+    // MAIN SUBMISSION LOGIC (UPDATED)
+    // ==========================================
+
+    @FXML
+    private void submit_form() {
+        System.out.println("=== SUBMIT FORM TRIGGERED ===");
+
+        if (!validateForm()) {
+            return;
+        }
+
+        // NEW: Check if a flight is selected from available flights
+        if (combo_available_flights.getValue() == null || combo_available_flights.getValue().isEmpty()) {
+            showAlert("Validation Error", "Please select a flight from the available flights list.");
+            return;
+        }
+
+        // Debug authentication and customer info
+        debugAuthAndCustomerInfo();
+
+        if (customerId == null) {
+            System.out.println("Customer ID is null, creating customer first...");
+            createCustomerAndThenReservation();
+        } else {
+            System.out.println("Customer ID exists: " + customerId + ", processing reservation...");
+            processReservationWithSelectedFlight();
+        }
+    }
+
+    // NEW: Debug authentication and customer info
+    private void debugAuthAndCustomerInfo() {
+        System.out.println("=== AUTH & CUSTOMER DEBUG ===");
+        System.out.println("Customer ID: " + customerId);
+        System.out.println("User Email: " + userEmail);
+        System.out.println("Auth Token: " + (userAuthToken != null ? "Present (" + userAuthToken.length() + " chars)" : "NULL"));
+
+        if (userAuthToken != null) {
+            try {
+                String[] parts = userAuthToken.split("\\.");
+                if (parts.length == 3) {
+                    String payload = new String(java.util.Base64.getUrlDecoder().decode(parts[1]));
+                    System.out.println("JWT Payload: " + payload);
+                }
+            } catch (Exception e) {
+                System.err.println("Error decoding JWT: " + e.getMessage());
+            }
+        }
+        System.out.println("=== END DEBUG ===");
+    }
+
+    // NEW: Process reservation using the selected flight from combo box
+    private void processReservationWithSelectedFlight() {
+        updateStatus("Processing reservation with selected flight...", true);
+
+        String selectedFlightDisplay = combo_available_flights.getValue();
+        String flightCode = selectedFlightDisplay.split("\\|")[0].trim();
+
+        // Find the flight ID from our stored data
+        Long flightId = null;
+        String seatClass = combo_seatclass.getValue();
+        String seatPreference = combo_seatpref.getValue();
+
+        try {
+            for (int i = 0; i < allFlightsData.length(); i++) {
+                JSONObject flight = allFlightsData.getJSONObject(i);
+                if (flightCode.equals(flight.optString("flight_code", ""))) {
+                    flightId = flight.getLong("flight_id");
+                    break;
+                }
+            }
+
+            if (flightId != null) {
+                System.out.println("Found flight ID: " + flightId + " for flight: " + flightCode);
+                checkAvailableSeats(flightId, flightCode, seatClass, seatPreference);
+            } else {
+                Platform.runLater(() -> {
+                    updateStatus("Flight not found in system", false);
+                    showAlert("Error", "Selected flight not found in system. Please select another flight.");
+                });
+            }
+        } catch (Exception e) {
+            Platform.runLater(() -> {
+                updateStatus("Error processing flight selection", false);
+                showAlert("Error", "Error processing selected flight: " + e.getMessage());
+            });
+        }
+    }
+
+    // ==========================================
+    // SEAT AVAILABILITY CHECKING
+    // ==========================================
+
+    private void checkAvailableSeats(Long flightId, String flightCode, String seatClass, String seatPreference) {
+        updateStatus("Checking available " + seatClass + " class " + seatPreference + " seats...", true);
+
+        System.out.println("=== SEAT CHECK DEBUG ===");
+        System.out.println("Flight ID: " + flightId);
+        System.out.println("Seat Class: " + seatClass);
+        System.out.println("Seat Preference: " + seatPreference);
+
+        supabaseService.getAvailableSeatsByFlight(flightId)
+                .thenAccept(seatsResponse -> {
+                    System.out.println("Seat check response - Status: " + seatsResponse.statusCode());
+                    System.out.println("Seat check response - Body: " + seatsResponse.body());
+
+                    if (seatsResponse.statusCode() == 200) {
+                        try {
+                            JSONArray seatsArray = new JSONArray(seatsResponse.body());
+                            Long availableSeatId = null;
+                            String seatNumber = "";
+
+                            System.out.println("Found " + seatsArray.length() + " available seats");
+
+                            for (int i = 0; i < seatsArray.length(); i++) {
+                                JSONObject seat = seatsArray.getJSONObject(i);
+                                String seatClassDb = seat.optString("seat_class", "");
+                                String seatPosition = seat.optString("seat_position", "");
+                                boolean isAvailable = seat.optBoolean("is_available", false);
+
+                                System.out.println("Seat " + i + ": " + seatClassDb + " - " + seatPosition + " - Available: " + isAvailable);
+
+                                if (seatClass.equals(seatClassDb) && isAvailable) {
+                                    if (seatPreference.equals(seatPosition) || availableSeatId == null) {
+                                        availableSeatId = seat.getLong("seat_id");
+                                        seatNumber = seat.optString("seat_number", "");
+                                        if (seatPreference.equals(seatPosition)) {
+                                            break;
+                                        }
+                                    }
+                                }
+                            }
+
+                            if (availableSeatId != null) {
+                                System.out.println("Found available seat: " + seatNumber + " (ID: " + availableSeatId + ")");
+                                createConfirmedReservation(flightId, flightCode, availableSeatId, seatNumber);
+                            } else {
+                                System.out.println("No seats available - adding to waiting list");
+                                createWaitingListReservation(flightId, flightCode);
+                            }
+                        } catch (Exception e) {
+                            System.err.println("Error checking seats: " + e.getMessage());
+                            Platform.runLater(() -> updateStatus("Error checking seats", false));
+                        }
                     } else {
-                        System.err.println("Failed to load fare categories: " + response.body());
+                        Platform.runLater(() -> {
+                            updateStatus("Failed to check seat availability", false);
+                            showAlert("Error", "Failed to check available seats: " + seatsResponse.body());
+                        });
                     }
                 })
                 .exceptionally(ex -> {
-                    System.err.println("Exception loading fare categories: " + ex.getMessage());
-                    ex.printStackTrace();
+                    System.err.println("Exception during seat check: " + ex.getMessage());
+                    Platform.runLater(() -> {
+                        updateStatus("Network error checking seats", false);
+                        showAlert("Error", "Network error: " + ex.getMessage());
+                    });
                     return null;
                 });
+    }
+
+    // ==========================================
+    // RESERVATION CREATION METHODS
+    // ==========================================
+
+    private void createConfirmedReservation(Long flightId, String flightCode, Long seatId, String seatNumber) {
+        updateStatus("Reserving seat " + seatNumber + "...", true);
+
+        try {
+            JSONObject reservationData = createReservationData(flightId, seatId);
+            // Override the waiting list settings for confirmed reservations
+            reservationData.put("reservation_status", "Confirmed");
+            reservationData.put("is_confirmed", true);
+            reservationData.put("confirmed_at", "now()");
+            reservationData.remove("waiting_list_position"); // Remove waiting list position for confirmed
+
+            System.out.println("=== CONFIRMED RESERVATION DEBUG ===");
+            System.out.println("Reservation Data: " + reservationData.toString(2));
+
+            supabaseService.addReservation(reservationData, userAuthToken)
+                    .thenAccept(response -> {
+                        System.out.println("=== CONFIRMED RESERVATION RESPONSE ===");
+                        System.out.println("Status: " + response.statusCode());
+                        System.out.println("Body: " + response.body());
+                        System.out.println("Headers: " + response.headers().map());
+
+                        Platform.runLater(() -> {
+                            if (response.statusCode() == 201) {
+                                markSeatAsBooked(seatId);
+                                updateStatus("Reservation CONFIRMED! Seat: " + seatNumber, false);
+                                showAlert("Reservation Confirmed",
+                                        "🎉 Your flight has been confirmed!\n\n" +
+                                                "Flight: " + flightCode + "\n" +
+                                                "Seat: " + combo_seatclass.getValue() + " Class, " + seatNumber + "\n" +
+                                                "Status: CONFIRMED");
+
+                                generateTicket(flightCode, seatNumber, "Confirmed");
+                                if(btn_print != null) btn_print.setDisable(false);
+                            } else {
+                                updateStatus("Reservation failed: " + response.statusCode(), false);
+                                showAlert("Error", "Failed to create reservation: " + response.body());
+                            }
+                        });
+                    })
+                    .exceptionally(ex -> {
+                        System.err.println("Exception during confirmed reservation: " + ex.getMessage());
+                        Platform.runLater(() -> {
+                            updateStatus("Network error creating reservation", false);
+                            showAlert("Error", "Network error: " + ex.getMessage());
+                        });
+                        return null;
+                    });
+
+        } catch (Exception e) {
+            System.err.println("Exception in createConfirmedReservation: " + e.getMessage());
+            Platform.runLater(() -> {
+                updateStatus("Error creating reservation", false);
+                showAlert("Error", "System error: " + e.getMessage());
+            });
+        }
+    }
+
+    // UPDATED: Create waiting list reservation with proper position calculation
+    private void createWaitingListReservation(Long flightId, String flightCode) {
+        updateStatus("No seats available - Creating waiting list reservation...", true);
+
+        try {
+            // Debug customer information
+            System.out.println("=== WAITING LIST RESERVATION DEBUG ===");
+            System.out.println("Customer ID: " + customerId);
+            System.out.println("User Email: " + userEmail);
+            System.out.println("Flight ID: " + flightId);
+            System.out.println("Auth Token: " + (userAuthToken != null ? "Present" : "NULL"));
+
+            // Get the next available waiting position first
+            getNextWaitingPosition(flightId, combo_seatclass.getValue())
+                    .thenAccept(nextPosition -> {
+                        try {
+                            // First create a reservation with "Waiting" status
+                            JSONObject reservationData = createReservationData(flightId, null);
+                            reservationData.put("reservation_status", "Waiting");
+                            reservationData.put("is_confirmed", false);
+                            reservationData.put("waiting_list_position", nextPosition);
+
+                            System.out.println("Reservation Data: " + reservationData.toString(2));
+
+                            supabaseService.addReservation(reservationData, userAuthToken)
+                                    .thenAccept(reservationResponse -> {
+                                        System.out.println("=== RESERVATION CREATION RESPONSE ===");
+                                        System.out.println("Status Code: " + reservationResponse.statusCode());
+                                        System.out.println("Response Body: " + reservationResponse.body());
+                                        System.out.println("Headers: " + reservationResponse.headers().map());
+
+                                        if (reservationResponse.statusCode() == 201) {
+                                            try {
+                                                JSONArray createdReservation = new JSONArray(reservationResponse.body());
+                                                Long reservationId = createdReservation.getJSONObject(0).getLong("reservation_id");
+
+                                                System.out.println("SUCCESS: Created reservation ID: " + reservationId);
+
+                                                // Now add to waiting_list with the reservation_id
+                                                addToWaitingList(reservationId, flightId, flightCode, nextPosition);
+
+                                            } catch (Exception e) {
+                                                System.err.println("ERROR: Failed to parse reservation response: " + e.getMessage());
+                                                e.printStackTrace();
+                                                Platform.runLater(() -> {
+                                                    updateStatus("Failed to parse reservation response", false);
+                                                    showAlert("Error", "Failed to create waiting list entry: " + e.getMessage());
+                                                });
+                                            }
+                                        } else {
+                                            System.err.println("ERROR: Failed to create reservation. Status: " + reservationResponse.statusCode());
+                                            System.err.println("Response Body: " + reservationResponse.body());
+                                            Platform.runLater(() -> {
+                                                updateStatus("Failed to create reservation: " + reservationResponse.statusCode(), false);
+                                                showAlert("Error", "Failed to create reservation: " + reservationResponse.body());
+                                            });
+                                        }
+                                    })
+                                    .exceptionally(ex -> {
+                                        System.err.println("EXCEPTION: During reservation creation: " + ex.getMessage());
+                                        ex.printStackTrace();
+                                        Platform.runLater(() -> {
+                                            updateStatus("Network error creating reservation", false);
+                                            showAlert("Error", "Network error: " + ex.getMessage());
+                                        });
+                                        return null;
+                                    });
+                        } catch (Exception e) {
+                            System.err.println("EXCEPTION: In reservation creation: " + e.getMessage());
+                            Platform.runLater(() -> {
+                                updateStatus("Error creating reservation", false);
+                                showAlert("Error", "System error: " + e.getMessage());
+                            });
+                        }
+                    })
+                    .exceptionally(ex -> {
+                        System.err.println("EXCEPTION: Failed to get waiting position: " + ex.getMessage());
+                        Platform.runLater(() -> {
+                            updateStatus("Error getting waiting position", false);
+                            showAlert("Error", "Failed to calculate waiting position: " + ex.getMessage());
+                        });
+                        return null;
+                    });
+
+        } catch (Exception e) {
+            System.err.println("EXCEPTION: In createWaitingListReservation: " + e.getMessage());
+            e.printStackTrace();
+            Platform.runLater(() -> {
+                updateStatus("Error creating waiting list reservation", false);
+                showAlert("Error", "System error: " + e.getMessage());
+            });
+        }
+    }
+
+    // UPDATED: Add to waiting list with proper position
+    private void addToWaitingList(Long reservationId, Long flightId, String flightCode, int position) {
+        updateStatus("Adding to waiting list...", true);
+
+        try {
+            JSONObject waitingListData = new JSONObject();
+            waitingListData.put("reservation_id", reservationId);
+            waitingListData.put("flight_id", flightId);
+            waitingListData.put("seat_class", combo_seatclass.getValue());
+            waitingListData.put("seat_preference", combo_seatpref.getValue());
+            waitingListData.put("position", position);
+
+            System.out.println("=== WAITING LIST INSERT DEBUG ===");
+            System.out.println("Waiting List Data: " + waitingListData.toString(2));
+
+            supabaseService.addToWaitingList(waitingListData, userAuthToken)
+                    .thenAccept(waitingResponse -> {
+                        System.out.println("=== WAITING LIST RESPONSE ===");
+                        System.out.println("Status: " + waitingResponse.statusCode());
+                        System.out.println("Body: " + waitingResponse.body());
+
+                        Platform.runLater(() -> {
+                            if (waitingResponse.statusCode() == 201) {
+                                updateStatus("Added to WAITING LIST - Position: " + position, false);
+                                showAlert("Waiting List",
+                                        "⏳ No seats available currently.\n\n" +
+                                                "You have been added to the waiting list for flight " + flightCode + ".\n" +
+                                                "Position: " + position + " in " + combo_seatclass.getValue() + " class\n" +
+                                                "We will notify you if a seat becomes available.");
+                            } else {
+                                updateStatus("Failed to join waiting list: " + waitingResponse.statusCode(), false);
+                                showAlert("Error", "Failed to join waiting list: " + waitingResponse.body());
+                            }
+                        });
+                    })
+                    .exceptionally(ex -> {
+                        System.err.println("Exception during waiting list insertion: " + ex.getMessage());
+                        Platform.runLater(() -> {
+                            updateStatus("Error adding to waiting list", false);
+                            showAlert("Error", "Network error: " + ex.getMessage());
+                        });
+                        return null;
+                    });
+
+        } catch (Exception e) {
+            System.err.println("Exception in addToWaitingList: " + e.getMessage());
+            Platform.runLater(() -> {
+                updateStatus("Error adding to waiting list", false);
+                showAlert("Error", "System error: " + e.getMessage());
+            });
+        }
+    }
+
+    // UPDATED: Get next waiting position - query the database for max position
+    private CompletableFuture<Integer> getNextWaitingPosition(Long flightId, String seatClass) {
+        System.out.println("Getting next waiting position for flight " + flightId + ", class " + seatClass);
+
+        return supabaseService.getMaxWaitingPosition(flightId, seatClass, userAuthToken)
+                .thenApply(response -> {
+                    try {
+                        if (response.statusCode() == 200) {
+                            JSONArray result = new JSONArray(response.body());
+                            if (result.length() > 0) {
+                                int maxPosition = result.getJSONObject(0).optInt("max_position", 0);
+                                int nextPosition = maxPosition + 1;
+                                System.out.println("Current max position: " + maxPosition + ", next position: " + nextPosition);
+                                return nextPosition;
+                            }
+                        }
+                        System.out.println("No existing waiting positions, starting at position 1");
+                        return 1;
+                    } catch (Exception e) {
+                        System.err.println("Error parsing waiting position: " + e.getMessage());
+                        return 1; // Fallback
+                    }
+                })
+                .exceptionally(ex -> {
+                    System.err.println("Error getting waiting position: " + ex.getMessage());
+                    return 1; // Fallback
+                });
+    }
+
+    // CORRECTED: Updated to match your actual table columns and remove generated columns
+    private JSONObject createReservationData(Long flightId, Long seatId) {
+        String fareText = txt_totalfare.getText().replace("R", "").trim();
+        double totalFare = Double.parseDouble(fareText);
+
+        JSONObject reservationData = new JSONObject();
+
+        // Required fields
+        reservationData.put("customer_id", customerId);
+        reservationData.put("reservation_code", "RES" + System.currentTimeMillis() % 100000);
+        reservationData.put("flight_id", flightId);
+        reservationData.put("seat_class", combo_seatclass.getValue());
+        reservationData.put("base_fare", totalFare * 0.7);
+        reservationData.put("tax_amount", totalFare * 0.14);
+        reservationData.put("fuel_surcharge_amount", 50.00);
+        reservationData.put("airport_tax_amount", 25.00);
+        reservationData.put("total_fare", totalFare);
+
+        // Optional fields that exist in your table
+        if (seatId != null) {
+            reservationData.put("seat_id", seatId);
+        }
+
+        reservationData.put("trip_type", combo_triptype.getValue());
+        reservationData.put("seat_preference", combo_seatpref.getValue());
+        reservationData.put("category_discount", totalFare * 0.3);
+        reservationData.put("seat_surcharge", 0.00);
+        reservationData.put("amount_paid", 0.00);
+        reservationData.put("payment_status", "Pending");
+        reservationData.put("reservation_status", "Waiting"); // Will be set to "Confirmed" for confirmed reservations
+        reservationData.put("reservation_date", "now()");
+        reservationData.put("is_confirmed", false);
+        // Note: waiting_list_position will be set separately after we calculate it
+
+        // REMOVED: category_fare - this column doesn't exist in your table
+        // REMOVED: payment_due - this is a generated column, cannot insert values
+        // REMOVED: payment_method - you can add this if you want to use the payment_method column
+
+        return reservationData;
+    }
+
+    private void createCustomerAndThenReservation() {
+        System.out.println("=== CREATE CUSTOMER AND START BOOKING ===");
+
+        String displayCategory = combo_categoryfare.getValue();
+        String actualCategory = extractCategoryName(displayCategory);
+
+        updateStatus("Creating customer profile...", true);
+
+        supabaseService.insertCustomer(
+                        txt_entername.getText().trim(),
+                        txt_idnumber.getText().trim(),
+                        txt_enteraddress.getText().trim(),
+                        txt_enteremail.getText().trim(),
+                        txt_enterphone.getText().trim(),
+                        actualCategory,
+                        userAuthToken
+                ).thenAccept(response -> {
+                    System.out.println("=== CUSTOMER CREATION RESPONSE ===");
+                    System.out.println("Status: " + response.statusCode());
+                    System.out.println("Body: " + response.body());
+
+                    if (response.statusCode() == 201) {
+                        System.out.println("Customer created successfully, loading customer data...");
+                        loadCustomerFromSupabase();
+                        Platform.runLater(() -> {
+                            System.out.println("Proceeding to search flight after customer creation...");
+                            processReservationWithSelectedFlight();
+                        });
+                    } else {
+                        Platform.runLater(() -> {
+                            updateStatus("Failed to create customer profile", false);
+                            showAlert("Error", "Failed to create customer profile: " + response.body());
+                        });
+                    }
+                })
+                .exceptionally(ex -> {
+                    System.err.println("Exception during customer creation: " + ex.getMessage());
+                    Platform.runLater(() -> {
+                        updateStatus("Network error creating customer", false);
+                        showAlert("Error", "Network error: " + ex.getMessage());
+                    });
+                    return null;
+                });
+    }
+
+    // ==========================================
+    // DATA LOADING METHODS
+    // ==========================================
+
+    private void loadAirports() {
+        updateStatus("Loading flight schedules...", true);
+        supabaseService.getAirports().thenAccept(response -> {
+            if (response.statusCode() == 200) {
+                try {
+                    JSONArray airports = new JSONArray(response.body());
+                    Platform.runLater(() -> {
+                        airportsList.clear();
+                        for (int i = 0; i < airports.length(); i++) {
+                            JSONObject airport = airports.getJSONObject(i);
+
+                            String code = airport.optString("airport_code", "???");
+                            String city = airport.optString("city", "Unknown");
+                            String name = airport.optString("airport_name", "Airport");
+
+                            String depDate = airport.optString("departure_date", "");
+                            String retDate = airport.optString("return_date", "");
+
+                            StringBuilder sb = new StringBuilder();
+                            sb.append(city).append(" (").append(code).append(")");
+
+                            if (!depDate.isEmpty()) {
+                                sb.append(" [Dep: ").append(depDate);
+                                if (!retDate.isEmpty()) {
+                                    sb.append(" | Ret: ").append(retDate);
+                                }
+                                sb.append("]");
+                            } else {
+                                sb.append(" - ").append(name);
+                            }
+
+                            airportsList.add(sb.toString());
+                        }
+                        combo_travelfrom.setItems(airportsList);
+                        combo_travelto.setItems(airportsList);
+                        updateStatus("Schedules Loaded", false);
+                    });
+                } catch (Exception e) {
+                    Platform.runLater(() -> updateStatus("Error parsing airports", false));
+                }
+            }
+        });
+    }
+
+    private void loadFareCategories() {
+        supabaseService.getAllFareCategories().thenAccept(response -> {
+            if (response.statusCode() == 200) {
+                try {
+                    JSONArray categories = new JSONArray(response.body());
+                    Platform.runLater(() -> {
+                        fareCategoriesList.clear();
+                        for (int i = 0; i < categories.length(); i++) {
+                            JSONObject category = categories.getJSONObject(i);
+                            String displayText = String.format("%s (%.0f%% discount)",
+                                    category.optString("category_name", ""),
+                                    (1 - category.optDouble("fare_multiplier", 1.0)) * 100);
+                            fareCategoriesList.add(displayText);
+                        }
+                        combo_categoryfare.setItems(fareCategoriesList);
+                    });
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        });
     }
 
     private void prefillCustomerData() {
         if (userEmail != null) {
             txt_enteremail.setText(userEmail);
-
-            // Load customer data from Supabase
             loadCustomerFromSupabase();
         }
     }
 
     private void loadCustomerFromSupabase() {
-        if (userAuthToken == null || userEmail == null) {
-            System.err.println("Cannot load customer: Auth token or email is null");
-            return;
-        }
+        if (userAuthToken == null || userEmail == null) return;
 
-        System.out.println("=== LOADING CUSTOMER DATA ===");
-        System.out.println("Loading customer for email: " + userEmail);
-
-        supabaseService.getCustomerByEmail(userEmail, userAuthToken)
-                .thenAccept(response -> {
-                    System.out.println("Customer Data Response - Status: " + response.statusCode());
-                    System.out.println("Customer Data Response - Body: " + response.body());
+        supabaseService.getCustomerByEmail(userEmail, userAuthToken).thenAccept(response -> {
+                    System.out.println("=== CUSTOMER LOAD RESPONSE ===");
+                    System.out.println("Status: " + response.statusCode());
+                    System.out.println("Body: " + response.body());
 
                     if (response.statusCode() == 200) {
-                        String responseBody = response.body();
-                        if (responseBody != null && !responseBody.trim().isEmpty()) {
-                            try {
-                                JSONArray customers = new JSONArray(responseBody);
-                                if (customers.length() > 0) {
-                                    JSONObject customer = customers.getJSONObject(0);
-                                    Platform.runLater(() -> {
-                                        // Pre-fill form with existing customer data
-                                        txt_entername.setText(customer.optString("full_name", ""));
-                                        txt_idnumber.setText(customer.optString("id_number", ""));
-                                        txt_enteraddress.setText(customer.optString("address", ""));
-                                        txt_enterphone.setText(customer.optString("phone", ""));
+                        try {
+                            JSONArray customers = new JSONArray(response.body());
+                            if (customers.length() > 0) {
+                                JSONObject customer = customers.getJSONObject(0);
+                                Platform.runLater(() -> {
+                                    txt_entername.setText(customer.optString("full_name", ""));
+                                    txt_idnumber.setText(customer.optString("id_number", ""));
+                                    txt_enteraddress.setText(customer.optString("address", ""));
+                                    txt_enterphone.setText(customer.optString("phone", ""));
 
-                                        String customerCategory = customer.optString("category_fare", "Regular");
-                                        // Find and set the corresponding display text
-                                        for (String displayText : fareCategoriesList) {
-                                            if (displayText.contains(customerCategory)) {
-                                                combo_categoryfare.setValue(displayText);
-                                                break;
-                                            }
+                                    String customerCategory = customer.optString("category_fare", "Regular");
+                                    for (String displayText : fareCategoriesList) {
+                                        if (displayText.contains(customerCategory)) {
+                                            combo_categoryfare.setValue(displayText);
+                                            break;
                                         }
+                                    }
+                                    customerId = customer.optLong("customer_id");
+                                    SessionManager.setCustomerData(customerId, customerCategory);
 
-                                        // Store customer ID for reservation
-                                        customerId = customer.optLong("customer_id");
-                                        SessionManager.setCustomerData(customerId, customerCategory);
-
-                                        System.out.println("Success: Customer data loaded - ID: " + customerId + ", Category: " + customerCategory);
-                                    });
-                                } else {
-                                    System.out.println("No existing customer found for email: " + userEmail);
-                                }
-                            } catch (Exception e) {
-                                System.err.println("Error parsing customer data: " + e.getMessage());
-                                e.printStackTrace();
+                                    System.out.println("Loaded customer ID: " + customerId);
+                                });
+                            } else {
+                                System.out.println("No customer found for email: " + userEmail);
                             }
+                        } catch (Exception e) {
+                            e.printStackTrace();
                         }
                     } else {
                         System.err.println("Failed to load customer data: " + response.body());
                     }
                 })
                 .exceptionally(ex -> {
-                    System.err.println("Exception loading customer data: " + ex.getMessage());
-                    ex.printStackTrace();
+                    System.err.println("Exception loading customer: " + ex.getMessage());
                     return null;
                 });
     }
 
-    private void generateFlightCode() {
-        String code = "BA" + System.currentTimeMillis() % 10000;
-        txt_enterflightcode.setText(code);
+    // ==========================================
+    // TICKET PRINTING
+    // ==========================================
+
+    @FXML
+    private void handlePrintTicket() {
+        if (txt_entername.getText().isEmpty()) {
+            showAlert("Error", "Please complete a reservation before printing.");
+            return;
+        }
+
+        System.out.println("Print ticket requested. Starting PrinterJob...");
+
+        PrinterJob job = PrinterJob.createPrinterJob();
+        if (job != null && job.showPrintDialog(btn_print.getScene().getWindow())) {
+            VBox ticketNode = createTicketNode();
+
+            boolean success = job.printPage(ticketNode);
+            if (success) {
+                job.endJob();
+                showAlert("Success", "Ticket sent to printer!");
+            } else {
+                showAlert("Error", "Printing failed.");
+            }
+        } else {
+            System.out.println("Printing cancelled by user.");
+        }
+    }
+
+    private VBox createTicketNode() {
+        VBox ticket = new VBox(10);
+        ticket.setPadding(new Insets(25));
+        ticket.setStyle("-fx-background-color: white; -fx-border-color: #333; -fx-border-width: 1px;");
+        ticket.setPrefWidth(450);
+
+        Text title = new Text("BOARDING PASS (CONFIRMED)");
+        title.setFont(Font.font("Verdana", FontWeight.BOLD, 18));
+
+        Text flight = new Text("FLIGHT: " + txt_enterflightcode.getText());
+        flight.setFont(Font.font("Verdana", FontWeight.NORMAL, 14));
+
+        Text route = new Text(extractAirportCode(combo_travelfrom.getValue()) + " ➝ " + extractAirportCode(combo_travelto.getValue()));
+        route.setFont(Font.font("Verdana", FontWeight.BOLD, 16));
+
+        ticket.getChildren().addAll(
+                title,
+                new Separator(),
+                route,
+                new Text("Date: " + dp_traveldate.getValue().toString()),
+                new Separator(),
+                new Text("Passenger Name: " + txt_entername.getText().toUpperCase()),
+                new Text("ID/Passport: " + txt_idnumber.getText()),
+                new Separator(),
+                new Text("Class: " + combo_seatclass.getValue()),
+                new Text("Seat Preference: " + combo_seatpref.getValue() + " (Assigned at check-in)"),
+                new Text("Total Paid: " + txt_totalfare.getText()),
+                new Separator(),
+                new Text("Gate: TBD | Boarding Time: TBD")
+        );
+
+        ticket.setAlignment(Pos.TOP_LEFT);
+        return ticket;
+    }
+
+    // ==========================================
+    // UTILITY METHODS
+    // ==========================================
+
+    private void markSeatAsBooked(Long seatId) {
+        System.out.println("Seat " + seatId + " marked as booked (Locally)");
+    }
+
+    private void generateTicket(String flightCode, String seatNumber, String status) {
+        System.out.println("=== TICKET GENERATED FOR " + txt_entername.getText() + " ===");
+        System.out.println("Flight: " + flightCode + " | Seat: " + seatNumber + " | Status: " + status);
+    }
+
+    private boolean validateForm() {
+        if (txt_entername.getText().trim().isEmpty()) {
+            showAlert("Validation Error", "Please enter your full name.");
+            return false;
+        }
+        if (combo_travelfrom.getValue() == null || combo_travelto.getValue() == null) {
+            showAlert("Validation Error", "Please select departure and destination airports.");
+            return false;
+        }
+        if (combo_travelfrom.getValue().equals(combo_travelto.getValue())) {
+            showAlert("Validation Error", "Departure and destination airports cannot be the same.");
+            return false;
+        }
+        if (!chk_terms.isSelected()) {
+            showAlert("Validation Error", "Please agree to the terms and conditions.");
+            return false;
+        }
+        return true;
     }
 
     private void calculateTotalFare() {
         try {
-            // Base fare calculation
             double baseFare = "Business".equals(combo_seatclass.getValue()) ? 5000.00 : 2000.00;
-
-            // Passenger count
             int adults = Integer.parseInt(combo_adults.getValue());
             int children = Integer.parseInt(combo_children.getValue());
             int infants = Integer.parseInt(combo_infants.getValue());
 
-            // Get fare multiplier from selected category
             double multiplier = 1.0;
             String selectedCategory = combo_categoryfare.getValue();
             if (selectedCategory != null) {
-                // Extract multiplier from display text (e.g., "Student (15% discount)" -> 0.85)
                 if (selectedCategory.contains("Student")) multiplier = 0.85;
                 else if (selectedCategory.contains("Senior")) multiplier = 0.80;
                 else if (selectedCategory.contains("Child")) multiplier = 0.60;
@@ -376,325 +1057,20 @@ public class ReservationFormController {
                     (children * baseFare * multiplier * 0.6) +
                     (infants * baseFare * multiplier * 0.1);
 
-            // Add taxes and fees (14% tax + fixed fees)
             total += total * 0.14; // Tax
-            total += 75.00; // Airport tax + fuel surcharge
+            total += 75.00; // Fees
 
             txt_totalfare.setText(String.format("R %.2f", total));
         } catch (Exception e) {
-            System.err.println("Error calculating fare: " + e.getMessage());
-        }
-    }
-
-    @FXML
-    private void submit_form() {
-        System.out.println("=== SUBMIT FORM TRIGGERED ===");
-
-        if (!validateForm()) {
-            return;
-        }
-
-        if (customerId == null) {
-            System.out.println("Customer ID is null, creating customer first...");
-            createCustomerAndThenReservation();
-        } else {
-            System.out.println("Customer ID exists: " + customerId + ", creating reservation...");
-            createReservation();
-        }
-    }
-
-    private boolean validateForm() {
-        System.out.println("=== VALIDATING FORM ===");
-
-        if (txt_entername.getText().trim().isEmpty()) {
-            System.err.println("Validation failed: Full name is empty");
-            showAlert("Validation Error", "Please enter your full name.");
-            return false;
-        }
-        if (txt_idnumber.getText().trim().isEmpty()) {
-            System.err.println("Validation failed: ID number is empty");
-            showAlert("Validation Error", "Please enter your ID number.");
-            return false;
-        }
-        if (combo_travelfrom.getValue() == null || combo_travelto.getValue() == null) {
-            System.err.println("Validation failed: Airports not selected");
-            showAlert("Validation Error", "Please select departure and destination airports.");
-            return false;
-        }
-        if (combo_travelfrom.getValue().equals(combo_travelto.getValue())) {
-            System.err.println("Validation failed: Same departure and destination");
-            showAlert("Validation Error", "Departure and destination airports cannot be the same.");
-            return false;
-        }
-        if (!chk_terms.isSelected()) {
-            System.err.println("Validation failed: Terms not accepted");
-            showAlert("Validation Error", "Please agree to the terms and conditions.");
-            return false;
-        }
-
-        System.out.println("Form validation passed");
-        return true;
-    }
-
-    private void createCustomerAndThenReservation() {
-        System.out.println("=== CREATE CUSTOMER AND RESERVATION ===");
-
-        // Extract actual category name from display text
-        String displayCategory = combo_categoryfare.getValue();
-        String actualCategory = "Regular"; // default
-        if (displayCategory != null) {
-            if (displayCategory.contains("Student")) actualCategory = "Student";
-            else if (displayCategory.contains("Senior")) actualCategory = "Senior";
-            else if (displayCategory.contains("Child")) actualCategory = "Child";
-            else if (displayCategory.contains("Infant")) actualCategory = "Infant";
-        }
-
-        System.out.println("Creating customer with:");
-        System.out.println("  Name: " + txt_entername.getText().trim());
-        System.out.println("  ID: " + txt_idnumber.getText().trim());
-        System.out.println("  Email: " + txt_enteremail.getText().trim());
-        System.out.println("  Category: " + actualCategory);
-
-        updateStatus("Creating customer profile...", true);
-
-        supabaseService.insertCustomer(
-                txt_entername.getText().trim(),
-                txt_idnumber.getText().trim(),
-                txt_enteraddress.getText().trim(),
-                txt_enteremail.getText().trim(),
-                txt_enterphone.getText().trim(),
-                actualCategory,
-                userAuthToken
-        ).thenAccept(response -> {
-            System.out.println("=== CUSTOMER CREATION RESPONSE ===");
-            System.out.println("Status: " + response.statusCode());
-            System.out.println("Body: " + response.body());
-
-            if (response.statusCode() == 201) {
-                System.out.println("Customer created successfully, loading customer data...");
-                loadCustomerFromSupabase();
-                Platform.runLater(() -> {
-                    System.out.println("Proceeding to create reservation after customer creation...");
-                    createReservation();
-                });
-            } else {
-                Platform.runLater(() -> {
-                    System.err.println("Failed to create customer profile");
-                    updateStatus("Failed to create customer profile", false);
-                    showAlert("Error", "Failed to create customer profile: " + response.body());
-                });
-            }
-        }).exceptionally(ex -> {
-            System.err.println("=== EXCEPTION DURING CUSTOMER CREATION ===");
-            System.err.println("Exception: " + ex.getMessage());
-            ex.printStackTrace();
-            Platform.runLater(() -> {
-                updateStatus("Error creating customer", false);
-                showAlert("Error", "Failed to create customer: " + ex.getMessage());
-            });
-            return null;
-        });
-    }
-
-    private void createReservation() {
-        updateStatus("Creating reservation...", true);
-
-        System.out.println("=== DEBUG: CREATE RESERVATION START ===");
-        System.out.println("Customer ID: " + customerId);
-        System.out.println("Auth Token: " + (userAuthToken != null ? "Present" : "NULL"));
-        System.out.println("User Email: " + userEmail);
-
-        // Validate critical data
-        if (customerId == null) {
-            System.err.println("ERROR: Customer ID is null!");
-            updateStatus("Error: Customer profile not found", false);
-            showAlert("Error", "Customer profile not found. Please complete your profile first.");
-            return;
-        }
-
-        if (userAuthToken == null) {
-            System.err.println("ERROR: Auth token is null!");
-            updateStatus("Error: Not authenticated", false);
-            showAlert("Error", "Please log in again.");
-            return;
-        }
-
-        try {
-            // Extract data from form
-            String fromAirport = extractAirportCode(combo_travelfrom.getValue());
-            String toAirport = extractAirportCode(combo_travelto.getValue());
-            String displayCategory = combo_categoryfare.getValue();
-            String actualCategory = extractCategoryName(displayCategory);
-            String fareText = txt_totalfare.getText().replace("R", "").trim();
-            double totalFare = Double.parseDouble(fareText);
-
-            System.out.println("Form Data:");
-            System.out.println("  From: " + fromAirport + " (Original: " + combo_travelfrom.getValue() + ")");
-            System.out.println("  To: " + toAirport + " (Original: " + combo_travelto.getValue() + ")");
-            System.out.println("  Category: " + actualCategory + " (Display: " + displayCategory + ")");
-            System.out.println("  Total Fare: " + totalFare);
-
-            // Create reservation data with ALL required fields
-            JSONObject reservationData = new JSONObject();
-
-            // Required fields from your table schema
-            reservationData.put("customer_id", customerId);
-            reservationData.put("reservation_code", "RES" + System.currentTimeMillis() % 100000);
-            reservationData.put("flight_id", 1); // You need to implement flight selection
-            reservationData.put("seat_class", combo_seatclass.getValue());
-            reservationData.put("trip_type", combo_triptype.getValue());
-            reservationData.put("seat_preference", combo_seatpref.getValue());
-
-            // Pricing fields (all required based on your schema)
-            reservationData.put("base_fare", totalFare * 0.7);
-            reservationData.put("category_discount", totalFare * 0.3);
-            reservationData.put("seat_surcharge", 0.00);
-            reservationData.put("tax_amount", totalFare * 0.14);
-            reservationData.put("fuel_surcharge_amount", 50.00);
-            reservationData.put("airport_tax_amount", 25.00);
-            reservationData.put("total_fare", totalFare);
-
-            // Status fields
-            reservationData.put("reservation_status", "Pending");
-            reservationData.put("payment_status", "Pending");
-            reservationData.put("is_confirmed", false);
-            reservationData.put("amount_paid", 0.00);
-
-            // Debug: Print the complete request data
-            System.out.println("=== REQUEST DATA ===");
-            System.out.println(reservationData.toString(2));
-            System.out.println("=== END REQUEST DATA ===");
-
-            // Make the API call
-            supabaseService.addReservation(reservationData, userAuthToken)
-                    .thenAccept(response -> {
-                        System.out.println("=== API RESPONSE ===");
-                        System.out.println("Status Code: " + response.statusCode());
-                        System.out.println("Response Body: " + response.body());
-                        System.out.println("=== END API RESPONSE ===");
-
-                        Platform.runLater(() -> {
-                            if (response.statusCode() == 201) {
-                                System.out.println("SUCCESS: Reservation created!");
-                                updateStatus("Reservation created successfully!", false);
-                                showAlert("Success", "Your flight has been reserved successfully!");
-
-                                // Try to extract reservation ID from response
-                                try {
-                                    String responseBody = response.body();
-                                    if (responseBody != null && !responseBody.trim().isEmpty()) {
-                                        JSONArray responseArray = new JSONArray(responseBody);
-                                        if (responseArray.length() > 0) {
-                                            JSONObject createdReservation = responseArray.getJSONObject(0);
-                                            Long reservationId = createdReservation.getLong("reservation_id");
-                                            System.out.println("Created Reservation ID: " + reservationId);
-                                            createPaymentRecord(reservationId);
-                                        }
-                                    }
-                                } catch (Exception e) {
-                                    System.err.println("Warning: Could not extract reservation ID from response: " + e.getMessage());
-                                }
-                            } else {
-                                String errorBody = response.body();
-                                System.err.println("ERROR: Reservation creation failed!");
-                                System.err.println("Status: " + response.statusCode());
-                                System.err.println("Full Error: " + errorBody);
-
-                                // Parse the error for better understanding
-                                try {
-                                    JSONObject errorJson = new JSONObject(errorBody);
-                                    String errorCode = errorJson.optString("code", "Unknown");
-                                    String errorMessage = errorJson.optString("message", "Unknown error");
-                                    String errorDetails = errorJson.optString("details", "No details");
-                                    String errorHint = errorJson.optString("hint", "No hint");
-
-                                    System.err.println("Parsed Error:");
-                                    System.err.println("  Code: " + errorCode);
-                                    System.err.println("  Message: " + errorMessage);
-                                    System.err.println("  Details: " + errorDetails);
-                                    System.err.println("  Hint: " + errorHint);
-
-                                    updateStatus("Failed: " + errorCode, false);
-                                    showAlert("Reservation Failed",
-                                            "Error: " + errorCode + "\n" +
-                                                    "Message: " + errorMessage + "\n" +
-                                                    (errorHint != null && !errorHint.equals("No hint") ? "Hint: " + errorHint + "\n" : "") +
-                                                    "Check console for full details.");
-
-                                } catch (Exception parseError) {
-                                    System.err.println("Could not parse error JSON: " + parseError.getMessage());
-                                    updateStatus("Failed with status: " + response.statusCode(), false);
-                                    showAlert("Reservation Failed",
-                                            "Status: " + response.statusCode() + "\n" +
-                                                    "Error: " + errorBody);
-                                }
-                            }
-                        });
-                    })
-                    .exceptionally(ex -> {
-                        System.err.println("=== EXCEPTION DURING API CALL ===");
-                        System.err.println("Exception: " + ex.getMessage());
-                        ex.printStackTrace();
-                        System.err.println("=== END EXCEPTION ===");
-
-                        Platform.runLater(() -> {
-                            updateStatus("Network error", false);
-                            showAlert("Network Error",
-                                    "Failed to connect to server:\n" +
-                                            ex.getMessage() + "\n" +
-                                            "Check console for details.");
-                        });
-                        return null;
-                    });
-
-        } catch (Exception e) {
-            System.err.println("=== EXCEPTION PREPARING DATA ===");
-            System.err.println("Exception: " + e.getMessage());
-            e.printStackTrace();
-            System.err.println("=== END EXCEPTION ===");
-
-            Platform.runLater(() -> {
-                updateStatus("Form error", false);
-                showAlert("Form Error",
-                        "Please check all fields:\n" +
-                                e.getMessage() + "\n" +
-                                "Check console for details.");
-            });
-        }
-    }
-
-    private void createPaymentRecord(Long reservationId) {
-        System.out.println("=== CREATING PAYMENT FOR RESERVATION " + reservationId + " ===");
-
-        try {
-            JSONObject paymentData = new JSONObject();
-            paymentData.put("reservation_id", reservationId);
-            paymentData.put("payment_method", combo_paymentmethod.getValue());
-            paymentData.put("amount", Double.parseDouble(txt_totalfare.getText().replace("R", "").trim()));
-            paymentData.put("payment_status", "Completed");
-            paymentData.put("payment_reference", "PAY" + System.currentTimeMillis() % 100000);
-
-            System.out.println("Payment Data: " + paymentData.toString(2));
-
-            // Uncomment when you're ready to implement payments
-            // supabaseService.insertPayment(paymentData, userAuthToken)
-            //     .thenAccept(response -> {
-            //         System.out.println("Payment creation response: " + response.statusCode());
-            //     });
-
-        } catch (Exception e) {
-            System.err.println("Error creating payment record: " + e.getMessage());
+            // Ignore parse errors during initialization
         }
     }
 
     private String extractAirportCode(String displayText) {
         if (displayText == null) return "";
-        // Extract code from format: "Airport Name (CODE) - City, Country"
         int start = displayText.indexOf('(') + 1;
         int end = displayText.indexOf(')');
-        if (start > 0 && end > start) {
-            return displayText.substring(start, end);
-        }
+        if (start > 0 && end > start) return displayText.substring(start, end);
         return displayText;
     }
 
@@ -707,55 +1083,28 @@ public class ReservationFormController {
         return "Regular";
     }
 
+    private void generateFlightCode() {
+        String code = "BA" + System.currentTimeMillis() % 10000;
+        txt_enterflightcode.setText(code);
+    }
+
     @FXML
     private void clear_form() {
-        System.out.println("=== CLEARING FORM ===");
-
         txt_entername.clear();
         txt_idnumber.clear();
         txt_enteraddress.clear();
         txt_enterphone.clear();
-
         combo_adults.setValue("1");
-        combo_children.setValue("0");
-        combo_infants.setValue("0");
-        combo_triptype.setValue("One-way");
         combo_seatclass.setValue("Economic");
-        combo_seatpref.setValue("Window");
-
-        if (!airportsList.isEmpty()) {
-            combo_travelfrom.setValue(airportsList.get(0));
-            if (airportsList.size() > 1) {
-                combo_travelto.setValue(airportsList.get(1));
-            }
-        }
-
-        if (!fareCategoriesList.isEmpty()) {
-            combo_categoryfare.setValue(fareCategoriesList.get(0));
-        }
-
-        generateFlightCode();
+        combo_available_flights.setValue(null);
         calculateTotalFare();
-
         updateStatus("Form cleared", false);
-        System.out.println("Form cleared successfully");
-    }
-
-    @FXML
-    private void handlePrintTicket() {
-        System.out.println("Print ticket requested");
-        showAlert("Print Feature", "Ticket printing feature will be implemented soon!");
     }
 
     private void updateStatus(String message, boolean inProgress) {
         Platform.runLater(() -> {
-            if (lbl_status != null) {
-                lbl_status.setText(message);
-            }
-            if (progress_bar != null) {
-                progress_bar.setVisible(inProgress);
-            }
-            System.out.println("Status Update: " + message + " [InProgress: " + inProgress + "]");
+            if (lbl_status != null) lbl_status.setText(message);
+            if (progress_bar != null) progress_bar.setVisible(inProgress);
         });
     }
 
@@ -767,5 +1116,52 @@ public class ReservationFormController {
             alert.setContentText(message);
             alert.showAndWait();
         });
+    }
+
+    // ==========================================
+    // NAVIGATION METHODS
+    // ==========================================
+
+    private void navigateToDashboard() {
+        try {
+            SceneManager.loadScene("/groupassingment/airlinesreservations/Dashboard.fxml",
+                    btnDashboard.getScene(), userAuthToken, userId, userEmail);
+        } catch (Exception e) {
+            showAlert("Navigation Error", "Unable to load dashboard");
+        }
+    }
+
+    private void navigateToManageReservations() {
+        try {
+            SceneManager.loadScene("/groupassingment/airlinesreservations/ManageReservations.fxml",
+                    btnManageReservations.getScene(), userAuthToken, userId, userEmail);
+        } catch (Exception e) {
+            showAlert("Navigation Error", "Unable to load manage reservations");
+        }
+    }
+
+    private void navigateToFeedback() {
+        showAlert("Info", "Feedback feature coming soon!");
+    }
+
+    private void navigateToSupport() {
+        showAlert("Info", "Support feature coming soon!");
+    }
+
+    private void navigateToSettings() {
+        showAlert("Info", "Settings feature coming soon!");
+    }
+
+    private void handleLogout() {
+        SessionManager.clearSessionData();
+        try {
+            Stage stage = (Stage) btnLogout.getScene().getWindow();
+            Parent root = FXMLLoader.load(getClass().getResource("/groupassingment/airlinesreservations/Login.fxml"));
+            Scene scene = new Scene(root);
+            stage.setScene(scene);
+            stage.centerOnScreen();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 }
