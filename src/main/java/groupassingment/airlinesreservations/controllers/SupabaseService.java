@@ -846,4 +846,25 @@ public class SupabaseService {
                 .thenApply(response -> response.statusCode() == 200)
                 .exceptionally(ex -> false);
     }
+
+    public CompletableFuture<HttpResponse<String>> getFlightById(int flightId, String authToken) {
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                String url = SUPABASE_URL + "/rest/v1/flights?flight_id=eq." + flightId;
+                HttpRequest request = HttpRequest.newBuilder()
+                        .uri(URI.create(url))
+                        .header("Content-Type", "application/json")
+                        .header("apikey", SUPABASE_KEY)
+                        .header("Authorization", "Bearer " + authToken)
+                        .GET()
+                        .build();
+
+                HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+                System.out.println("DEBUG: Flight query URL: " + url);
+                return response;
+            } catch (Exception e) {
+                throw new RuntimeException("Error fetching flight data: " + e.getMessage(), e);
+            }
+        });
+    }
 }

@@ -53,7 +53,7 @@
                         </HBox>
                         <Separator prefHeight="14.0" prefWidth="231.0" />
 
-                        <HBox prefHeight="38.0" prefWidth="199.0" stylesheets="@../../styles/Dashboard.css">
+                        <HBox fx:id="dashboardBtn" prefHeight="38.0" prefWidth="199.0" stylesheets="@../../styles/Dashboard.css">
                             <children>
                                 <ImageView fitHeight="16.0" fitWidth="16.0" pickOnBounds="true" preserveRatio="true">
                                     <image>
@@ -63,18 +63,18 @@
                                         <Insets left="10.0" top="12.0" />
                                     </HBox.margin>
                                 </ImageView>
-                                <Button mnemonicParsing="false" styleClass="btn_dashboard" text="Dashboard">
+                                <Label styleClass="btn_dashboard" text="Dashboard">
                                     <HBox.margin>
                                         <Insets top="3.0" />
                                     </HBox.margin>
-                                </Button>
+                                </Label>
                             </children>
                             <VBox.margin>
                                 <Insets right="30.0" />
                             </VBox.margin>
                         </HBox>
 
-                        <HBox prefHeight="38.0" prefWidth="230.0" stylesheets="@../../styles/Dashboard.css">
+                        <HBox fx:id="reservationBtn" prefHeight="38.0" prefWidth="230.0" stylesheets="@../../styles/Dashboard.css">
                             <children>
                                 <ImageView fitHeight="18.0" fitWidth="18.0" pickOnBounds="true" preserveRatio="true">
                                     <image>
@@ -84,17 +84,17 @@
                                         <Insets left="10.0" top="12.0" />
                                     </HBox.margin>
                                 </ImageView>
-                                <Button mnemonicParsing="false" styleClass="btn_dashboard" stylesheets="@../../styles/Dashboard.css" text="Reservation">
+                                <Label styleClass="btn_dashboard" stylesheets="@../../styles/Dashboard.css" text="Reservation">
                                     <HBox.margin>
                                         <Insets top="3.0" />
-                                    </HBox.margin></Button>
+                                    </HBox.margin></Label>
                             </children>
                             <VBox.margin>
                                 <Insets right="30.0" />
                             </VBox.margin>
                         </HBox>
 
-                        <HBox prefHeight="38.0" prefWidth="229.0" stylesheets="@../../styles/Dashboard.css">
+                        <HBox fx:id="feedbackBtn" prefHeight="38.0" prefWidth="229.0" stylesheets="@../../styles/Dashboard.css">
                             <children>
                                 <ImageView fitHeight="18.0" fitWidth="18.0" pickOnBounds="true" preserveRatio="true">
                                     <image>
@@ -104,17 +104,17 @@
                                         <Insets left="10.0" top="12.0" />
                                     </HBox.margin>
                                 </ImageView>
-                                <Button mnemonicParsing="false" styleClass="btn_dashboard" stylesheets="@../../styles/Dashboard.css" text="Feedback">
+                                <Label styleClass="btn_dashboard" stylesheets="@../../styles/Dashboard.css" text="Feedback">
                                     <HBox.margin>
                                         <Insets top="3.0" />
-                                    </HBox.margin></Button>
+                                    </HBox.margin></Label>
                             </children>
                             <VBox.margin>
                                 <Insets right="30.0" />
                             </VBox.margin>
                         </HBox>
 
-                        <HBox prefHeight="38.0" prefWidth="229.0">
+                        <HBox fx:id="manageBtn" prefHeight="38.0" prefWidth="229.0">
                             <children>
                                 <ImageView fitHeight="18.0" fitWidth="18.0" pickOnBounds="true" preserveRatio="true">
                                     <image>
@@ -124,10 +124,10 @@
                                         <Insets left="10.0" top="12.0" />
                                     </HBox.margin>
                                 </ImageView>
-                                <Button mnemonicParsing="false" styleClass="btn_dashboard" text="Manage Reservations">
+                                <Label styleClass="btn_dashboard" text="Manage Reservations">
                                     <HBox.margin>
                                         <Insets top="3.0" />
-                                    </HBox.margin></Button>
+                                    </HBox.margin></Label>
                             </children>
                             <VBox.margin>
                                 <Insets right="30.0" />
@@ -136,7 +136,7 @@
 
                         <VBox VBox.vgrow="ALWAYS" />
 
-                        <HBox prefHeight="38.0" prefWidth="229.0" styleClass="active">
+                        <HBox fx:id="supportBtn" prefHeight="38.0" prefWidth="229.0" styleClass="active">
                             <children>
                                 <ImageView fitHeight="18.0" fitWidth="18.0" pickOnBounds="true" preserveRatio="true">
                                     <image>
@@ -146,17 +146,17 @@
                                         <Insets left="10.0" top="12.0" />
                                     </HBox.margin>
                                 </ImageView>
-                                <Button mnemonicParsing="false" styleClass="btn_dashboard" stylesheets="@../../styles/Dashboard.css" text="Support">
+                                <Label styleClass="btn_dashboard" stylesheets="@../../styles/Dashboard.css" text="Support">
                                     <HBox.margin>
                                         <Insets top="3.0" />
-                                    </HBox.margin></Button>
+                                    </HBox.margin></Label>
                             </children>
                             <VBox.margin>
                                 <Insets right="30.0" />
                             </VBox.margin>
                         </HBox>
 
-                        <HBox prefHeight="38.0" prefWidth="229.0">
+                        <HBox fx:id="settingsBtn" prefHeight="38.0" prefWidth="229.0">
                             <children>
                                 <ImageView fitHeight="18.0" fitWidth="18.0" pickOnBounds="true" preserveRatio="true">
                                     <image>
@@ -166,17 +166,17 @@
                                         <Insets left="10.0" top="12.0" />
                                     </HBox.margin>
                                 </ImageView>
-                                <Button mnemonicParsing="false" styleClass="btn_dashboard" stylesheets="@../../styles/Dashboard.css" text="Settings">
+                                <Label styleClass="btn_dashboard" stylesheets="@../../styles/Dashboard.css" text="Settings">
                                     <HBox.margin>
                                         <Insets top="3.0" />
-                                    </HBox.margin></Button>
+                                    </HBox.margin></Label>
                             </children>
                             <VBox.margin>
                                 <Insets right="30.0" />
                             </VBox.margin>
                         </HBox>
 
-                        <HBox prefHeight="38.0" prefWidth="229.0">
+                        <HBox fx:id="logoutBtn" prefHeight="38.0" prefWidth="229.0">
                             <children>
                                 <ImageView fitHeight="18.0" fitWidth="18.0" pickOnBounds="true" preserveRatio="true">
                                     <image>
@@ -186,10 +186,10 @@
                                         <Insets left="10.0" top="12.0" />
                                     </HBox.margin>
                                 </ImageView>
-                                <Button mnemonicParsing="false" styleClass="btn_dashboard" stylesheets="@../../styles/Dashboard.css" text="Logout">
+                                <Label styleClass="btn_dashboard" stylesheets="@../../styles/Dashboard.css" text="Logout">
                                     <HBox.margin>
                                         <Insets top="3.0" />
-                                    </HBox.margin></Button>
+                                    </HBox.margin></Label>
                             </children>
                             <VBox.margin>
                                 <Insets right="30.0" />
@@ -255,9 +255,9 @@
                                                 </HBox>
                                             </VBox>
                                         </children>
-                              <rowConstraints>
-                                 <RowConstraints />
-                              </rowConstraints>
+                                        <rowConstraints>
+                                            <RowConstraints />
+                                        </rowConstraints>
                                     </GridPane>
                                 </VBox>
 
@@ -267,26 +267,26 @@
                                     <VBox spacing="15">
                                         <VBox spacing="5">
                                             <Label styleClass="input-label" stylesheets="@../../styles/Support.css" text="Subject" />
-                                            <ComboBox promptText="Select inquiry type" styleClass="support-combo" stylesheets="@../../styles/Support.css" />
+                                            <ComboBox fx:id="subjectCombo" promptText="Select inquiry type" styleClass="support-combo" stylesheets="@../../styles/Support.css" />
                                         </VBox>
 
                                         <VBox spacing="5">
                                             <Label styleClass="input-label" text="Your Message" />
-                                            <TextArea prefHeight="120" promptText="Please describe your issue in detail..." styleClass="support-textarea" stylesheets="@../../styles/Support.css" />
+                                            <TextArea fx:id="messageArea" prefHeight="120" promptText="Please describe your issue in detail..." styleClass="support-textarea" stylesheets="@../../styles/Support.css" />
                                         </VBox>
 
                                         <VBox spacing="5">
                                             <Label styleClass="input-label" text="Attachments (Optional)" />
                                             <HBox alignment="CENTER_LEFT" spacing="10">
-                                                <Button styleClass="attachment-btn" text="Choose File" />
-                                                <Label styleClass="file-label" text="No file chosen" />
+                                                <Button fx:id="chooseFileButton" styleClass="attachment-btn" text="Choose File" />
+                                                <Label fx:id="fileLabel" styleClass="file-label" text="No file chosen" />
                                             </HBox>
                                             <Label styleClass="hint-text" text="Max file size: 10MB. Supported: PDF, JPG, PNG" />
                                         </VBox>
 
                                         <HBox alignment="CENTER_RIGHT" spacing="12">
-                                            <Button styleClass="cancel-btn" text="Clear" />
-                                            <Button styleClass="send-btn" text="Send Message" />
+                                            <Button fx:id="clearButton" styleClass="cancel-btn" text="Clear" />
+                                            <Button fx:id="sendButton" styleClass="send-btn" text="Send Message" />
                                         </HBox>
                                     </VBox>
                                 </VBox>

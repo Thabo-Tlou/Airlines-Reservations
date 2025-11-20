@@ -253,13 +253,8 @@ public class ManageReservationsController {
                             setGraphic(null);
                         } else {
                             Reservation reservation = getTableView().getItems().get(getIndex());
-
-                            // Disable cancel button for already cancelled reservations
                             cancelBtn.setDisable("Cancelled".equals(reservation.getReservationStatus()));
-
-                            // Disable edit button for cancelled reservations
                             editBtn.setDisable("Cancelled".equals(reservation.getReservationStatus()));
-
                             setGraphic(buttonContainer);
                         }
                     }
@@ -276,6 +271,10 @@ public class ManageReservationsController {
         // Navigation handlers
         btnDashboard.setOnAction(event -> navigateToDashboard());
         btnReservation.setOnAction(event -> navigateToReservation());
+        btnManageReservations.setOnAction(event -> navigateToManageReservations());
+        btnFeedback.setOnAction(event -> navigateToFeedback());
+        btnSupport.setOnAction(event -> navigateToSupport());
+        btnSettings.setOnAction(event -> navigateToSettings());
         btnLogout.setOnAction(event -> handleLogout());
     }
 
@@ -283,7 +282,6 @@ public class ManageReservationsController {
         showLoading(true);
         updateStatus("Loading reservations...", "info");
 
-        // Get customer ID first, then load reservations
         supabaseService.getCustomerByEmail(userEmail, userAuthToken)
                 .thenCompose(customerResponse -> {
                     if (customerResponse.statusCode() == 200) {
@@ -292,9 +290,52 @@ public class ManageReservationsController {
                             if (customers.length() > 0) {
                                 JSONObject customer = customers.getJSONObject(0);
                                 Long customerId = customer.getLong("customer_id");
+                                String customerName = customer.optString("full_name", "Unknown");
 
-                                // Now load reservations for this customer
-                                return supabaseService.getReservationsByCustomerId(customerId, userAuthToken);
+                                // Load reservations for this customer
+                                return supabaseService.getReservationsByCustomerId(customerId, userAuthToken)
+                                        .thenCompose(reservationsResponse -> {
+                                            if (reservationsResponse != null && reservationsResponse.statusCode() == 200) {
+                                                try {
+                                                    JSONArray reservationsArray = new JSONArray(reservationsResponse.body());
+                                                    CompletableFuture<Void> allFlightDetails = CompletableFuture.completedFuture(null);
+
+                                                    // Fetch flight details for each reservation
+                                                    for (int i = 0; i < reservationsArray.length(); i++) {
+                                                        JSONObject reservationJson = reservationsArray.getJSONObject(i);
+                                                        if (reservationJson.has("flight_id") && !reservationJson.isNull("flight_id")) {
+                                                            int flightId = reservationJson.getInt("flight_id");
+                                                            final int index = i;
+                                                            allFlightDetails = allFlightDetails.thenCompose(v ->
+                                                                    supabaseService.getFlightById(flightId, userAuthToken)
+                                                                            .thenAccept(flightResponse -> {
+                                                                                if (flightResponse != null && flightResponse.statusCode() == 200) {
+                                                                                    try {
+                                                                                        JSONArray flights = new JSONArray(flightResponse.body());
+                                                                                        if (flights.length() > 0) {
+                                                                                            JSONObject flight = flights.getJSONObject(0);
+                                                                                            // Add flight data to reservation JSON
+                                                                                            reservationJson.put("flight_code", flight.optString("flight_code", "FL" + flightId));
+                                                                                            reservationJson.put("departure_city", flight.optString("departure_city", "N/A"));
+                                                                                            reservationJson.put("destination_city", flight.optString("destination_city", "N/A"));
+                                                                                        }
+                                                                                    } catch (Exception e) {
+                                                                                        System.err.println("Error parsing flight data: " + e.getMessage());
+                                                                                    }
+                                                                                }
+                                                                            })
+                                                            );
+                                                        }
+                                                        // Add customer name to each reservation
+                                                        reservationJson.put("customer_name", customerName);
+                                                    }
+                                                    return allFlightDetails.thenApply(v -> reservationsResponse);
+                                                } catch (Exception e) {
+                                                    System.err.println("Error processing reservations: " + e.getMessage());
+                                                }
+                                            }
+                                            return CompletableFuture.completedFuture(reservationsResponse);
+                                        });
                             }
                         } catch (Exception e) {
                             System.err.println("Error parsing customer data: " + e.getMessage());
@@ -333,13 +374,25 @@ public class ManageReservationsController {
                                         }
                                     }
 
+                                    // Extract data
+                                    String extractedCustomerName = reservationJson.optString("customer_name", "Unknown");
+                                    String flightCode = reservationJson.optString("flight_code", "N/A");
+                                    String departureCity = reservationJson.optString("departure_city", "N/A");
+                                    String destinationCity = reservationJson.optString("destination_city", "N/A");
+
+                                    System.out.println("Reservation " + i + ": " +
+                                            "Customer: " + extractedCustomerName +
+                                            ", Flight: " + flightCode +
+                                            ", Departure: " + departureCity +
+                                            ", Destination: " + destinationCity);
+
                                     Reservation reservation = new Reservation(
                                             reservationJson.getLong("reservation_id"),
                                             reservationJson.optString("reservation_code", "N/A"),
-                                            reservationJson.optString("customer_name", "Unknown"),
-                                            reservationJson.optString("flight_code", "N/A"),
-                                            reservationJson.optString("departure_city", "N/A"),
-                                            reservationJson.optString("destination_city", "N/A"),
+                                            extractedCustomerName,
+                                            flightCode,
+                                            departureCity,
+                                            destinationCity,
                                             reservationJson.optString("seat_class", "Economic"),
                                             reservationJson.optDouble("total_fare", 0.0),
                                             reservationJson.optString("reservation_status", "Pending"),
@@ -385,7 +438,6 @@ public class ManageReservationsController {
 
     @FXML
     private void handleExport() {
-        // Simple export functionality - could be enhanced with file chooser
         StringBuilder exportData = new StringBuilder();
         exportData.append("Reservation Code,Customer Name,Flight,Departure,Destination,Class,Total Fare,Status,Payment Status\n");
 
@@ -403,7 +455,6 @@ public class ManageReservationsController {
             ));
         }
 
-        // For now, just show in alert. In production, you'd save to file.
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
         alert.setTitle("Export Data");
         alert.setHeaderText("Reservations Export");
@@ -433,8 +484,6 @@ public class ManageReservationsController {
     }
 
     private void editReservation(Reservation reservation) {
-        // For now, show a simple edit dialog
-        // In a real application, you'd open a detailed edit form
         TextInputDialog dialog = new TextInputDialog(reservation.getSeatClass());
         dialog.setTitle("Edit Reservation");
         dialog.setHeaderText("Edit Seat Class for " + reservation.getReservationCode());
@@ -442,8 +491,6 @@ public class ManageReservationsController {
 
         dialog.showAndWait().ifPresent(newSeatClass -> {
             updateStatus("Updating reservation...", "info");
-            // Here you would call Supabase to update the reservation
-            // supabaseService.updateReservation(...)
             updateStatus("Reservation updated successfully", "success");
         });
     }
@@ -459,10 +506,9 @@ public class ManageReservationsController {
                 showLoading(true);
                 updateStatus("Cancelling reservation...", "info");
 
-                // Update reservation status to Cancelled
                 JSONObject updateData = new JSONObject();
                 updateData.put("reservation_status", "Cancelled");
-                updateData.put("payment_status", "Refunded"); // or whatever your business logic requires
+                updateData.put("payment_status", "Refunded");
 
                 supabaseService.updateReservation(reservation.getReservationId().intValue(), updateData, userAuthToken)
                         .thenAccept(updateResponse -> {
@@ -470,7 +516,7 @@ public class ManageReservationsController {
                                 showLoading(false);
                                 if (updateResponse.statusCode() == 200) {
                                     updateStatus("Reservation cancelled successfully", "success");
-                                    loadReservations(); // Refresh the table
+                                    loadReservations();
                                 } else {
                                     updateStatus("Failed to cancel reservation", "error");
                                 }
@@ -488,10 +534,7 @@ public class ManageReservationsController {
     }
 
     private void printTicket(Reservation reservation) {
-        // Simple print simulation
         updateStatus("Generating ticket for " + reservation.getReservationCode() + "...", "info");
-
-        // Simulate print process
         new java.util.Timer().schedule(
                 new java.util.TimerTask() {
                     @Override
@@ -505,34 +548,41 @@ public class ManageReservationsController {
         );
     }
 
+    // ==================== NAVIGATION METHODS ====================
+
     private void navigateToDashboard() {
-        // Navigation logic to Dashboard
-        try {
-            SceneManager.loadScene("/groupassingment/airlinesreservations/Dashboard.fxml",
-                    btnDashboard.getScene(), userAuthToken, userId, userEmail);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        System.out.println("=== NAVIGATING TO DASHBOARD ===");
+        SceneManager.navigateToDashboard(btnDashboard.getScene());
     }
 
     private void navigateToReservation() {
-        // Navigation logic to Reservation Form
-        try {
-            SceneManager.loadScene("/groupassingment/airlinesreservations/ReservationForm.fxml",
-                    btnReservation.getScene(), userAuthToken, userId, userEmail);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        System.out.println("=== NAVIGATING TO RESERVATION FORM ===");
+        SceneManager.navigateToReservationForm(btnReservation.getScene());
+    }
+
+    private void navigateToManageReservations() {
+        System.out.println("=== REFRESHING MANAGE RESERVATIONS ===");
+        loadReservations();
+    }
+
+    private void navigateToFeedback() {
+        System.out.println("=== NAVIGATING TO FEEDBACK ===");
+        SceneManager.navigateToFeedback(btnFeedback.getScene());
+    }
+
+    private void navigateToSupport() {
+        System.out.println("=== NAVIGATING TO SUPPORT ===");
+        SceneManager.navigateToSupport(btnSupport.getScene());
+    }
+
+    private void navigateToSettings() {
+        System.out.println("=== NAVIGATING TO SETTINGS ===");
+        SceneManager.navigateToSettings(btnSettings.getScene());
     }
 
     private void handleLogout() {
-        SessionManager.clearSessionData();
-        try {
-            SceneManager.loadScene("/groupassingment/airlinesreservations/Login.fxml",
-                    btnLogout.getScene(), null, null, null);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        System.out.println("=== HANDLING LOGOUT ===");
+        SceneManager.handleLogout(btnLogout.getScene());
     }
 
     private void showLoading(boolean show) {

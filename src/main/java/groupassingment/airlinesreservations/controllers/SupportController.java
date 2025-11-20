@@ -29,14 +29,34 @@ public class SupportController {
 
     private File selectedFile;
 
+    // Session data
+    private String userAuthToken;
+    private String userId;
+    private String userEmail;
+
     @FXML
     public void initialize() {
         setupNavigation();
         setupContactForm();
     }
 
+    /**
+     * Session initialization for the current controller.
+     */
+    public void initializeSessionData(String authToken, String userId, String userEmail) {
+        this.userAuthToken = authToken;
+        this.userId = userId;
+        this.userEmail = userEmail;
+
+        System.out.println("=== SupportController: Session initialized ===");
+        System.out.println("User Email: " + userEmail);
+        System.out.println("Auth Token: " + (authToken != null ? "PRESENT" : "NULL"));
+        System.out.println("User ID: " + userId);
+        System.out.println("=== END SESSION INIT ===");
+    }
+
     private void setupNavigation() {
-        // Setup navigation handlers for each HBox
+        // Setup navigation handlers for each HBox (These work because HBoxes now have fx:id and no child Buttons)
         if (dashboardBtn != null) {
             dashboardBtn.setOnMouseClicked(event -> navigateToDashboard());
         }
@@ -73,7 +93,7 @@ public class SupportController {
             );
         }
 
-        // Set up button actions
+        // Set up button actions (These work because Buttons now have fx:id)
         if (sendButton != null) {
             sendButton.setOnAction(e -> handleSendMessage());
         }
@@ -102,6 +122,7 @@ public class SupportController {
         String attachmentInfo = selectedFile != null ? " with attachment: " + selectedFile.getName() : "";
 
         System.out.println("Sending support message:");
+        System.out.println("User: " + userEmail);
         System.out.println("Subject: " + subject);
         System.out.println("Message: " + message);
         System.out.println("Attachment: " + (selectedFile != null ? selectedFile.getName() : "None"));
@@ -204,25 +225,34 @@ public class SupportController {
         alert.showAndWait();
     }
 
-    // Navigation Methods
+    // ==================== NAVIGATION METHODS ====================
+
     private void navigateToDashboard() {
-        System.out.println("Navigating to Dashboard...");
-        // Implementation: Load Dashboard.fxml
+        System.out.println("=== NAVIGATING TO DASHBOARD ===");
+        if (dashboardBtn != null) {
+            SceneManager.navigateToDashboard(dashboardBtn.getScene());
+        }
     }
 
     private void navigateToReservation() {
-        System.out.println("Navigating to Reservation...");
-        // Implementation: Load Reservation.fxml
+        System.out.println("=== NAVIGATING TO RESERVATION FORM ===");
+        if (reservationBtn != null) {
+            SceneManager.navigateToReservationForm(reservationBtn.getScene());
+        }
     }
 
     private void navigateToFeedback() {
-        System.out.println("Navigating to Feedback...");
-        // Implementation: Load Feedback.fxml
+        System.out.println("=== NAVIGATING TO FEEDBACK ===");
+        if (feedbackBtn != null) {
+            SceneManager.navigateToFeedback(feedbackBtn.getScene());
+        }
     }
 
     private void navigateToManage() {
-        System.out.println("Navigating to Manage Reservations...");
-        // Implementation: Load ManageReservations.fxml
+        System.out.println("=== NAVIGATING TO MANAGE RESERVATIONS ===");
+        if (manageBtn != null) {
+            SceneManager.navigateToManageReservations(manageBtn.getScene());
+        }
     }
 
     private void navigateToSupport() {
@@ -231,8 +261,10 @@ public class SupportController {
     }
 
     private void navigateToSettings() {
-        System.out.println("Navigating to Settings...");
-        // Implementation: Load Settings.fxml
+        System.out.println("=== NAVIGATING TO SETTINGS ===");
+        if (settingsBtn != null) {
+            SceneManager.navigateToSettings(settingsBtn.getScene());
+        }
     }
 
     private void logout() {
@@ -243,11 +275,10 @@ public class SupportController {
 
         alert.showAndWait().ifPresent(response -> {
             if (response == ButtonType.OK) {
-                System.out.println("Logging out...");
-                // Implementation: Clear session and return to login page
-                // Example:
-                // Stage stage = (Stage) logoutBtn.getScene().getWindow();
-                // stage.setScene(loginScene);
+                System.out.println("=== HANDLING LOGOUT ===");
+                if (logoutBtn != null) {
+                    SceneManager.handleLogout(logoutBtn.getScene());
+                }
             }
         });
     }
@@ -269,24 +300,7 @@ public class SupportController {
 
     public void showEmailTemplate() {
         if (subjectCombo != null && messageArea != null) {
-            String subject = subjectCombo.getValue() != null ? subjectCombo.getValue() : "General Inquiry";
-            String body = messageArea.getText();
-
-            String emailTemplate =
-                    "To: support@bokamoso.com\n" +
-                            "Subject: " + subject + "\n\n" +
-                            "Dear Bokamoso Airlines Support,\n\n" +
-                            (body.isEmpty() ? "[Please enter your message here]" : body) + "\n\n" +
-                            "Thank you,\n" +
-                            "[Your Name]";
-
-            showAlert("Email Template", emailTemplate, Alert.AlertType.INFORMATION);
+            String subject = subjectCombo.getValue();
         }
-    }
-
-    // Method to handle FAQ expansion (if needed for additional functionality)
-    public void handleFaqExpansion(TitledPane faqPane) {
-        // This method can be used if you want to add specific behavior when FAQ items are expanded
-        System.out.println("FAQ expanded: " + faqPane.getText());
     }
 }

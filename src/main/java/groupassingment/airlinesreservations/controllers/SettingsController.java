@@ -34,7 +34,7 @@ public class SettingsController {
     @FXML private Button cancelButton;
     @FXML private Button changeAvatarButton;
 
-    // Navigation - Since your FXML uses HBox with buttons inside, we need to handle this differently
+    // Navigation
     @FXML private HBox dashboardBtn;
     @FXML private HBox reservationBtn;
     @FXML private HBox feedbackBtn;
@@ -46,6 +46,11 @@ public class SettingsController {
     private Preferences userPreferences;
     private boolean fieldsInitialized = false;
 
+    // Session data
+    private String userAuthToken;
+    private String userId;
+    private String userEmail;
+
     @FXML
     public void initialize() {
         userPreferences = Preferences.userNodeForPackage(SettingsController.class);
@@ -56,6 +61,23 @@ public class SettingsController {
         });
     }
 
+    public void initializeSessionData(String authToken, String userId, String userEmail) {
+        this.userAuthToken = authToken;
+        this.userId = userId;
+        this.userEmail = userEmail;
+
+        System.out.println("=== SettingsController: Session initialized ===");
+        System.out.println("User Email: " + userEmail);
+        System.out.println("Auth Token: " + (authToken != null ? "PRESENT" : "NULL"));
+        System.out.println("User ID: " + userId);
+        System.out.println("=== END SESSION INIT ===");
+
+        // Pre-fill email field with session data
+        if (emailField != null && userEmail != null) {
+            emailField.setText(userEmail);
+        }
+    }
+
     private void initializeFields() {
         try {
             setupComboBoxes();
@@ -64,7 +86,7 @@ public class SettingsController {
             fieldsInitialized = true;
         } catch (Exception e) {
             System.err.println("Error initializing fields: " + e.getMessage());
-            showAlert("Initialization Error", "Failed to initialize settings form.", Alert.AlertType.ERROR);
+            // Optional: showAlert("Initialization Error", "Failed to initialize settings form.", Alert.AlertType.ERROR);
         }
     }
 
@@ -77,7 +99,10 @@ public class SettingsController {
             lastNameField.setText(userPreferences.get("lastName", ""));
         }
         if (emailField != null) {
-            emailField.setText(userPreferences.get("email", ""));
+            // Only set email from preferences if we don't have session email
+            if (userEmail == null) {
+                emailField.setText(userPreferences.get("email", ""));
+            }
         }
         if (phoneField != null) {
             phoneField.setText(userPreferences.get("phone", ""));
@@ -125,46 +150,26 @@ public class SettingsController {
 
     private void setupNavigation() {
         // Setup navigation handlers for each HBox
-        setupNavigationHandler(dashboardBtn, "Dashboard");
-        setupNavigationHandler(reservationBtn, "Reservation");
-        setupNavigationHandler(feedbackBtn, "Feedback");
-        setupNavigationHandler(manageBtn, "Manage Reservations");
-        setupNavigationHandler(supportBtn, "Support");
-        setupNavigationHandler(settingsBtn, "Settings");
-        setupNavigationHandler(logoutBtn, "Logout");
-    }
-
-    private void setupNavigationHandler(HBox navItem, String pageName) {
-        if (navItem != null) {
-            navItem.setOnMouseClicked(event -> {
-                handleNavigation(pageName);
-            });
+        if (dashboardBtn != null) {
+            dashboardBtn.setOnMouseClicked(event -> navigateToDashboard());
         }
-    }
-
-    private void handleNavigation(String pageName) {
-        switch (pageName) {
-            case "Dashboard":
-                navigateToDashboard();
-                break;
-            case "Reservation":
-                navigateToReservation();
-                break;
-            case "Feedback":
-                navigateToFeedback();
-                break;
-            case "Manage Reservations":
-                navigateToManage();
-                break;
-            case "Support":
-                navigateToSupport();
-                break;
-            case "Settings":
-                // Already on settings page
-                break;
-            case "Logout":
-                logout();
-                break;
+        if (reservationBtn != null) {
+            reservationBtn.setOnMouseClicked(event -> navigateToReservation());
+        }
+        if (feedbackBtn != null) {
+            feedbackBtn.setOnMouseClicked(event -> navigateToFeedback());
+        }
+        if (manageBtn != null) {
+            manageBtn.setOnMouseClicked(event -> navigateToManage());
+        }
+        if (supportBtn != null) {
+            supportBtn.setOnMouseClicked(event -> navigateToSupport());
+        }
+        if (settingsBtn != null) {
+            settingsBtn.setOnMouseClicked(event -> navigateToSettings());
+        }
+        if (logoutBtn != null) {
+            logoutBtn.setOnMouseClicked(event -> logout());
         }
     }
 
@@ -205,6 +210,7 @@ public class SettingsController {
             errors.append("• First name is required\n");
         }
 
+        // Only validate fields if they exist in the view
         if (lastNameField != null && lastNameField.getText().trim().isEmpty()) {
             errors.append("• Last name is required\n");
         }
@@ -298,29 +304,46 @@ public class SettingsController {
         alert.showAndWait();
     }
 
+    // ==================== NAVIGATION METHODS ====================
+
     private void navigateToDashboard() {
-        System.out.println("Navigating to Dashboard...");
-        // Add your navigation logic here
+        System.out.println("=== NAVIGATING TO DASHBOARD ===");
+        if (dashboardBtn != null) {
+            SceneManager.navigateToDashboard(dashboardBtn.getScene());
+        }
     }
 
     private void navigateToReservation() {
-        System.out.println("Navigating to Reservation...");
-        // Add your navigation logic here
+        System.out.println("=== NAVIGATING TO RESERVATION FORM ===");
+        if (reservationBtn != null) {
+            SceneManager.navigateToReservationForm(reservationBtn.getScene());
+        }
     }
 
     private void navigateToFeedback() {
-        System.out.println("Navigating to Feedback...");
-        // Add your navigation logic here
+        System.out.println("=== NAVIGATING TO FEEDBACK ===");
+        if (feedbackBtn != null) {
+            SceneManager.navigateToFeedback(feedbackBtn.getScene());
+        }
     }
 
     private void navigateToManage() {
-        System.out.println("Navigating to Manage Reservations...");
-        // Add your navigation logic here
+        System.out.println("=== NAVIGATING TO MANAGE RESERVATIONS ===");
+        if (manageBtn != null) {
+            SceneManager.navigateToManageReservations(manageBtn.getScene());
+        }
     }
 
     private void navigateToSupport() {
-        System.out.println("Navigating to Support...");
-        // Add your navigation logic here
+        System.out.println("=== NAVIGATING TO SUPPORT ===");
+        if (supportBtn != null) {
+            SceneManager.navigateToSupport(supportBtn.getScene());
+        }
+    }
+
+    private void navigateToSettings() {
+        System.out.println("Already on Settings page");
+        // No action needed - already on Settings page
     }
 
     private void logout() {
@@ -331,8 +354,10 @@ public class SettingsController {
 
         alert.showAndWait().ifPresent(response -> {
             if (response == ButtonType.OK) {
-                System.out.println("Logging out...");
-                // logout logic here
+                System.out.println("=== HANDLING LOGOUT ===");
+                if (logoutBtn != null) {
+                    SceneManager.handleLogout(logoutBtn.getScene());
+                }
             }
         });
     }
