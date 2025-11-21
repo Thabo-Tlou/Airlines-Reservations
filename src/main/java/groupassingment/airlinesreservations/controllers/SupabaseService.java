@@ -15,9 +15,8 @@ import org.json.JSONArray;
 
 public class SupabaseService {
 
-    // MADE PUBLIC for access outside the current package
     public static final String SUPABASE_URL = "https://mikkxbspbhuwbczttopo.supabase.co";
-    // NOTE: In a real application, the key should be loaded securely from environment variables.
+
     public static final String SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1pa2t4YnNwYmh1d2JjenR0b3BvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI3NTA4NzgsImV4cCI6MjA3ODMyNjg3OH0.W0Yt5oKK15D3dpQ_F23WjHQgSLcNLMuV64032f9cTxA";
 
     // MADE PUBLIC for access outside the current package
