@@ -1,9 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import java.net.URL?>
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
-<?import javafx.scene.control.Separator?>
+<?import javafx.scene.control.RadioButton?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.control.TextField?>
 <?import javafx.scene.image.Image?>
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.AnchorPane?>
@@ -12,15 +15,14 @@
 <?import javafx.scene.layout.VBox?>
 
 <AnchorPane prefHeight="600.0" prefWidth="900.0" xmlns="http://javafx.com/javafx/20.0.2" xmlns:fx="http://javafx.com/fxml/1" fx:controller="groupassingment.airlinesreservations.controllers.FeedbackController">
-
     <children>
         <BorderPane layoutX="77.0" layoutY="148.0" prefHeight="600.0" prefWidth="900.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
             <left>
-                <VBox prefHeight="600.0" prefWidth="240.0" spacing="5.0" styleClass="con_left" stylesheets="@../../styles/Dashboard.css">
+                <VBox prefHeight="600.0" prefWidth="240.0" spacing="5.0" styleClass="con_left" stylesheets="@../../styles/Dashboard.css" BorderPane.alignment="CENTER">
                     <children>
-                        <HBox prefHeight="16.0" prefWidth="231.0">
+                        <HBox prefHeight="79.0" prefWidth="230.0">
                             <children>
-                                <ImageView fitHeight="47.0" fitWidth="57.0" pickOnBounds="true" preserveRatio="true">
+                                <ImageView fitHeight="57.0" fitWidth="79.0" pickOnBounds="true" preserveRatio="true">
                                     <image>
                                         <Image url="@../../images/logo2.png" />
                                     </image>
@@ -36,13 +38,8 @@
                                     </HBox.margin>
                                 </Label>
                             </children>
-                            <VBox.margin>
-                                <Insets top="10.0" />
-                            </VBox.margin>
                         </HBox>
-                        <Separator prefHeight="14.0" prefWidth="231.0" />
-
-                        <HBox prefHeight="38.0" prefWidth="199.0" stylesheets="@../../styles/Dashboard.css">
+                        <HBox fx:id="hb_HBoxDashboard" prefHeight="38.0" prefWidth="199.0" styleClass="active">
                             <children>
                                 <ImageView fitHeight="16.0" fitWidth="16.0" pickOnBounds="true" preserveRatio="true">
                                     <image>
@@ -54,16 +51,19 @@
                                 </ImageView>
                                 <Button mnemonicParsing="false" styleClass="btn_dashboard" text="Dashboard">
                                     <HBox.margin>
-                                        <Insets top="3.0" />
+                                        <Insets top="7.0" />
                                     </HBox.margin>
                                 </Button>
                             </children>
                             <VBox.margin>
                                 <Insets right="30.0" />
                             </VBox.margin>
+                            <stylesheets>
+                                <URL value="@../../styles/Dashboard.css" />
+                                <URL value="@../../styles/Feedback.css" />
+                            </stylesheets>
                         </HBox>
-
-                        <HBox prefHeight="38.0" prefWidth="230.0" stylesheets="@../../styles/Dashboard.css">
+                        <HBox prefHeight="38.0" prefWidth="230.0">
                             <children>
                                 <ImageView fitHeight="18.0" fitWidth="18.0" pickOnBounds="true" preserveRatio="true">
                                     <image>
@@ -75,14 +75,34 @@
                                 </ImageView>
                                 <Button mnemonicParsing="false" styleClass="btn_dashboard" stylesheets="@../../styles/Dashboard.css" text="Reservation">
                                     <HBox.margin>
-                                        <Insets top="3.0" />
-                                    </HBox.margin></Button>
+                                        <Insets top="7.0" />
+                                    </HBox.margin>
+                                </Button>
                             </children>
                             <VBox.margin>
                                 <Insets right="30.0" />
                             </VBox.margin>
                         </HBox>
-
+                        <HBox prefHeight="38.0" prefWidth="229.0" styleClass="hbox-feedback" stylesheets="@../../styles/Feedback.css">
+                            <children>
+                                <ImageView fitHeight="18.0" fitWidth="18.0" pickOnBounds="true" preserveRatio="true">
+                                    <image>
+                                        <Image url="@../../images/icons/feedback.png" />
+                                    </image>
+                                    <HBox.margin>
+                                        <Insets left="10.0" top="12.0" />
+                                    </HBox.margin>
+                                </ImageView>
+                                <Button mnemonicParsing="false" styleClass="btn_dashboard" stylesheets="@../../styles/Dashboard.css" text="Feedback">
+                                    <HBox.margin>
+                                        <Insets top="7.0" />
+                                    </HBox.margin>
+                                </Button>
+                            </children>
+                            <VBox.margin>
+                                <Insets right="30.0" />
+                            </VBox.margin>
+                        </HBox>
                         <HBox prefHeight="38.0" prefWidth="229.0">
                             <children>
                                 <ImageView fitHeight="18.0" fitWidth="18.0" pickOnBounds="true" preserveRatio="true">
@@ -95,103 +115,315 @@
                                 </ImageView>
                                 <Button mnemonicParsing="false" styleClass="btn_dashboard" text="Manage Reservations">
                                     <HBox.margin>
-                                        <Insets top="3.0" />
-                                    </HBox.margin></Button>
+                                        <Insets top="7.0" />
+                                    </HBox.margin>
+                                </Button>
                             </children>
                             <VBox.margin>
                                 <Insets right="30.0" />
                             </VBox.margin>
                         </HBox>
-
-                              <HBox prefHeight="38.0" prefWidth="229.0" styleClass="active" stylesheets="@../../styles/Dashboard.css">
+                        <VBox prefHeight="342.0" prefWidth="230.0" spacing="5.0">
                             <children>
-                                <ImageView fitHeight="18.0" fitWidth="18.0" pickOnBounds="true" preserveRatio="true">
-                                    <image>
-                                        <Image url="@../../images/icons/feedback.png" />
-                                    </image>
-                                    <HBox.margin>
-                                        <Insets left="10.0" top="12.0" />
-                                    </HBox.margin>
-                                </ImageView>
-                                <Button mnemonicParsing="false" styleClass="btn_dashboard" stylesheets="@../../styles/Dashboard.css" text="Feedback">
-                                    <HBox.margin>
-                                        <Insets top="3.0" />
-                                    </HBox.margin>
-                        </Button>
+                                <HBox prefHeight="38.0" prefWidth="229.0">
+                                    <children>
+                                        <ImageView fitHeight="18.0" fitWidth="18.0" pickOnBounds="true" preserveRatio="true">
+                                            <image>
+                                                <Image url="@../../images/icons/support.png" />
+                                            </image>
+                                            <HBox.margin>
+                                                <Insets left="10.0" top="12.0" />
+                                            </HBox.margin>
+                                        </ImageView>
+                                        <Button mnemonicParsing="false" styleClass="btn_dashboard" stylesheets="@../../styles/Dashboard.css" text="Support">
+                                            <HBox.margin>
+                                                <Insets top="7.0" />
+                                            </HBox.margin>
+                                        </Button>
+                                    </children>
+                                    <VBox.margin>
+                                        <Insets right="30.0" top="207.0" />
+                                    </VBox.margin>
+                                </HBox>
+                                <HBox prefHeight="38.0" prefWidth="229.0">
+                                    <children>
+                                        <ImageView fitHeight="18.0" fitWidth="18.0" pickOnBounds="true" preserveRatio="true">
+                                            <image>
+                                                <Image url="@../../images/icons/settings.png" />
+                                            </image>
+                                            <HBox.margin>
+                                                <Insets left="10.0" top="12.0" />
+                                            </HBox.margin>
+                                        </ImageView>
+                                        <Button mnemonicParsing="false" styleClass="btn_dashboard" stylesheets="@../../styles/Dashboard.css" text="Settings">
+                                            <HBox.margin>
+                                                <Insets top="7.0" />
+                                            </HBox.margin>
+                                        </Button>
+                                    </children>
+                                    <VBox.margin>
+                                        <Insets right="30.0" />
+                                    </VBox.margin>
+                                </HBox>
+                                <HBox prefHeight="38.0" prefWidth="229.0">
+                                    <children>
+                                        <ImageView fitHeight="18.0" fitWidth="18.0" pickOnBounds="true" preserveRatio="true">
+                                            <image>
+                                                <Image url="@../../images/icons/logout.png" />
+                                            </image>
+                                            <HBox.margin>
+                                                <Insets left="10.0" top="12.0" />
+                                            </HBox.margin>
+                                        </ImageView>
+                                        <Button mnemonicParsing="false" styleClass="btn_dashboard" stylesheets="@../../styles/Dashboard.css" text="Logout">
+                                            <HBox.margin>
+                                                <Insets top="7.0" />
+                                            </HBox.margin>
+                                        </Button>
+                                    </children>
+                                    <VBox.margin>
+                                        <Insets right="30.0" />
+                                    </VBox.margin>
+                                </HBox>
                             </children>
                             <VBox.margin>
-                                <Insets right="30.0" />
+                                <Insets />
                             </VBox.margin>
-                        </HBox>
-
-                        <VBox VBox.vgrow="ALWAYS" />
-
-                        <HBox prefHeight="38.0" prefWidth="229.0">
-                            <children>
-                                <ImageView fitHeight="18.0" fitWidth="18.0" pickOnBounds="true" preserveRatio="true">
-                                    <image>
-                                        <Image url="@../../images/icons/support.png" />
-                                    </image>
-                                    <HBox.margin>
-                                        <Insets left="10.0" top="12.0" />
-                                    </HBox.margin>
-                                </ImageView>
-                                <Button mnemonicParsing="false" styleClass="btn_dashboard" stylesheets="@../../styles/Dashboard.css" text="Support">
-                                    <HBox.margin>
-                                        <Insets top="3.0" />
-                                    </HBox.margin></Button>
-                            </children>
-                            <VBox.margin>
-                                <Insets right="30.0" />
-                            </VBox.margin>
-                        </HBox>
-
-                        <HBox prefHeight="38.0" prefWidth="229.0">
-                            <children>
-                                <ImageView fitHeight="18.0" fitWidth="18.0" pickOnBounds="true" preserveRatio="true">
-                                    <image>
-                                        <Image url="@../../images/icons/settings.png" />
-                                    </image>
-                                    <HBox.margin>
-                                        <Insets left="10.0" top="12.0" />
-                                    </HBox.margin>
-                                </ImageView>
-                                <Button mnemonicParsing="false" styleClass="btn_dashboard" stylesheets="@../../styles/Dashboard.css" text="Settings">
-                                    <HBox.margin>
-                                        <Insets top="3.0" />
-                                    </HBox.margin></Button>
-                            </children>
-                            <VBox.margin>
-                                <Insets right="30.0" />
-                            </VBox.margin>
-                        </HBox>
-
-                        <HBox prefHeight="38.0" prefWidth="229.0">
-                            <children>
-                                <ImageView fitHeight="18.0" fitWidth="18.0" pickOnBounds="true" preserveRatio="true">
-                                    <image>
-                                        <Image url="@../../images/icons/logout.png" />
-                                    </image>
-                                    <HBox.margin>
-                                        <Insets left="10.0" top="12.0" />
-                                    </HBox.margin>
-                                </ImageView>
-                                <Button mnemonicParsing="false" styleClass="btn_dashboard" stylesheets="@../../styles/Dashboard.css" text="Logout">
-                                    <HBox.margin>
-                                        <Insets top="3.0" />
-                                    </HBox.margin></Button>
-                            </children>
-                            <VBox.margin>
-                                <Insets right="30.0" />
-                            </VBox.margin>
-                        </HBox>
+                        </VBox>
                     </children>
                     <padding>
-                        <Insets bottom="10.0" left="10.0" top="10.0" />
+                        <Insets left="10.0" />
                     </padding>
                 </VBox>
             </left>
+            <center>
+                <BorderPane prefHeight="200.0" prefWidth="200.0" BorderPane.alignment="CENTER">
+                    <top>
+                        <HBox prefHeight="58.0" prefWidth="515.0" styleClass="hbox-rightpannelTop" stylesheets="@../../styles/Feedback.css" BorderPane.alignment="CENTER">
+                            <children>
+                                <Label fx:id="lbl_travelFeedback" prefHeight="70.0" prefWidth="308.0" styleClass="label-travelFeedback" text="Travel Feedback">
+                                    <HBox.margin>
+                                        <Insets bottom="5.0" left="15.0" />
+                                    </HBox.margin>
+                                </Label>
+                            </children>
+                        </HBox>
+                    </top>
+                    <center>
+                        <VBox prefHeight="200.0" prefWidth="100.0" styleClass="background-vbox" stylesheets="@../../styles/Feedback.css" BorderPane.alignment="CENTER">
+                            <children>
+                                <HBox prefHeight="160.0" prefWidth="660.0">
+                                    <children>
+                                        <VBox prefHeight="160.0" prefWidth="121.0">
+                                            <children>
+                                                <Label prefHeight="25.0" prefWidth="127.0" styleClass="passenger-heading" stylesheets="@../../styles/Feedback.css" text="Credentials">
+                                                    <VBox.margin>
+                                                        <Insets left="15.0" top="10.0" />
+                                                    </VBox.margin></Label>
+                                                <Label fx:id="lbl_passanger" styleClass="passenger-labels" stylesheets="@../../styles/Feedback.css" text="Passenger's">
+                                                    <VBox.margin>
+                                                        <Insets left="15.0" top="15.0" />
+                                                    </VBox.margin></Label>
+                                                <Label fx:id="lbl_fullName" styleClass="passenger-labels" text="Full Name">
+                                                    <VBox.margin>
+                                                        <Insets left="15.0" top="1.0" />
+                                                    </VBox.margin></Label>
+                                                <Label fx:id="lbl_phone" prefHeight="17.0" prefWidth="59.0" styleClass="passenger-labels" text="Phone">
+                                                    <VBox.margin>
+                                                        <Insets left="15.0" top="30.0" />
+                                                    </VBox.margin>
+                                                </Label>
+                                                <Label fx:id="lbl_phoneNum" prefHeight="17.0" prefWidth="63.0" styleClass="passenger-labels" text="Number">
+                                                    <VBox.margin>
+                                                        <Insets left="15.0" top="2.0" />
+                                                    </VBox.margin>
+                                                </Label>
+                                            </children>
+                                        </VBox>
+                                        <VBox prefHeight="186.0" prefWidth="201.0">
+                                            <children>
+                                                <TextField fx:id="txtField_fullName" prefHeight="34.0" prefWidth="245.0" styleClass="text-fields" stylesheets="@../../styles/Feedback.css">
+                                                    <VBox.margin>
+                                                        <Insets top="50.0" />
+                                                    </VBox.margin></TextField>
+                                                <TextField fx:id="txtField_phoneNumber" prefHeight="34.0" prefWidth="245.0" styleClass="text-fields" stylesheets="@../../styles/Feedback.css">
+                                                    <VBox.margin>
+                                                        <Insets top="35.0" />
+                                                    </VBox.margin>
+                                                </TextField>
+                                            </children>
+                                        </VBox>
+                                        <VBox prefHeight="186.0" prefWidth="69.0">
+                                            <children>
+                                                <Label fx:id="lbl_ticket" prefHeight="17.0" prefWidth="63.0" styleClass="passenger-labels" text="Ticket">
+                                                    <VBox.margin>
+                                                        <Insets left="20.0" top="49.0" />
+                                                    </VBox.margin>
+                                                </Label>
+                                                <Label fx:id="lbl_number" prefHeight="17.0" prefWidth="65.0" styleClass="passenger-labels" text="Number">
+                                                    <VBox.margin>
+                                                        <Insets left="20.0" top="1.0" />
+                                                    </VBox.margin>
+                                                </Label>
+                                                <Label fx:id="lbl_email" prefHeight="17.0" prefWidth="44.0" styleClass="passenger-labels" text="Email">
+                                                    <VBox.margin>
+                                                        <Insets left="20.0" top="30.0" />
+                                                    </VBox.margin>
+                                                </Label>
+                                                <Label fx:id="lbl_address" prefHeight="17.0" prefWidth="61.0" styleClass="passenger-labels" text="Address">
+                                                    <VBox.margin>
+                                                        <Insets left="20.0" top="1.0" />
+                                                    </VBox.margin>
+                                                </Label>
+                                            </children>
+                                        </VBox>
+                                        <VBox prefHeight="186.0" prefWidth="201.0">
+                                            <children>
+                                                <TextField fx:id="txtField_ticketNumber" prefHeight="34.0" prefWidth="245.0" styleClass="text-fields" stylesheets="@../../styles/Feedback.css">
+                                                    <VBox.margin>
+                                                        <Insets top="50.0" />
+                                                    </VBox.margin>
+                                                </TextField>
+                                                <TextField fx:id="txtField_emailAddress" prefHeight="34.0" prefWidth="245.0" styleClass="text-fields" stylesheets="@../../styles/Feedback.css">
+                                                    <VBox.margin>
+                                                        <Insets top="35.0" />
+                                                    </VBox.margin>
+                                                </TextField>
+                                            </children>
+                                            <HBox.margin>
+                                                <Insets left="25.0" />
+                                            </HBox.margin>
+                                        </VBox>
+                                    </children>
+                                </HBox>
+                                <HBox prefHeight="61.0" prefWidth="660.0">
+                                    <children>
+                                        <VBox prefHeight="75.0" prefWidth="573.0">
+                                            <children>
+                                                <Label prefHeight="17.0" prefWidth="158.0" styleClass="passenger-heading" stylesheets="@../../styles/Feedback.css" text="Passenger Satisfaction">
+                                                    <VBox.margin>
+                                                        <Insets left="15.0" top="10.0" />
+                                                    </VBox.margin>
+                                                </Label>
+                                                <VBox prefHeight="66.0" prefWidth="660.0">
+                                                    <VBox.margin>
+                                                        <Insets top="10.0" />
+                                                    </VBox.margin>
+                                                    <children>
+                                                        <Label prefHeight="17.0" prefWidth="378.0" text="Please rate your experience from 1 (Unsatisfying) to 5 (Very Satisfying)">
+                                                            <VBox.margin>
+                                                                <Insets left="15.0" />
+                                                            </VBox.margin>
+                                                        </Label>
+                                                    </children>
+                                                </VBox>
+                                            </children>
+                                        </VBox>
+                                    </children></HBox>
+                                <HBox prefHeight="34.0" prefWidth="660.0">
+                                    <children>
+                                        <VBox prefHeight="51.0" prefWidth="325.0">
+                                            <children>
+                                                <Label fx:id="lbl_tourSatisfaction" prefHeight="17.0" prefWidth="248.0" styleClass="passenger-labels" text="Tour Satisfaction">
+                                                    <VBox.margin>
+                                                        <Insets left="15.0" top="10.0" />
+                                                    </VBox.margin>
+                                                </Label>
+                                            </children>
+                                        </VBox>
+                                        <VBox prefHeight="51.0" prefWidth="301.0">
+                                            <children>
+                                                <Label fx:id="lbl_onlineSatisfaction" prefHeight="17.0" prefWidth="248.0" styleClass="passenger-labels" text="Online Satisfaction">
+                                                    <VBox.margin>
+                                                        <Insets left="15.0" top="10.0" />
+                                                    </VBox.margin>
+                                                </Label>
+                                            </children>
+                                        </VBox>
+                                    </children></HBox>
+                                <HBox prefHeight="32.0" prefWidth="660.0">
+                                    <children>
+                                        <RadioButton fx:id="btn_radioButtonTS1" mnemonicParsing="false" styleClass="button-radio" text="1">
+                                            <HBox.margin>
+                                                <Insets left="15.0" top="2.0" />
+                                            </HBox.margin>
+                                        </RadioButton>
+                                        <RadioButton fx:id="btn_radioButtonTS2" mnemonicParsing="false" styleClass="button-radio" text="2">
+                                            <HBox.margin>
+                                                <Insets left="15.0" top="2.0" />
+                                            </HBox.margin>
+                                        </RadioButton>
+                                        <RadioButton fx:id="btn_radioButtonTS3" mnemonicParsing="false" styleClass="button-radio" text="3">
+                                            <HBox.margin>
+                                                <Insets left="15.0" top="2.0" />
+                                            </HBox.margin>
+                                        </RadioButton>
+                                        <RadioButton fx:id="btn_radioButtonTS4" mnemonicParsing="false" styleClass="button-radio" text="4">
+                                            <HBox.margin>
+                                                <Insets left="15.0" top="2.0" />
+                                            </HBox.margin>
+                                        </RadioButton>
+                                        <RadioButton fx:id="btn_radioButtonTS5" mnemonicParsing="false" styleClass="button-radio" text="5">
+                                            <HBox.margin>
+                                                <Insets left="15.0" top="2.0" />
+                                            </HBox.margin>
+                                        </RadioButton>
+                                        <RadioButton fx:id="btn_radioButtonOS1" mnemonicParsing="false" styleClass="button-radio" text="1">
+                                            <HBox.margin>
+                                                <Insets left="125.0" top="2.0" />
+                                            </HBox.margin>
+                                        </RadioButton>
+                                        <RadioButton fx:id="btn_radioButtonOS2" mnemonicParsing="false" styleClass="button-radio" text="2">
+                                            <HBox.margin>
+                                                <Insets left="15.0" top="2.0" />
+                                            </HBox.margin>
+                                        </RadioButton>
+                                        <RadioButton fx:id="btn_radioButtonOS3" mnemonicParsing="false" styleClass="button-radio" text="3">
+                                            <HBox.margin>
+                                                <Insets left="15.0" top="2.0" />
+                                            </HBox.margin>
+                                        </RadioButton>
+                                        <RadioButton fx:id="btn_radioButtonOS4" mnemonicParsing="false" styleClass="button-radio" text="4">
+                                            <HBox.margin>
+                                                <Insets left="15.0" top="2.0" />
+                                            </HBox.margin>
+                                        </RadioButton>
+                                        <RadioButton fx:id="btn_radioButtonOS5" mnemonicParsing="false" styleClass="button-radio" text="5">
+                                            <HBox.margin>
+                                                <Insets left="15.0" top="2.0" />
+                                            </HBox.margin>
+                                        </RadioButton>
+                                    </children>
+                                    <VBox.margin>
+                                        <Insets />
+                                    </VBox.margin></HBox>
+                                <HBox prefHeight="42.0" prefWidth="660.0">
+                                    <children>
+                                        <Label prefHeight="17.0" prefWidth="347.0" styleClass="passenger-labels" text="How can we improve to serve you better? (Optional)">
+                                            <HBox.margin>
+                                                <Insets left="15.0" top="10.0" />
+                                            </HBox.margin>
+                                        </Label>
+                                    </children></HBox>
+                                <TextArea fx:id="txt_textArea" prefHeight="130.0" prefWidth="609.0" styleClass="bottom-textArea" stylesheets="@../../styles/Feedback.css">
+                                    <VBox.margin>
+                                        <Insets left="15.0" right="35.0" />
+                                    </VBox.margin>
+                                </TextArea>
+                                <HBox prefHeight="58.0" prefWidth="660.0">
+                                    <children>
+                                        <Button fx:id="btn_send" mnemonicParsing="false" onAction="#handleSendButton" prefHeight="33.0" prefWidth="130.0" styleClass="button-send" text="Send">
+                                            <HBox.margin>
+                                                <Insets left="493.0" top="20.0" />
+                                            </HBox.margin>
+                                        </Button>
+                                    </children>
+                                </HBox>
+                            </children>
+                        </VBox>
+                    </center>
+                </BorderPane>
+            </center>
         </BorderPane>
     </children>
-
 </AnchorPane>

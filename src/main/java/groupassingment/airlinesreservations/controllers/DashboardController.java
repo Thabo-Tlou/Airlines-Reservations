@@ -1,13 +1,8 @@
 package groupassingment.airlinesreservations.controllers;
 
 import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
-import javafx.scene.Parent;
-import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.application.Platform;
-import javafx.stage.Stage;
-import java.io.IOException;
 import java.util.concurrent.CompletableFuture;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -54,7 +49,7 @@ public class DashboardController {
     @FXML private Button btn_feedback;
     @FXML private Button btn_support;
     @FXML private Button btn_settings;
-
+    @FXML private Button btn_logout;
 
     private String currentUserEmail;
     private String currentUserId;
@@ -82,11 +77,76 @@ public class DashboardController {
 
         // Set initial loading state
         Platform.runLater(() -> {
-            welcomeLabel.setText("Loading...");
-            profileNameLabel.setText("Loading...");
-            profileEmailLabel.setText("Loading user data...");
+            welcomeLabel.setText("Welcome to Bokamoso Airlines!");
+            profileNameLabel.setText("Guest User");
+            profileEmailLabel.setText("Please log in to access full features");
             bookFlightButton.setDisable(true);
-            bookFlightButton.setText("Please wait...");
+            bookFlightButton.setText("Login to Book");
+
+            // Initialize stats with default values
+            updateStatistics(0, 0, 0, 0.0);
+            resetProfileDetails();
+            resetPriceDisplay();
+        });
+    }
+
+    /**
+     * Initialize session data when coming from other controllers
+     */
+    public void initializeSessionData(String authToken, String userId, String userEmail) {
+        System.out.println("=== INITIALIZING DASHBOARD SESSION DATA ===");
+        System.out.println("User Email: " + userEmail);
+        System.out.println("User ID: " + userId);
+
+        this.currentUserEmail = userEmail;
+        this.currentUserId = userId;
+        this.currentUserToken = authToken != null ? authToken.trim() : null;
+
+        Platform.runLater(() -> {
+            welcomeLabel.setText("Welcome back!");
+            profileNameLabel.setText("Loading...");
+            profileEmailLabel.setText(userEmail);
+            bookFlightButton.setDisable(false);
+            bookFlightButton.setText("Book Flight");
+        });
+
+        // Load user-specific data
+        loadUserProfileData();
+        loadUserStatistics();
+        loadDashboardCardsData();
+
+        Platform.runLater(() -> {
+            showAlert("Welcome Back!", "Successfully logged in as " + userEmail);
+        });
+    }
+
+    /**
+     * Initialize user data (legacy method for backward compatibility)
+     */
+    public void initializeUserData(String userEmail, String userId, String userToken) {
+        System.out.println("=== INITIALIZING USER DATA (LEGACY METHOD) ===");
+        System.out.println("User Email: " + userEmail);
+        System.out.println("User ID: " + userId);
+
+        this.currentUserEmail = userEmail;
+        this.currentUserId = userId;
+        this.currentUserToken = userToken != null ? userToken.trim() : null;
+
+        Platform.runLater(() -> {
+            welcomeLabel.setText("Welcome back!");
+            profileNameLabel.setText("Loading...");
+            profileEmailLabel.setText(userEmail);
+            bookFlightButton.setDisable(false);
+            bookFlightButton.setText("Book Flight");
+        });
+
+        // Load user-specific data
+        loadUserProfileData();
+        loadUserStatistics();
+        loadDashboardCardsData();
+
+        Platform.runLater(() -> {
+            showAlert("Welcome Back!", "Successfully logged in as " + userEmail + "\n\nYour dashboard is now being loaded with your personal data.");
         });
     }
 
@@ -105,36 +165,16 @@ public class DashboardController {
         if (btn_feedback != null) btn_feedback.setOnAction(event -> handleViewFeedback());
         if (btn_support != null) btn_support.setOnAction(event -> handleViewSupport());
         if (btn_settings != null) btn_settings.setOnAction(event -> handleViewSettings());
+        if (btn_logout != null) btn_logout.setOnAction(event -> handleLogout());
     }
 
-    private void showDefaultState() {
-        if (currentUserEmail == null) {
-            // Guest state
-            Platform.runLater(() -> {
-                welcomeLabel.setText("Welcome Guest!");
-                profileNameLabel.setText("Guest User");
-                profileEmailLabel.setText("Please log in to book flights");
-                bookFlightButton.setDisable(true);
-                bookFlightButton.setText("Login to Book");
-
-                updateStatistics(0, 0, 0, 0.0);
-                resetProfileDetails();
-                resetPriceDisplay();
-            });
-        } else {
-            // User is logged in - show loading state while data loads
-            Platform.runLater(() -> {
-                welcomeLabel.setText("Welcome back!");
-                profileNameLabel.setText("Loading...");
-                profileEmailLabel.setText(currentUserEmail);
-                bookFlightButton.setDisable(false);
-                bookFlightButton.setText("Book Flight");
-            });
-
-            // Load user-specific data
-            loadUserProfileData();
-            loadUserStatistics();
-        }
+    /**
+     * FIX: Add the missing method that's referenced in FXML
+     */
+    @FXML
+    private void handleReservationView() {
+        System.out.println("=== HANDLE RESERVATION VIEW (FXML METHOD) ===");
+        handleManageReservations(); // Route to manage reservations
     }
 
     private void resetProfileDetails() {
@@ -143,10 +183,6 @@ public class DashboardController {
             loyaltyPointsLabel.setText("Loyalty Points: 0");
             memberSinceLabel.setText("Member since: -");
             bookingCountLabel.setText("Total bookings: 0");
-
-            if (currentUserEmail == null) {
-                profileEmailLabel.setText("Please log in to book flights");
-            }
         });
     }
 
@@ -192,9 +228,6 @@ public class DashboardController {
                     if (connected) {
                         System.out.println("✓ Supabase connection successful");
                         fetchAirports();
-                        if (currentUserEmail != null) {
-                            loadUserStatistics();
-                        }
                     } else {
                         System.err.println("✗ Failed to connect to Supabase");
                         Platform.runLater(() -> showAlert("Error", "Cannot connect to database. Please check your internet connection."));
@@ -260,6 +293,226 @@ public class DashboardController {
                 });
     }
 
+    // ---------------- DASHBOARD CARDS DATA ----------------
+
+    /**
+     * Load data for all dashboard cards and statistics
+     */
+    private void loadDashboardCardsData() {
+        if (currentUserEmail == null || currentUserToken == null) {
+            System.out.println("No user logged in, skipping dashboard cards load");
+            return;
+        }
+
+        System.out.println("Loading dashboard cards data for: " + currentUserEmail);
+
+        // Load user reservations for statistics
+        loadUserReservationsForDashboard();
+
+        // Load next upcoming flight
+        loadNextUpcomingFlight();
+
+        // Load loyalty points and member info
+        loadLoyaltyAndMemberInfo();
+    }
+
+    private void loadUserReservationsForDashboard() {
+        supabaseService.getReservationsByCustomerEmail(currentUserEmail, currentUserToken)
+                .thenAccept(response -> {
+                    if (response.statusCode() == 200 || response.statusCode() == 206) {
+                        try {
+                            JSONArray reservations = new JSONArray(response.body());
+                            calculateDashboardStatistics(reservations);
+                        } catch (Exception e) {
+                            System.err.println("Error parsing reservations for dashboard: " + e.getMessage());
+                            updateStatistics(0, 0, 0, 0.0);
+                        }
+                    } else {
+                        System.err.println("Failed to load reservations for dashboard: " + response.statusCode());
+                        updateStatistics(0, 0, 0, 0.0);
+                    }
+                })
+                .exceptionally(ex -> {
+                    System.err.println("Error loading reservations for dashboard: " + ex.getMessage());
+                    updateStatistics(0, 0, 0, 0.0);
+                    return null;
+                });
+    }
+
+    private void calculateDashboardStatistics(JSONArray reservations) {
+        int totalBookings = reservations.length();
+        int completedFlights = 0;
+        int upcomingFlights = 0;
+        double totalSpending = 0.0;
+
+        try {
+            LocalDate today = LocalDate.now();
+
+            for (int i = 0; i < reservations.length(); i++) {
+                JSONObject reservation = reservations.getJSONObject(i);
+
+                String status = reservation.optString("reservation_status", "Pending");
+                double totalFare = reservation.optDouble("total_fare", 0.0);
+
+                totalSpending += totalFare;
+
+                if ("Confirmed".equalsIgnoreCase(status)) {
+                    // Check if flight date is in the future for upcoming flights
+                    if (reservation.has("flight_id")) {
+                        // We'll consider confirmed reservations as upcoming for simplicity
+                        // In a real app, you'd check the actual flight date
+                        upcomingFlights++;
+                    }
+                } else if ("Completed".equalsIgnoreCase(status)) {
+                    completedFlights++;
+                } else if ("Cancelled".equalsIgnoreCase(status)) {
+                    // Don't count cancelled reservations in totals
+                    totalBookings--;
+                    totalSpending -= totalFare;
+                }
+            }
+
+            int loyaltyPoints = (int) (totalSpending / 10); // 1 point per R10 spent
+
+            int finalTotalBookings = totalBookings;
+            int finalCompletedFlights = completedFlights;
+            int finalUpcomingFlights = upcomingFlights;
+            double finalTotalSpending = totalSpending;
+            Platform.runLater(() -> {
+                updateStatistics(finalTotalBookings, finalCompletedFlights, finalUpcomingFlights, finalTotalSpending);
+                loyaltyPointsLabel.setText("Loyalty Points: " + loyaltyPoints);
+                bookingCountLabel.setText("Total bookings: " + finalTotalBookings);
+
+                // Set member since (using current date for demo)
+                memberSinceLabel.setText("Member since: " + LocalDate.now().minusMonths(3).format(DateTimeFormatter.ofPattern("MMM yyyy")));
+
+                System.out.println("✓ Dashboard statistics updated: " + finalTotalBookings + " bookings, M" + finalTotalSpending + " spent");
+            });
+
+        } catch (Exception e) {
+            System.err.println("Error calculating dashboard statistics: " + e.getMessage());
+            Platform.runLater(() -> updateStatistics(0, 0, 0, 0.0));
+        }
+    }
+
+    private void loadNextUpcomingFlight() {
+        if (currentUserEmail == null) return;
+
+        supabaseService.getReservationsByCustomerEmail(currentUserEmail, currentUserToken)
+                .thenAccept(response -> {
+                    if (response.statusCode() == 200 || response.statusCode() == 206) {
+                        try {
+                            JSONArray reservations = new JSONArray(response.body());
+                            JSONObject nextFlight = findNextUpcomingFlight(reservations);
+                            updateNextFlightDisplay(nextFlight);
+                        } catch (Exception e) {
+                            System.err.println("Error finding next flight: " + e.getMessage());
+                        }
+                    }
+                })
+                .exceptionally(ex -> {
+                    System.err.println("Error loading next flight: " + ex.getMessage());
+                    return null;
+                });
+    }
+
+    private JSONObject findNextUpcomingFlight(JSONArray reservations) {
+        try {
+            LocalDate today = LocalDate.now();
+            JSONObject nextFlight = null;
+            LocalDate nextDate = null;
+
+            for (int i = 0; i < reservations.length(); i++) {
+                JSONObject reservation = reservations.getJSONObject(i);
+                String status = reservation.optString("reservation_status", "");
+
+                if ("Confirmed".equalsIgnoreCase(status) && reservation.has("flight_id")) {
+                    // For demo, we'll use the first confirmed reservation
+                    // In real app, you'd fetch flight details and compare dates
+                    if (nextFlight == null) {
+                        nextFlight = reservation;
+                    }
+                }
+            }
+            return nextFlight;
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    private void updateNextFlightDisplay(JSONObject nextFlight) {
+        Platform.runLater(() -> {
+            if (nextFlight != null) {
+                try {
+                    String reservationCode = nextFlight.optString("reservation_code", "N/A");
+                    String seatClass = nextFlight.optString("seat_class", "Economic");
+
+                    // Get flight details if available
+                    if (nextFlight.has("flight_id")) {
+                        Long flightId = nextFlight.getLong("flight_id");
+                        // Fetch flight details to get route information
+                        fetchFlightDetailsForDisplay(flightId, reservationCode, seatClass);
+                    } else {
+                        nextFlightLabel.setText("Next: " + reservationCode + " (" + seatClass + ")");
+                    }
+                } catch (Exception e) {
+                    nextFlightLabel.setText("Upcoming flight booked");
+                }
+            } else {
+                nextFlightLabel.setText("No upcoming flights");
+            }
+        });
+    }
+
+    private void fetchFlightDetailsForDisplay(Long flightId, String reservationCode, String seatClass) {
+        supabaseService.getFlightDetails(flightId)
+                .thenAccept(response -> {
+                    if (response.statusCode() == 200) {
+                        try {
+                            JSONArray flights = new JSONArray(response.body());
+                            if (flights.length() > 0) {
+                                JSONObject flight = flights.getJSONObject(0);
+                                String flightCode = flight.optString("flight_code", "N/A");
+                                String departure = flight.optString("departure_city", "Unknown");
+                                String destination = flight.optString("destination_city", "Unknown");
+                                String date = flight.optString("departure_date", "");
+
+                                Platform.runLater(() -> {
+                                    String displayText = String.format("Next: %s → %s | %s | %s",
+                                            departure, destination,
+                                            date.isEmpty() ? "Soon" : formatDate(date),
+                                            seatClass);
+                                    nextFlightLabel.setText(displayText);
+                                });
+                            }
+                        } catch (Exception e) {
+                            Platform.runLater(() ->
+                                    nextFlightLabel.setText("Next: " + reservationCode + " (" + seatClass + ")"));
+                        }
+                    }
+                })
+                .exceptionally(ex -> {
+                    Platform.runLater(() ->
+                            nextFlightLabel.setText("Next: " + reservationCode + " (" + seatClass + ")"));
+                    return null;
+                });
+    }
+
+    private void loadLoyaltyAndMemberInfo() {
+        // Calculate loyalty points based on total spending
+        // This is already handled in calculateDashboardStatistics
+        // Additional loyalty info can be loaded here if needed
+    }
+
+    private String formatDate(String dateString) {
+        try {
+            LocalDate date = LocalDate.parse(dateString);
+            return date.format(DateTimeFormatter.ofPattern("MMM dd"));
+        } catch (Exception e) {
+            return dateString;
+        }
+    }
+
     // ---------------- PRICE CALCULATIONS ----------------
 
     private void updatePriceCalculation() {
@@ -288,10 +541,10 @@ public class DashboardController {
             double totalPrice = currentBaseFare * currentPassengers;
 
             Platform.runLater(() -> {
-                baseFareLabel.setText(String.format("M%.2f", currentBaseFare));
+                baseFareLabel.setText(String.format("R%.2f", currentBaseFare));
                 passengerCountLabel.setText("x " + currentPassengers);
-                totalPriceLabel.setText(String.format("M%.2f", totalPrice));
-                priceLabel.setText(String.format("M%.2f", totalPrice));
+                totalPriceLabel.setText(String.format("R%.2f", totalPrice));
+                priceLabel.setText(String.format("R%.2f", totalPrice));
 
                 bookingPassengersLabel.setText(currentPassengers + " passenger" + (currentPassengers > 1 ? "s" : ""));
             });
@@ -331,12 +584,12 @@ public class DashboardController {
 
     private void resetPriceDisplay() {
         Platform.runLater(() -> {
-            priceLabel.setText("M0.00");
+            priceLabel.setText("R0.00");
             routeOriginLabel.setText("-");
             routeDestinationLabel.setText("-");
-            baseFareLabel.setText("M0.00");
+            baseFareLabel.setText("R0.00");
             passengerCountLabel.setText("x 0");
-            totalPriceLabel.setText("M0.00");
+            totalPriceLabel.setText("R0.00");
             bookingPassengersLabel.setText("0 passengers");
             bookingDateLabel.setText("No date selected");
             if (currentUserEmail != null) {
@@ -355,14 +608,13 @@ public class DashboardController {
 
         System.out.println("Loading user statistics for: " + currentUserEmail);
 
-        // 🔑 FIX: Corrected call to pass the currentUserToken for RLS compliance
-        supabaseService.getUserBookings(currentUserEmail, currentUserToken)
+        // Use the reservations endpoint for statistics
+        supabaseService.getReservationsByCustomerEmail(currentUserEmail, currentUserToken)
                 .thenAccept(response -> {
                     System.out.println("User statistics response - Status: " + response.statusCode());
 
-                    if (response.statusCode() == 200) {
+                    if (response.statusCode() == 200 || response.statusCode() == 206) {
                         try {
-                            // Assumes getUserBookings now retrieves data from the 'reservations' table
                             JSONArray bookings = new JSONArray(response.body());
                             System.out.println("Found " + bookings.length() + " bookings for user");
                             calculateUserStatistics(bookings);
@@ -389,46 +641,32 @@ public class DashboardController {
         double totalSpending = 0.0;
 
         try {
-            LocalDate today = LocalDate.now();
-
             for (int i = 0; i < bookings.length(); i++) {
                 JSONObject booking = bookings.getJSONObject(i);
 
-                // Assuming 'reservations' table fields:
-                String status = booking.optString("status", "confirmed");
-                String flightDateStr = booking.optString("travel_date", ""); // 🔑 Updated to 'travel_date'
-                double price = booking.optDouble("price", 0.0);
+                String status = booking.optString("reservation_status", "Pending");
+                double totalFare = booking.optDouble("total_fare", 0.0);
 
-                totalSpending += price;
+                totalSpending += totalFare;
 
-                if ("completed".equalsIgnoreCase(status)) {
+                if ("Confirmed".equalsIgnoreCase(status)) {
+                    upcomingFlights++;
+                } else if ("Completed".equalsIgnoreCase(status)) {
                     completedFlights++;
-                } else if ("confirmed".equalsIgnoreCase(status) && !flightDateStr.isEmpty()) {
-                    try {
-                        LocalDate flightDate = LocalDate.parse(flightDateStr);
-                        if (flightDate.isAfter(today) || flightDate.isEqual(today)) {
-                            upcomingFlights++;
-                        }
-                    } catch (Exception e) {
-                        // Skip date parsing errors
-                    }
+                } else if ("Cancelled".equalsIgnoreCase(status)) {
+                    // Adjust totals for cancelled bookings
+                    totalBookings--;
+                    totalSpending -= totalFare;
                 }
             }
 
-            int loyaltyPoints = (int) (totalSpending / 100);
-
+            int finalTotalBookings = totalBookings;
             int finalCompletedFlights = completedFlights;
             int finalUpcomingFlights = upcomingFlights;
             double finalTotalSpending = totalSpending;
-
             Platform.runLater(() -> {
-                updateStatistics(totalBookings, finalCompletedFlights, finalUpcomingFlights, finalTotalSpending);
-                loyaltyPointsLabel.setText("Loyalty Points: " + loyaltyPoints);
-                bookingCountLabel.setText("Total bookings: " + totalBookings);
-
-                memberSinceLabel.setText("Member since: " + LocalDate.now().minusMonths(6).format(DateTimeFormatter.ofPattern("MMM yyyy")));
-
-                System.out.println("✓ User statistics updated: " + totalBookings + " bookings, M" + finalTotalSpending + " spent");
+                updateStatistics(finalTotalBookings, finalCompletedFlights, finalUpcomingFlights, finalTotalSpending);
+                System.out.println("✓ User statistics updated: " + finalTotalBookings + " bookings, M" + finalTotalSpending + " spent");
             });
 
         } catch (Exception e) {
@@ -442,44 +680,12 @@ public class DashboardController {
             totalBookingsLabel.setText(String.valueOf(totalBookings));
             completedFlightsLabel.setText(String.valueOf(completedFlights));
             upcomingFlightsLabel.setText(String.valueOf(upcomingFlights));
-            totalSpendingLabel.setText(String.format("M%.2f", totalSpending));
+            totalSpendingLabel.setText(String.format("R%.2f", totalSpending));
         });
     }
 
-    // ---------------- USER SETUP ----------------
+    // ---------------- USER PROFILE DATA ----------------
 
-    /**
-     * Initializes user session data passed from the LoginController.
-     */
-    public void initializeUserData(String userEmail, String userId, String userToken) {
-        System.out.println("=== INITIALIZING USER DATA ===");
-        System.out.println("User Email: " + userEmail);
-        System.out.println("User ID: " + userId);
-
-        this.currentUserEmail = userEmail;
-        this.currentUserId = userId;
-        // 🔑 CRITICAL FIX: Trim the token immediately upon receiving it
-        this.currentUserToken = userToken != null ? userToken.trim() : null;
-
-        Platform.runLater(() -> {
-            welcomeLabel.setText("Welcome back!");
-            profileNameLabel.setText("Loading...");
-            profileEmailLabel.setText(userEmail);
-            bookFlightButton.setDisable(false);
-            bookFlightButton.setText("Book Flight");
-        });
-
-        loadUserProfileData();
-        loadUserStatistics();
-
-        Platform.runLater(() -> {
-            showAlert("Welcome Back!", "Successfully logged in as " + userEmail + "\n\nYour dashboard is now being loaded with your personal data.");
-        });
-    }
-
-    /**
-     * Fetches user profile data from 'passenger_info' table.
-     */
     private void loadUserProfileData() {
         if (currentUserEmail == null || currentUserToken == null) {
             System.out.println("No user data available, skipping profile load");
@@ -488,7 +694,6 @@ public class DashboardController {
 
         System.out.println("Loading user profile data for: " + currentUserEmail);
 
-        // 🟢 Pass currentUserToken for authenticated profile retrieval
         supabaseService.getPassengerByEmail(currentUserEmail, currentUserToken)
                 .thenAccept(response -> {
                     System.out.println("User profile response - Status: " + response.statusCode());
@@ -512,9 +717,6 @@ public class DashboardController {
                 });
     }
 
-    /**
-     * Creates a new 'passenger_info' record if one does not exist.
-     */
     private void createNewPassengerRecord() {
         if (currentUserId == null || currentUserToken == null) {
             System.err.println("Cannot create passenger record: Missing user ID or token.");
@@ -525,7 +727,6 @@ public class DashboardController {
         System.out.println("Creating new passenger record for: " + currentUserEmail);
         String[] nameParts = extractNamesFromEmail(currentUserEmail);
 
-        // Pass the userId (5th argument) and token (6th argument)
         supabaseService.insertPassenger(nameParts[0], nameParts[1], currentUserEmail, "Not provided", currentUserId, currentUserToken)
                 .thenAccept(response -> {
                     System.out.println("Create passenger response - Status: " + response.statusCode());
@@ -545,9 +746,6 @@ public class DashboardController {
                 });
     }
 
-    /**
-     * Finalizes profile data load after a new record is created.
-     */
     private void fetchAndFinalizeProfileData() {
         if (currentUserToken == null) {
             System.err.println("Cannot finalize profile: Missing user token.");
@@ -557,7 +755,6 @@ public class DashboardController {
 
         System.out.println("Finalizing profile data load...");
 
-        //  Pass currentUserToken for authenticated final profile retrieval
         supabaseService.getPassengerByEmail(currentUserEmail, currentUserToken)
                 .thenAccept(response -> {
                     if (response.statusCode() == 200 && !response.body().equals("[]")) {
@@ -580,7 +777,6 @@ public class DashboardController {
                 });
     }
 
-
     private void updateUIWithUserData(JSONObject userData) {
         String firstName = userData.optString("first_name", "User");
         String lastName = userData.optString("last_name", "");
@@ -589,7 +785,7 @@ public class DashboardController {
         this.currentUserName = firstName + " " + lastName;
 
         Platform.runLater(() -> {
-            welcomeLabel.setText("Welcome Mr " + firstName + "!");
+            welcomeLabel.setText("Welcome " + firstName + "!");
             profileNameLabel.setText(firstName + " " + lastName);
             profileEmailLabel.setText(email);
 
@@ -641,7 +837,7 @@ public class DashboardController {
         return s.substring(0, 1).toUpperCase() + s.substring(1).toLowerCase();
     }
 
-    // ---------------- BOOKING (FROM MAIN DASHBOARD) ----------------
+    // ---------------- BOOKING ----------------
 
     @FXML
     private void handleBookFlight() {
@@ -673,110 +869,32 @@ public class DashboardController {
             double baseFare = routePrices.getOrDefault(routeKey, 1500.0);
             double totalPrice = baseFare * passengers;
 
-            JSONObject bookingData = new JSONObject();
-            // Note: This dashboard button creates a record in 'flight_bookings' (legacy method)
-            bookingData.put("user_email", currentUserEmail);
-            bookingData.put("user_id", currentUserId);
-            bookingData.put("origin", originCode);
-            bookingData.put("destination", destinationCode);
-            bookingData.put("flight_date", date);
-            bookingData.put("passengers", passengers);
-            bookingData.put("status", "confirmed");
-            bookingData.put("price", totalPrice);
-            bookingData.put("flight_code", generateFlightCode(originCode, destinationCode));
+            // Instead of using the deprecated flight_bookings table, navigate to reservation form
+            Platform.runLater(() -> {
+                showAlert("Redirecting", "Redirecting to reservation form to complete your booking...");
+                handleViewReservation(); // Navigate to the proper reservation form
+            });
 
-            System.out.println("Sending booking data: " + bookingData.toString());
-
-            // FIX: Pass the authenticated token to the service call
-            supabaseService.insertFlightBooking(bookingData, currentUserToken)
-                    .thenAccept(response -> Platform.runLater(() -> {
-                        System.out.println("Booking response - Status: " + response.statusCode());
-
-                        if (response.statusCode() == 201) {
-                            showAlert("Success",
-                                    "Flight booked successfully!\n\n" +
-                                            "Route: " + originCode + " → " + destinationCode + "\n" +
-                                            "Date: " + date + "\n" +
-                                            "Passengers: " + passengers + "\n" +
-                                            "Total: M" + String.format("%.2f", totalPrice) + "\n\n" +
-                                            "Thank you, " + currentUserName + "!");
-                            clearBookingForm();
-                            loadUserStatistics();
-                        } else {
-                            showAlert("Error", "Failed to save booking. Status: " + response.statusCode() + ". Check Supabase logs/RLS.");
-                        }
-                    }))
-                    .exceptionally(ex -> {
-                        System.err.println("Booking error: " + ex.getMessage());
-                        Platform.runLater(() -> showAlert("Error", "Network error: " + ex.getMessage()));
-                        return null;
-                    });
         } catch (Exception e) {
             System.err.println("Unexpected booking error: " + e.getMessage());
             showAlert("Error", "Unexpected error: " + e.getMessage());
         }
     }
 
-    private String generateFlightCode(String origin, String destination) {
-        return "BA" + origin + destination + dateComboBox.getValue().replace("-", "").substring(2);
-    }
+    // ---------------- NAVIGATION HANDLERS USING SCENE MANAGER ----------------
 
-    private void clearBookingForm() {
-        Platform.runLater(() -> {
-            originComboBox.setValue(null);
-            destinationComboBox.setValue(null);
-            dateComboBox.setValue(null);
-            if (passengerSpinner.getValueFactory() != null)
-                passengerSpinner.getValueFactory().setValue(1);
-            resetPriceDisplay();
-        });
-    }
-
-    // ---------------- NAVIGATION HANDLERS ----------------
-
-    /**
-     * Helper to load a new FXML file and replace the current scene.
-     */
-    private void loadAndSwitchScene(String fxmlPath, String title, Object controllerInstance) {
-        try {
-            // Use one of the buttons to get the current stage
-            Stage stage = (Stage) btn_dashboard.getScene().getWindow();
-
-            FXMLLoader loader = new FXMLLoader(getClass().getResource(fxmlPath));
-
-            // If a controller instance is passed, set it. Otherwise, rely on FXML to create one.
-            if (controllerInstance != null) {
-                loader.setController(controllerInstance);
-            }
-
-            Parent root = loader.load();
-            Scene scene = new Scene(root);
-            stage.setScene(scene);
-            stage.setTitle("Bokamoso Airlines - " + title);
-            stage.centerOnScreen();
-        } catch (IOException e) {
-            e.printStackTrace();
-            showAlert("Navigation Error", "Unable to load " + title + " view: " + e.getMessage());
-        } catch (NullPointerException e) {
-            // Handle case where button might be null during testing, or scene is not attached.
-            e.printStackTrace();
-            showAlert("Navigation Error", "Error accessing the main window. Ensure the FXML is correctly loaded.");
-        }
-    }
-
-    /**
-     * Navigates back to the main Dashboard view.
-     */
     @FXML
     private void handleViewDashboard() {
-        // Since this controller IS the Dashboard, reloading it essentially means
-        // replacing the current scene with the dashboard FXML again.
-        loadAndSwitchScene("/groupassingment/airlinesreservations/Dashboard.fxml", "Dashboard", null);
+        System.out.println("=== NAVIGATING TO DASHBOARD ===");
+        // Refresh dashboard data
+        if (currentUserEmail != null) {
+            loadUserStatistics();
+            loadDashboardCardsData();
+        }
+        // Since we're already on dashboard, just refresh the data
+        SceneManager.navigateToDashboard(btn_dashboard.getScene());
     }
 
-    /**
-     * Navigates to the New Reservation form and passes session data.
-     */
     @FXML
     private void handleViewReservation() {
         if (currentUserEmail == null) {
@@ -784,33 +902,10 @@ public class DashboardController {
             return;
         }
 
-        try {
-            Stage stage = (Stage) btn_reservation.getScene().getWindow();
-
-            // Load the FXML using the user-specified file name: Reservation-Form.fxml
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/groupassingment/airlinesreservations/Reservation-Form.fxml"));
-            Parent root = loader.load();
-
-            // Get the controller and pass the session data
-            ReservationFormController reservationController = loader.getController();
-
-            // Pass the clean token on to the next controller.
-            reservationController.initializeSessionData(currentUserToken, currentUserId, currentUserEmail);
-
-            // Switch the scene
-            Scene scene = new Scene(root);
-            stage.setScene(scene);
-            stage.setTitle("Bokamoso Airlines - New Reservation");
-            stage.centerOnScreen();
-        } catch (IOException e) {
-            e.printStackTrace();
-            showAlert("Navigation Error", "Unable to load New Reservation view. Check that ReservationForm.fxml exists: " + e.getMessage());
-        }
+        System.out.println("=== NAVIGATING TO RESERVATION FORM ===");
+        SceneManager.navigateToReservationForm(btn_reservation.getScene());
     }
 
-    /**
-     * Navigates to the Manage Reservations view.
-     */
     @FXML
     private void handleManageReservations() {
         if (currentUserEmail == null) {
@@ -818,101 +913,32 @@ public class DashboardController {
             return;
         }
 
-        try {
-            Stage stage = (Stage) btn_manage_reservations.getScene().getWindow();
-
-            // 1. Load the FXML using the specified file name
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/groupassingment/airlinesreservations/ManageReservations.fxml"));
-            Parent root = loader.load();
-
-            // 2. Get the controller and pass the session data
-            // NOTE: Assuming 'ManageReservationsController' is the class name
-            // The class must be available in your project for this to work
-            Object controller = loader.getController();
-
-            // If the controller implements the correct method, initialize session data
-            if (controller instanceof ManageReservationsController) {
-                ManageReservationsController manageReservationsController = (ManageReservationsController) controller;
-                manageReservationsController.initializeSessionData(currentUserToken, currentUserId, currentUserEmail);
-            }
-
-            // 3. Switch the scene
-            Scene scene = new Scene(root);
-            stage.setScene(scene);
-            stage.setTitle("Bokamoso Airlines - Manage Reservations");
-            stage.centerOnScreen();
-        } catch (IOException e) {
-            e.printStackTrace();
-            showAlert("Navigation Error", "Unable to load Manage Reservations view. Check that ManageReservations.fxml and its controller exist: " + e.getMessage());
-        } catch (ClassCastException e) {
-            e.printStackTrace();
-            showAlert("Controller Error", "The controller for ManageReservations.fxml is not recognized or missing the initializeSessionData method.");
-        }
+        System.out.println("=== NAVIGATING TO MANAGE RESERVATIONS ===");
+        SceneManager.navigateToManageReservations(btn_manage_reservations.getScene());
     }
 
-    /**
-     * Placeholder for Feedback view.
-     */
     @FXML
     private void handleViewFeedback() {
-        showAlert("Feature Coming Soon", "The Feedback section is where you can share your experience with Bokamoso Airlines.");
-        // If the FXML file exists:
-        // loadAndSwitchScene("/groupassingment/airlinesreservations/Feedback.fxml", "Feedback", null);
+        System.out.println("=== NAVIGATING TO FEEDBACK ===");
+        SceneManager.navigateToFeedback(btn_feedback.getScene());
     }
 
-    /**
-     * Placeholder for Support view.
-     */
     @FXML
     private void handleViewSupport() {
-        showAlert("Feature Coming Soon", "Access our support resources and contact us for assistance here.");
-        // If the FXML file exists:
-        // loadAndSwitchScene("/groupassingment/airlinesreservations/Support.fxml", "Support", null);
+        System.out.println("=== NAVIGATING TO SUPPORT ===");
+        SceneManager.navigateToSupport(btn_support.getScene());
     }
 
-    /**
-     * Placeholder for Settings view.
-     */
     @FXML
     private void handleViewSettings() {
-        showAlert("Feature Coming Soon", "Settings will allow you to update your profile and preferences.");
-        // If the FXML file exists:
-        // loadAndSwitchScene("/groupassingment/airlinesreservations/Settings.fxml", "Settings", null);
-    }
-
-    @FXML
-    private void handleReservationView() {
-        // This old method is routed to the correct handler for consistency
-        handleManageReservations();
+        System.out.println("=== NAVIGATING TO SETTINGS ===");
+        SceneManager.navigateToSettings(btn_settings.getScene());
     }
 
     @FXML
     private void handleLogout() {
-        System.out.println("Logging out user: " + currentUserEmail);
-        String userName = currentUserName != null ? currentUserName : "Guest";
-        this.currentUserEmail = null;
-        this.currentUserId = null;
-        this.currentUserName = null;
-        this.currentUserToken = null;
-
-        showDefaultState();
-        clearBookingForm();
-
-        // Redirect back to the login screen
-        try {
-            Stage stage = (Stage) (btn_dashboard != null ? btn_dashboard : bookFlightButton).getScene().getWindow();
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/groupassingment/airlinesreservations/Login.fxml"));
-            Parent root = loader.load();
-            Scene scene = new Scene(root);
-            stage.setScene(scene);
-            stage.setTitle("Bokamoso Airlines - Login");
-            stage.centerOnScreen();
-
-            showAlert("Goodbye!", "Logged out successfully!\n\nThank you for using Bokamoso Airlines, " + userName + "!");
-        } catch (IOException e) {
-            e.printStackTrace();
-            showAlert("Logout Error", "Unable to load login screen.");
-        }
+        System.out.println("=== HANDLING LOGOUT ===");
+        SceneManager.handleLogout(btn_logout.getScene());
     }
 
     private void showAlert(String title, String message) {
@@ -931,9 +957,5 @@ public class DashboardController {
 
     public String getCurrentUserName() {
         return currentUserName != null ? currentUserName : "Guest";
-    }
-
-    public void initializeSessionData(String authToken, String userId, String userEmail) {
-
     }
 }

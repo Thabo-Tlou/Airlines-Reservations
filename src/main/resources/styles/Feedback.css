@@ -1,0 +1,67 @@
+.hbox-feedback {
+    -fx-background-color: black;
+    -fx-border-radius: 8px;
+    -fx-background-radius: 8px;
+}
+
+.active {
+    -fx-background-color: rgba(220, 16, 16, 0);
+    -fx-border-radius: 8px;
+    -fx-background-radius: 8px;
+}
+
+.hbox-rightpannelTop {
+    -fx-background-color: #272838;
+}
+
+.label-travelFeedback {
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-font-size: 16;
+}
+
+.passenger-heading {
+    -fx-text-fill: #7b1d6e;
+    -fx-font-weight: bold;
+    -fx-font-size: 14;
+
+}
+
+.background-vbox {
+    -fx-background-color: #e1e9f0;
+}
+
+.text-fields {
+    -fx-background-radius: 5;
+    -fx-border-color: #7b1d6e;
+    -fx-border-radius: 5;
+}
+
+.passenger-labels {
+    -fx-font-weight: bold;
+}
+
+.bottom-textArea {
+    -fx-background-radius: 7;
+    -fx-border-color: #7b1d6e;
+    -fx-border-radius: 7;
+}
+
+.button-radio {
+    -fx-cursor: hand;
+}
+
+.button-send {
+    -fx-background-color: rgb(72, 191, 72);
+    -fx-background-radius: 8;
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.3), 10, 0.5, 0, 3);
+}
+
+.button-send:hover {
+    -fx-background-color: rgb(109, 226, 109);
+    -fx-background-radius: 8;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.3), 10, 0.5, 0, 4);
+    -fx-cursor: hand;
+}
