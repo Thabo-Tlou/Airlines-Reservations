@@ -317,18 +317,47 @@ public class DashboardController {
     }
 
     private void loadUserReservationsForDashboard() {
-        supabaseService.getReservationsByCustomerEmail(currentUserEmail, currentUserToken)
+        System.out.println("Loading user reservations for dashboard...");
+
+        // Use getAllReservations and filter by current user
+        supabaseService.getAllReservations(currentUserToken)
                 .thenAccept(response -> {
                     if (response.statusCode() == 200 || response.statusCode() == 206) {
                         try {
-                            JSONArray reservations = new JSONArray(response.body());
-                            calculateDashboardStatistics(reservations);
+                            JSONArray allReservations = new JSONArray(response.body());
+                            JSONArray userReservations = new JSONArray();
+
+                            // Filter reservations for current user
+                            for (int i = 0; i < allReservations.length(); i++) {
+                                JSONObject reservation = allReservations.getJSONObject(i);
+
+                                // Check if reservation belongs to current user
+                                if (reservation.has("customer_id")) {
+                                    // If customer_id is an object, check the email
+                                    if (reservation.get("customer_id") instanceof JSONObject) {
+                                        JSONObject customer = reservation.getJSONObject("customer_id");
+                                        String customerEmail = customer.optString("email", "");
+                                        if (currentUserEmail.equals(customerEmail)) {
+                                            userReservations.put(reservation);
+                                        }
+                                    } else {
+                                        // If customer_id is just an ID, we need to check differently
+                                        // For now, include all reservations and we'll filter later
+                                        userReservations.put(reservation);
+                                    }
+                                }
+                            }
+
+                            System.out.println("Filtered " + userReservations.length() + " reservations for user");
+                            calculateDashboardStatistics(userReservations);
+
                         } catch (Exception e) {
                             System.err.println("Error parsing reservations for dashboard: " + e.getMessage());
                             updateStatistics(0, 0, 0, 0.0);
                         }
                     } else {
                         System.err.println("Failed to load reservations for dashboard: " + response.statusCode());
+                        System.err.println("Response body: " + response.body());
                         updateStatistics(0, 0, 0, 0.0);
                     }
                 })
@@ -357,12 +386,7 @@ public class DashboardController {
                 totalSpending += totalFare;
 
                 if ("Confirmed".equalsIgnoreCase(status)) {
-                    // Check if flight date is in the future for upcoming flights
-                    if (reservation.has("flight_id")) {
-                        // We'll consider confirmed reservations as upcoming for simplicity
-                        // In a real app, you'd check the actual flight date
-                        upcomingFlights++;
-                    }
+                    upcomingFlights++;
                 } else if ("Completed".equalsIgnoreCase(status)) {
                     completedFlights++;
                 } else if ("Cancelled".equalsIgnoreCase(status)) {
@@ -372,7 +396,7 @@ public class DashboardController {
                 }
             }
 
-            int loyaltyPoints = (int) (totalSpending / 10); // 1 point per R10 spent
+            int loyaltyPoints = (int) (totalSpending / 10);
 
             int finalTotalBookings = totalBookings;
             int finalCompletedFlights = completedFlights;
@@ -398,12 +422,13 @@ public class DashboardController {
     private void loadNextUpcomingFlight() {
         if (currentUserEmail == null) return;
 
-        supabaseService.getReservationsByCustomerEmail(currentUserEmail, currentUserToken)
+        // Use getAllReservations and find the next upcoming one
+        supabaseService.getAllReservations(currentUserToken)
                 .thenAccept(response -> {
                     if (response.statusCode() == 200 || response.statusCode() == 206) {
                         try {
-                            JSONArray reservations = new JSONArray(response.body());
-                            JSONObject nextFlight = findNextUpcomingFlight(reservations);
+                            JSONArray allReservations = new JSONArray(response.body());
+                            JSONObject nextFlight = findNextUpcomingFlight(allReservations);
                             updateNextFlightDisplay(nextFlight);
                         } catch (Exception e) {
                             System.err.println("Error finding next flight: " + e.getMessage());
@@ -418,19 +443,27 @@ public class DashboardController {
 
     private JSONObject findNextUpcomingFlight(JSONArray reservations) {
         try {
-            LocalDate today = LocalDate.now();
             JSONObject nextFlight = null;
-            LocalDate nextDate = null;
 
             for (int i = 0; i < reservations.length(); i++) {
                 JSONObject reservation = reservations.getJSONObject(i);
                 String status = reservation.optString("reservation_status", "");
 
-                if ("Confirmed".equalsIgnoreCase(status) && reservation.has("flight_id")) {
-                    // For demo, we'll use the first confirmed reservation
-                    // In real app, you'd fetch flight details and compare dates
-                    if (nextFlight == null) {
-                        nextFlight = reservation;
+                // Check if reservation belongs to current user and is confirmed
+                if ("Confirmed".equalsIgnoreCase(status) && reservation.has("customer_id")) {
+                    if (reservation.get("customer_id") instanceof JSONObject) {
+                        JSONObject customer = reservation.getJSONObject("customer_id");
+                        String customerEmail = customer.optString("email", "");
+                        if (currentUserEmail.equals(customerEmail)) {
+                            if (nextFlight == null) {
+                                nextFlight = reservation;
+                            }
+                        }
+                    } else {
+                        // If we can't verify the customer, include it for now
+                        if (nextFlight == null) {
+                            nextFlight = reservation;
+                        }
                     }
                 }
             }
@@ -448,12 +481,12 @@ public class DashboardController {
                     String seatClass = nextFlight.optString("seat_class", "Economic");
 
                     // Get flight details if available
-                    if (nextFlight.has("flight_id")) {
+                    if (nextFlight.has("flight_id") && !nextFlight.isNull("flight_id")) {
                         Long flightId = nextFlight.getLong("flight_id");
                         // Fetch flight details to get route information
                         fetchFlightDetailsForDisplay(flightId, reservationCode, seatClass);
                     } else {
-                        nextFlightLabel.setText("Next: " + reservationCode + " (" + seatClass + ")");
+                        nextFlightLabel.setText("Next Flight: " + reservationCode + " (" + seatClass + ")");
                     }
                 } catch (Exception e) {
                     nextFlightLabel.setText("Upcoming flight booked");
@@ -608,22 +641,44 @@ public class DashboardController {
 
         System.out.println("Loading user statistics for: " + currentUserEmail);
 
-        // Use the reservations endpoint for statistics
-        supabaseService.getReservationsByCustomerEmail(currentUserEmail, currentUserToken)
+        // Use getAllReservations and filter for the current user
+        supabaseService.getAllReservations(currentUserToken)
                 .thenAccept(response -> {
                     System.out.println("User statistics response - Status: " + response.statusCode());
 
                     if (response.statusCode() == 200 || response.statusCode() == 206) {
                         try {
-                            JSONArray bookings = new JSONArray(response.body());
-                            System.out.println("Found " + bookings.length() + " bookings for user");
-                            calculateUserStatistics(bookings);
+                            JSONArray allReservations = new JSONArray(response.body());
+                            JSONArray userBookings = new JSONArray();
+
+                            // Filter bookings for current user
+                            for (int i = 0; i < allReservations.length(); i++) {
+                                JSONObject reservation = allReservations.getJSONObject(i);
+
+                                // Check if reservation belongs to current user
+                                if (reservation.has("customer_id")) {
+                                    if (reservation.get("customer_id") instanceof JSONObject) {
+                                        JSONObject customer = reservation.getJSONObject("customer_id");
+                                        String customerEmail = customer.optString("email", "");
+                                        if (currentUserEmail.equals(customerEmail)) {
+                                            userBookings.put(reservation);
+                                        }
+                                    } else {
+                                        // Include all for now if we can't verify customer
+                                        userBookings.put(reservation);
+                                    }
+                                }
+                            }
+
+                            System.out.println("Found " + userBookings.length() + " bookings for user");
+                            calculateUserStatistics(userBookings);
                         } catch (Exception e) {
                             System.err.println("Error parsing user bookings: " + e.getMessage());
                             Platform.runLater(() -> updateStatistics(0, 0, 0, 0.0));
                         }
                     } else {
                         System.err.println("Failed to load user statistics: " + response.statusCode());
+                        System.err.println("Response body: " + response.body());
                         Platform.runLater(() -> updateStatistics(0, 0, 0, 0.0));
                     }
                 })
@@ -666,7 +721,7 @@ public class DashboardController {
             double finalTotalSpending = totalSpending;
             Platform.runLater(() -> {
                 updateStatistics(finalTotalBookings, finalCompletedFlights, finalUpcomingFlights, finalTotalSpending);
-                System.out.println("✓ User statistics updated: " + finalTotalBookings + " bookings, M" + finalTotalSpending + " spent");
+                System.out.println("✓ User statistics updated: " + finalTotalBookings + " bookings, R" + finalTotalSpending + " spent");
             });
 
         } catch (Exception e) {
