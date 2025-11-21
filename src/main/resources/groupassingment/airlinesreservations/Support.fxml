@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import java.net.URL?>
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.ComboBox?>
@@ -12,14 +13,13 @@
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.ColumnConstraints?>
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.VBox?>
 
-<?import javafx.scene.layout.ColumnConstraints?>
-<?import java.net.URL?>
-<AnchorPane prefHeight="600.0" prefWidth="900.0" xmlns="http://javafx.com/javafx/20.0.2" xmlns:fx="http://javafx.com/fxml/1" fx:controller="groupassingment.airlinesreservations.controllers.SupportController">
+<AnchorPane prefHeight="600.0" prefWidth="900.0" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="groupassingment.airlinesreservations.controllers.SupportController">
     <stylesheets>
         <URL value="@../../styles/Support.css" />
     </stylesheets>
@@ -94,26 +94,6 @@
                             </VBox.margin>
                         </HBox>
 
-                        <HBox fx:id="feedbackBtn" prefHeight="38.0" prefWidth="229.0" stylesheets="@../../styles/Dashboard.css">
-                            <children>
-                                <ImageView fitHeight="18.0" fitWidth="18.0" pickOnBounds="true" preserveRatio="true">
-                                    <image>
-                                        <Image url="@../../images/icons/feedback.png" />
-                                    </image>
-                                    <HBox.margin>
-                                        <Insets left="10.0" top="12.0" />
-                                    </HBox.margin>
-                                </ImageView>
-                                <Label styleClass="btn_dashboard" stylesheets="@../../styles/Dashboard.css" text="Feedback">
-                                    <HBox.margin>
-                                        <Insets top="3.0" />
-                                    </HBox.margin></Label>
-                            </children>
-                            <VBox.margin>
-                                <Insets right="30.0" />
-                            </VBox.margin>
-                        </HBox>
-
                         <HBox fx:id="manageBtn" prefHeight="38.0" prefWidth="229.0">
                             <children>
                                 <ImageView fitHeight="18.0" fitWidth="18.0" pickOnBounds="true" preserveRatio="true">
@@ -134,7 +114,30 @@
                             </VBox.margin>
                         </HBox>
 
-                        <VBox VBox.vgrow="ALWAYS" />
+                        <VBox VBox.vgrow="ALWAYS">
+                     <children>
+      
+                              <HBox fx:id="feedbackBtn" prefHeight="38.0" prefWidth="229.0" stylesheets="@../../styles/Dashboard.css">
+                                  <children>
+                                      <ImageView fitHeight="18.0" fitWidth="18.0" pickOnBounds="true" preserveRatio="true">
+                                          <image>
+                                              <Image url="@../../images/icons/feedback.png" />
+                                          </image>
+                                          <HBox.margin>
+                                              <Insets left="10.0" top="12.0" />
+                                          </HBox.margin>
+                                      </ImageView>
+                                      <Label styleClass="btn_dashboard" stylesheets="@../../styles/Dashboard.css" text="Feedback">
+                                          <HBox.margin>
+                                              <Insets top="3.0" />
+                                          </HBox.margin>
+                              </Label>
+                                  </children>
+                                  <VBox.margin>
+                                      <Insets right="30.0" />
+                                  </VBox.margin>
+                              </HBox>
+                     </children></VBox>
 
                         <HBox fx:id="supportBtn" prefHeight="38.0" prefWidth="229.0" styleClass="active">
                             <children>

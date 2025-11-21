@@ -14,7 +14,7 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 
-<AnchorPane prefHeight="600.0" prefWidth="900.0" xmlns="http://javafx.com/javafx/20.0.2" xmlns:fx="http://javafx.com/fxml/1" fx:controller="groupassingment.airlinesreservations.controllers.FeedbackController">
+<AnchorPane prefHeight="600.0" prefWidth="900.0" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="groupassingment.airlinesreservations.controllers.FeedbackController">
     <children>
         <BorderPane layoutX="77.0" layoutY="148.0" prefHeight="600.0" prefWidth="900.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
             <left>
@@ -83,26 +83,6 @@
                                 <Insets right="30.0" />
                             </VBox.margin>
                         </HBox>
-                        <HBox prefHeight="38.0" prefWidth="229.0" styleClass="hbox-feedback" stylesheets="@../../styles/Feedback.css">
-                            <children>
-                                <ImageView fitHeight="18.0" fitWidth="18.0" pickOnBounds="true" preserveRatio="true">
-                                    <image>
-                                        <Image url="@../../images/icons/feedback.png" />
-                                    </image>
-                                    <HBox.margin>
-                                        <Insets left="10.0" top="12.0" />
-                                    </HBox.margin>
-                                </ImageView>
-                                <Button mnemonicParsing="false" onAction="#handleFeedbackNavigation" styleClass="btn_dashboard" stylesheets="@../../styles/Dashboard.css" text="Feedback">
-                                    <HBox.margin>
-                                        <Insets top="7.0" />
-                                    </HBox.margin>
-                                </Button>
-                            </children>
-                            <VBox.margin>
-                                <Insets right="30.0" />
-                            </VBox.margin>
-                        </HBox>
                         <HBox prefHeight="38.0" prefWidth="229.0">
                             <children>
                                 <ImageView fitHeight="18.0" fitWidth="18.0" pickOnBounds="true" preserveRatio="true">
@@ -125,6 +105,26 @@
                         </HBox>
                         <VBox prefHeight="342.0" prefWidth="230.0" spacing="5.0">
                             <children>
+                              <HBox prefHeight="38.0" prefWidth="229.0" styleClass="hbox-feedback" stylesheets="@../../styles/Feedback.css">
+                                  <children>
+                                      <ImageView fitHeight="18.0" fitWidth="18.0" pickOnBounds="true" preserveRatio="true">
+                                          <image>
+                                              <Image url="@../../images/icons/feedback.png" />
+                                          </image>
+                                          <HBox.margin>
+                                              <Insets left="10.0" top="12.0" />
+                                          </HBox.margin>
+                                      </ImageView>
+                                      <Button mnemonicParsing="false" onAction="#handleFeedbackNavigation" styleClass="btn_dashboard" stylesheets="@../../styles/Dashboard.css" text="Feedback">
+                                          <HBox.margin>
+                                              <Insets top="7.0" />
+                                          </HBox.margin>
+                                      </Button>
+                                  </children>
+                                  <VBox.margin>
+                                      <Insets right="30.0" />
+                                  </VBox.margin>
+                              </HBox>
                                 <HBox prefHeight="38.0" prefWidth="229.0">
                                     <children>
                                         <ImageView fitHeight="18.0" fitWidth="18.0" pickOnBounds="true" preserveRatio="true">
