@@ -49,7 +49,7 @@
                                         <Insets left="10.0" top="12.0" />
                                     </HBox.margin>
                                 </ImageView>
-                                <Button mnemonicParsing="false" styleClass="btn_dashboard" text="Dashboard">
+                                <Button mnemonicParsing="false" onAction="#handleDashboardNavigation" styleClass="btn_dashboard" text="Dashboard">
                                     <HBox.margin>
                                         <Insets top="7.0" />
                                     </HBox.margin>
@@ -73,7 +73,7 @@
                                         <Insets left="10.0" top="12.0" />
                                     </HBox.margin>
                                 </ImageView>
-                                <Button mnemonicParsing="false" styleClass="btn_dashboard" stylesheets="@../../styles/Dashboard.css" text="Reservation">
+                                <Button mnemonicParsing="false" onAction="#handleReservationFormNavigation" styleClass="btn_dashboard" stylesheets="@../../styles/Dashboard.css" text="Reservation">
                                     <HBox.margin>
                                         <Insets top="7.0" />
                                     </HBox.margin>
@@ -93,7 +93,7 @@
                                         <Insets left="10.0" top="12.0" />
                                     </HBox.margin>
                                 </ImageView>
-                                <Button mnemonicParsing="false" styleClass="btn_dashboard" stylesheets="@../../styles/Dashboard.css" text="Feedback">
+                                <Button mnemonicParsing="false" onAction="#handleFeedbackNavigation" styleClass="btn_dashboard" stylesheets="@../../styles/Dashboard.css" text="Feedback">
                                     <HBox.margin>
                                         <Insets top="7.0" />
                                     </HBox.margin>
@@ -113,7 +113,7 @@
                                         <Insets left="10.0" top="12.0" />
                                     </HBox.margin>
                                 </ImageView>
-                                <Button mnemonicParsing="false" styleClass="btn_dashboard" text="Manage Reservations">
+                                <Button mnemonicParsing="false" onAction="#handleManageReservationsNavigation" styleClass="btn_dashboard" text="Manage Reservations">
                                     <HBox.margin>
                                         <Insets top="7.0" />
                                     </HBox.margin>
@@ -135,7 +135,7 @@
                                                 <Insets left="10.0" top="12.0" />
                                             </HBox.margin>
                                         </ImageView>
-                                        <Button mnemonicParsing="false" styleClass="btn_dashboard" stylesheets="@../../styles/Dashboard.css" text="Support">
+                                        <Button mnemonicParsing="false" onAction="#handleSupportNavigation" styleClass="btn_dashboard" stylesheets="@../../styles/Dashboard.css" text="Support">
                                             <HBox.margin>
                                                 <Insets top="7.0" />
                                             </HBox.margin>
@@ -155,7 +155,7 @@
                                                 <Insets left="10.0" top="12.0" />
                                             </HBox.margin>
                                         </ImageView>
-                                        <Button mnemonicParsing="false" styleClass="btn_dashboard" stylesheets="@../../styles/Dashboard.css" text="Settings">
+                                        <Button mnemonicParsing="false" onAction="#handleSettingsNavigation" styleClass="btn_dashboard" stylesheets="@../../styles/Dashboard.css" text="Settings">
                                             <HBox.margin>
                                                 <Insets top="7.0" />
                                             </HBox.margin>
@@ -175,7 +175,7 @@
                                                 <Insets left="10.0" top="12.0" />
                                             </HBox.margin>
                                         </ImageView>
-                                        <Button mnemonicParsing="false" styleClass="btn_dashboard" stylesheets="@../../styles/Dashboard.css" text="Logout">
+                                        <Button mnemonicParsing="false" onAction="#handleLogout" styleClass="btn_dashboard" stylesheets="@../../styles/Dashboard.css" text="Logout">
                                             <HBox.margin>
                                                 <Insets top="7.0" />
                                             </HBox.margin>
