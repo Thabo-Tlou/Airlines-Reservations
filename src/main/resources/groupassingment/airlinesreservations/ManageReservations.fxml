@@ -277,16 +277,16 @@
                             <content>
                                 <TableView fx:id="reservationsTable" styleClass="reservations-table" stylesheets="@../../styles/ManageReservations.css">
                                     <columns>
-                                        <TableColumn fx:id="colReservationCode" prefWidth="120.0" styleClass="left-column" text="Reservation Code" />
-                                        <TableColumn fx:id="colCustomerName" prefWidth="150.0" styleClass="left-column" text="Customer Name" />
-                                        <TableColumn fx:id="colFlight" prefWidth="120.0" styleClass="left-column" text="Flight" />
-                                        <TableColumn fx:id="colDeparture" prefWidth="120.0" styleClass="left-column" text="Departure" />
-                                        <TableColumn fx:id="colDestination" prefWidth="120.0" styleClass="left-column" text="Destination" />
-                                        <TableColumn fx:id="colSeatClass" prefWidth="100.0" styleClass="center-column" text="Class" />
-                                        <TableColumn fx:id="colTotalFare" prefWidth="100.0" styleClass="numeric-column" text="Total Fare" />
-                                        <TableColumn fx:id="colStatus" prefWidth="100.0" styleClass="center-column" text="Status" />
-                                        <TableColumn fx:id="colPaymentStatus" prefWidth="100.0" styleClass="center-column" text="Payment" />
-                                        <TableColumn fx:id="colActions" prefWidth="200.0" styleClass="center-column" text="Actions" />
+                                        <TableColumn fx:id="colReservationCode" prefWidth="130.81323504447937" styleClass="left-column" text="Reservation Code" />
+                                        <TableColumn fx:id="colCustomerName" prefWidth="120.2637939453125" styleClass="left-column" text="Customer Name" />
+                                        <TableColumn fx:id="colFlight" prefWidth="66.46142578125" styleClass="left-column" text="Flight" />
+                                        <TableColumn fx:id="colDeparture" prefWidth="87.560302734375" styleClass="left-column" text="Departure" />
+                                        <TableColumn fx:id="colDestination" prefWidth="92.835205078125" styleClass="left-column" text="Destination" />
+                                        <TableColumn fx:id="colSeatClass" prefWidth="53.80224609375" styleClass="center-column" text="Class" />
+                                        <TableColumn fx:id="colTotalFare" prefWidth="84.923095703125" styleClass="numeric-column" text="Total Fare" />
+                                        <TableColumn fx:id="colStatus" prefWidth="85.9779052734375" styleClass="center-column" text="Status" />
+                                        <TableColumn fx:id="colPaymentStatus" prefWidth="97.054931640625" styleClass="center-column" text="Payment" />
+                                        <TableColumn fx:id="colActions" prefWidth="88.087890625" styleClass="center-column" text="Actions" />
                                     </columns>
                                     <columnResizePolicy>
                                         <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />

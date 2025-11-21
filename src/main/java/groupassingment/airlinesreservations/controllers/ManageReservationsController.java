@@ -11,7 +11,11 @@ import javafx.scene.layout.HBox;
 import javafx.geometry.Pos;
 import org.json.JSONArray;
 import org.json.JSONObject;
+
+import java.net.http.HttpResponse;
 import java.util.concurrent.CompletableFuture;
+import java.util.HashMap;
+import java.util.Map;
 
 public class ManageReservationsController {
 
@@ -52,7 +56,15 @@ public class ManageReservationsController {
     private String userEmail;
     private ObservableList<Reservation> reservations = FXCollections.observableArrayList();
 
-    // Reservation data model class
+    private int currentPage = 0;
+    private int pageSize = 10;
+    private String currentSearchTerm = "";
+
+    // Cache for customer and flight data
+    private Map<Long, String> customerNameCache = new HashMap<>();
+    private Map<Long, JSONObject> flightCache = new HashMap<>();
+
+    // Enhanced Reservation data model class
     public static class Reservation {
         private final Long reservationId;
         private final String reservationCode;
@@ -64,11 +76,16 @@ public class ManageReservationsController {
         private final Double totalFare;
         private final String reservationStatus;
         private final String paymentStatus;
+        private final String departureDate;
+        private final String departureTime;
+        private final Long flightId;
+        private final Long customerId;
 
         public Reservation(Long reservationId, String reservationCode, String customerName,
                            String flightCode, String departureCity, String destinationCity,
                            String seatClass, Double totalFare, String reservationStatus,
-                           String paymentStatus) {
+                           String paymentStatus, String departureDate, String departureTime,
+                           Long flightId, Long customerId) {
             this.reservationId = reservationId;
             this.reservationCode = reservationCode;
             this.customerName = customerName;
@@ -79,6 +96,10 @@ public class ManageReservationsController {
             this.totalFare = totalFare;
             this.reservationStatus = reservationStatus;
             this.paymentStatus = paymentStatus;
+            this.departureDate = departureDate;
+            this.departureTime = departureTime;
+            this.flightId = flightId;
+            this.customerId = customerId;
         }
 
         // Getters
@@ -92,6 +113,10 @@ public class ManageReservationsController {
         public Double getTotalFare() { return totalFare; }
         public String getReservationStatus() { return reservationStatus; }
         public String getPaymentStatus() { return paymentStatus; }
+        public String getDepartureDate() { return departureDate; }
+        public String getDepartureTime() { return departureTime; }
+        public Long getFlightId() { return flightId; }
+        public Long getCustomerId() { return customerId; }
     }
 
     @FXML
@@ -125,8 +150,15 @@ public class ManageReservationsController {
         pageSizeCombo.setValue("10");
 
         // Add listener for filter changes
-        statusFilter.valueProperty().addListener((obs, oldVal, newVal) -> loadReservations());
-        pageSizeCombo.valueProperty().addListener((obs, oldVal, newVal) -> loadReservations());
+        statusFilter.valueProperty().addListener((obs, oldVal, newVal) -> {
+            currentPage = 0;
+            loadReservations();
+        });
+        pageSizeCombo.valueProperty().addListener((obs, oldVal, newVal) -> {
+            pageSize = Integer.parseInt(newVal);
+            currentPage = 0;
+            loadReservations();
+        });
     }
 
     private void setupTable() {
@@ -253,8 +285,11 @@ public class ManageReservationsController {
                             setGraphic(null);
                         } else {
                             Reservation reservation = getTableView().getItems().get(getIndex());
-                            cancelBtn.setDisable("Cancelled".equals(reservation.getReservationStatus()));
-                            editBtn.setDisable("Cancelled".equals(reservation.getReservationStatus()));
+                            // Disable actions for cancelled reservations
+                            boolean isCancelled = "Cancelled".equals(reservation.getReservationStatus());
+                            cancelBtn.setDisable(isCancelled);
+                            editBtn.setDisable(isCancelled);
+                            printBtn.setDisable(isCancelled);
                             setGraphic(buttonContainer);
                         }
                     }
@@ -282,80 +317,67 @@ public class ManageReservationsController {
         showLoading(true);
         updateStatus("Loading reservations...", "info");
 
-        supabaseService.getCustomerByEmail(userEmail, userAuthToken)
-                .thenCompose(customerResponse -> {
-                    if (customerResponse.statusCode() == 200) {
+        currentSearchTerm = searchField.getText().trim();
+
+        // First, get all reservations
+        CompletableFuture<HttpResponse<String>> reservationsFuture;
+
+        if (currentSearchTerm.isEmpty()) {
+            // Use getAllReservations if no search term
+            reservationsFuture = supabaseService.getAllReservations(userAuthToken);
+        } else {
+            // Use fetchManagedReservations for search
+            reservationsFuture = supabaseService.fetchManagedReservations(currentPage, pageSize, currentSearchTerm, userAuthToken);
+        }
+
+        reservationsFuture.thenCompose(response -> {
+                    // Handle 206 status as success (Partial Content is still valid)
+                    if (response.statusCode() == 200 || response.statusCode() == 206) {
                         try {
-                            JSONArray customers = new JSONArray(customerResponse.body());
-                            if (customers.length() > 0) {
-                                JSONObject customer = customers.getJSONObject(0);
-                                Long customerId = customer.getLong("customer_id");
-                                String customerName = customer.optString("full_name", "Unknown");
+                            JSONArray reservationsArray = new JSONArray(response.body());
+                            System.out.println("DEBUG: Found " + reservationsArray.length() + " reservations");
 
-                                // Load reservations for this customer
-                                return supabaseService.getReservationsByCustomerId(customerId, userAuthToken)
-                                        .thenCompose(reservationsResponse -> {
-                                            if (reservationsResponse != null && reservationsResponse.statusCode() == 200) {
-                                                try {
-                                                    JSONArray reservationsArray = new JSONArray(reservationsResponse.body());
-                                                    CompletableFuture<Void> allFlightDetails = CompletableFuture.completedFuture(null);
+                            // Collect unique customer and flight IDs
+                            Map<Long, Void> customerIds = new HashMap<>();
+                            Map<Long, Void> flightIds = new HashMap<>();
 
-                                                    // Fetch flight details for each reservation
-                                                    for (int i = 0; i < reservationsArray.length(); i++) {
-                                                        JSONObject reservationJson = reservationsArray.getJSONObject(i);
-                                                        if (reservationJson.has("flight_id") && !reservationJson.isNull("flight_id")) {
-                                                            int flightId = reservationJson.getInt("flight_id");
-                                                            final int index = i;
-                                                            allFlightDetails = allFlightDetails.thenCompose(v ->
-                                                                    supabaseService.getFlightById(flightId, userAuthToken)
-                                                                            .thenAccept(flightResponse -> {
-                                                                                if (flightResponse != null && flightResponse.statusCode() == 200) {
-                                                                                    try {
-                                                                                        JSONArray flights = new JSONArray(flightResponse.body());
-                                                                                        if (flights.length() > 0) {
-                                                                                            JSONObject flight = flights.getJSONObject(0);
-                                                                                            // Add flight data to reservation JSON
-                                                                                            reservationJson.put("flight_code", flight.optString("flight_code", "FL" + flightId));
-                                                                                            reservationJson.put("departure_city", flight.optString("departure_city", "N/A"));
-                                                                                            reservationJson.put("destination_city", flight.optString("destination_city", "N/A"));
-                                                                                        }
-                                                                                    } catch (Exception e) {
-                                                                                        System.err.println("Error parsing flight data: " + e.getMessage());
-                                                                                    }
-                                                                                }
-                                                                            })
-                                                            );
-                                                        }
-                                                        // Add customer name to each reservation
-                                                        reservationJson.put("customer_name", customerName);
-                                                    }
-                                                    return allFlightDetails.thenApply(v -> reservationsResponse);
-                                                } catch (Exception e) {
-                                                    System.err.println("Error processing reservations: " + e.getMessage());
-                                                }
-                                            }
-                                            return CompletableFuture.completedFuture(reservationsResponse);
-                                        });
+                            for (int i = 0; i < reservationsArray.length(); i++) {
+                                JSONObject reservationJson = reservationsArray.getJSONObject(i);
+                                Long customerId = reservationJson.optLong("customer_id");
+                                Long flightId = reservationJson.optLong("flight_id");
+
+                                if (customerId > 0) customerIds.put(customerId, null);
+                                if (flightId > 0) flightIds.put(flightId, null);
                             }
+
+                            // Fetch customer and flight details in parallel
+                            CompletableFuture<Void> customersFuture = fetchCustomerDetails(customerIds.keySet());
+                            CompletableFuture<Void> flightsFuture = fetchFlightDetails(flightIds.keySet());
+
+                            return CompletableFuture.allOf(customersFuture, flightsFuture)
+                                    .thenApply(v -> response);
+
                         } catch (Exception e) {
-                            System.err.println("Error parsing customer data: " + e.getMessage());
+                            System.err.println("Error processing reservations: " + e.getMessage());
+                            return CompletableFuture.completedFuture(response);
                         }
+                    } else {
+                        return CompletableFuture.completedFuture(response);
                     }
-                    return CompletableFuture.completedFuture(null);
                 })
-                .thenAccept(reservationsResponse -> {
+                .thenAccept(response -> {
                     Platform.runLater(() -> {
                         showLoading(false);
 
-                        if (reservationsResponse != null && reservationsResponse.statusCode() == 200) {
+                        if (response.statusCode() == 200 || response.statusCode() == 206) {
                             try {
-                                JSONArray reservationsArray = new JSONArray(reservationsResponse.body());
+                                JSONArray reservationsArray = new JSONArray(response.body());
                                 reservations.clear();
 
                                 for (int i = 0; i < reservationsArray.length(); i++) {
                                     JSONObject reservationJson = reservationsArray.getJSONObject(i);
 
-                                    // Apply filters
+                                    // Apply status filter
                                     String statusFilterValue = statusFilter.getValue();
                                     if (!"All Status".equals(statusFilterValue)) {
                                         String reservationStatus = reservationJson.optString("reservation_status", "");
@@ -364,39 +386,56 @@ public class ManageReservationsController {
                                         }
                                     }
 
-                                    // Apply search filter
-                                    String searchTerm = searchField.getText().toLowerCase();
-                                    if (!searchTerm.isEmpty()) {
-                                        String reservationCode = reservationJson.optString("reservation_code", "").toLowerCase();
-                                        String customerName = reservationJson.optString("customer_name", "").toLowerCase();
-                                        if (!reservationCode.contains(searchTerm) && !customerName.contains(searchTerm)) {
-                                            continue;
-                                        }
+                                    // Extract reservation data
+                                    Long reservationId = reservationJson.optLong("reservation_id");
+                                    String reservationCode = reservationJson.optString("reservation_code", "N/A");
+                                    String seatClass = reservationJson.optString("seat_class", "Economic");
+                                    Double totalFare = reservationJson.optDouble("total_fare", 0.0);
+                                    String reservationStatus = reservationJson.optString("reservation_status", "Pending");
+                                    String paymentStatus = reservationJson.optString("payment_status", "Pending");
+
+                                    // Get customer information from cache
+                                    Long customerId = reservationJson.optLong("customer_id");
+                                    String customerName = customerNameCache.getOrDefault(customerId, "Customer #" + customerId);
+
+                                    // Get flight information from cache
+                                    Long flightId = reservationJson.optLong("flight_id");
+                                    String flightCode = "FL" + flightId;
+                                    String departureCity = "Unknown";
+                                    String destinationCity = "Unknown";
+                                    String departureDate = "";
+                                    String departureTime = "";
+
+                                    if (flightCache.containsKey(flightId)) {
+                                        JSONObject flight = flightCache.get(flightId);
+                                        flightCode = flight.optString("flight_code", "FL" + flightId);
+                                        departureCity = flight.optString("departure_city", "Unknown");
+                                        destinationCity = flight.optString("destination_city", "Unknown");
+                                        departureDate = flight.optString("departure_date", "");
+                                        departureTime = flight.optString("departure_time", "");
                                     }
 
-                                    // Extract data
-                                    String extractedCustomerName = reservationJson.optString("customer_name", "Unknown");
-                                    String flightCode = reservationJson.optString("flight_code", "N/A");
-                                    String departureCity = reservationJson.optString("departure_city", "N/A");
-                                    String destinationCity = reservationJson.optString("destination_city", "N/A");
-
                                     System.out.println("Reservation " + i + ": " +
-                                            "Customer: " + extractedCustomerName +
+                                            "Code: " + reservationCode +
+                                            ", Customer: " + customerName +
                                             ", Flight: " + flightCode +
-                                            ", Departure: " + departureCity +
-                                            ", Destination: " + destinationCity);
+                                            ", Route: " + departureCity + " → " + destinationCity);
 
                                     Reservation reservation = new Reservation(
-                                            reservationJson.getLong("reservation_id"),
-                                            reservationJson.optString("reservation_code", "N/A"),
-                                            extractedCustomerName,
+                                            reservationId,
+                                            reservationCode,
+                                            customerName,
                                             flightCode,
                                             departureCity,
                                             destinationCity,
-                                            reservationJson.optString("seat_class", "Economic"),
-                                            reservationJson.optDouble("total_fare", 0.0),
-                                            reservationJson.optString("reservation_status", "Pending"),
-                                            reservationJson.optString("payment_status", "Pending")
+                                            seatClass,
+                                            totalFare,
+                                            reservationStatus,
+                                            paymentStatus,
+                                            departureDate,
+                                            departureTime,
+                                            flightId,
+                                            customerId
                                     );
 
                                     reservations.add(reservation);
@@ -407,10 +446,12 @@ public class ManageReservationsController {
 
                             } catch (Exception e) {
                                 System.err.println("Error parsing reservations: " + e.getMessage());
-                                updateStatus("Error loading reservations", "error");
+                                e.printStackTrace();
+                                updateStatus("Error loading reservations: " + e.getMessage(), "error");
                             }
                         } else {
-                            updateStatus("Failed to load reservations", "error");
+                            System.err.println("Failed to load reservations. Status: " + response.statusCode() + ", Body: " + response.body());
+                            updateStatus("Failed to load reservations. Status: " + response.statusCode(), "error");
                         }
                     });
                 })
@@ -419,13 +460,68 @@ public class ManageReservationsController {
                         showLoading(false);
                         updateStatus("Error: " + ex.getMessage(), "error");
                         System.err.println("Error loading reservations: " + ex.getMessage());
+                        ex.printStackTrace();
                     });
                     return null;
                 });
     }
 
+    private CompletableFuture<Void> fetchCustomerDetails(java.util.Set<Long> customerIds) {
+        if (customerIds.isEmpty()) {
+            return CompletableFuture.completedFuture(null);
+        }
+
+        CompletableFuture<Void>[] futures = customerIds.stream()
+                .map(customerId -> supabaseService.getCustomerByIdNumber(String.valueOf(customerId), userAuthToken)
+                        .thenAccept(response -> {
+                            if (response.statusCode() == 200) {
+                                try {
+                                    JSONArray customers = new JSONArray(response.body());
+                                    if (customers.length() > 0) {
+                                        JSONObject customer = customers.getJSONObject(0);
+                                        String customerName = customer.optString("full_name", "Customer #" + customerId);
+                                        customerNameCache.put(customerId, customerName);
+                                    }
+                                } catch (Exception e) {
+                                    System.err.println("Error parsing customer data for ID " + customerId + ": " + e.getMessage());
+                                }
+                            }
+                        })
+                )
+                .toArray(CompletableFuture[]::new);
+
+        return CompletableFuture.allOf(futures);
+    }
+
+    private CompletableFuture<Void> fetchFlightDetails(java.util.Set<Long> flightIds) {
+        if (flightIds.isEmpty()) {
+            return CompletableFuture.completedFuture(null);
+        }
+
+        CompletableFuture<Void>[] futures = flightIds.stream()
+                .map(flightId -> supabaseService.getFlightDetails(flightId)
+                        .thenAccept(response -> {
+                            if (response.statusCode() == 200) {
+                                try {
+                                    JSONArray flights = new JSONArray(response.body());
+                                    if (flights.length() > 0) {
+                                        JSONObject flight = flights.getJSONObject(0);
+                                        flightCache.put(flightId, flight);
+                                    }
+                                } catch (Exception e) {
+                                    System.err.println("Error parsing flight data for ID " + flightId + ": " + e.getMessage());
+                                }
+                            }
+                        })
+                )
+                .toArray(CompletableFuture[]::new);
+
+        return CompletableFuture.allOf(futures);
+    }
+
     @FXML
     private void handleSearch() {
+        currentPage = 0;
         loadReservations();
     }
 
@@ -433,11 +529,22 @@ public class ManageReservationsController {
     private void handleRefresh() {
         searchField.clear();
         statusFilter.setValue("All Status");
+        pageSizeCombo.setValue("10");
+        currentPage = 0;
+        currentSearchTerm = "";
+        pageSize = 10;
+        customerNameCache.clear();
+        flightCache.clear();
         loadReservations();
     }
 
     @FXML
     private void handleExport() {
+        if (reservations.isEmpty()) {
+            updateStatus("No data to export", "warning");
+            return;
+        }
+
         StringBuilder exportData = new StringBuilder();
         exportData.append("Reservation Code,Customer Name,Flight,Departure,Destination,Class,Total Fare,Status,Payment Status\n");
 
@@ -466,11 +573,71 @@ public class ManageReservationsController {
     }
 
     private void viewReservation(Reservation reservation) {
+        // Fetch complete reservation details
+        showLoading(true);
+        updateStatus("Loading reservation details...", "info");
+
+        supabaseService.getReservationById(reservation.getReservationId(), userAuthToken)
+                .thenAccept(response -> {
+                    Platform.runLater(() -> {
+                        showLoading(false);
+
+                        if (response.statusCode() == 200 || response.statusCode() == 206) {
+                            try {
+                                JSONArray reservationsArray = new JSONArray(response.body());
+                                if (reservationsArray.length() > 0) {
+                                    JSONObject reservationDetails = reservationsArray.getJSONObject(0);
+                                    showReservationDetails(reservationDetails);
+                                } else {
+                                    showBasicReservationDetails(reservation);
+                                }
+                            } catch (Exception e) {
+                                System.err.println("Error parsing reservation details: " + e.getMessage());
+                                showBasicReservationDetails(reservation);
+                            }
+                        } else {
+                            showBasicReservationDetails(reservation);
+                        }
+                    });
+                })
+                .exceptionally(ex -> {
+                    Platform.runLater(() -> {
+                        showLoading(false);
+                        showBasicReservationDetails(reservation);
+                    });
+                    return null;
+                });
+    }
+
+    private void showReservationDetails(JSONObject reservationDetails) {
+        StringBuilder details = new StringBuilder();
+        details.append("Reservation: ").append(reservationDetails.optString("reservation_code", "N/A")).append("\n\n");
+
+        // Reservation details
+        details.append("Seat Class: ").append(reservationDetails.optString("seat_class", "Economic")).append("\n");
+        details.append("Trip Type: ").append(reservationDetails.optString("trip_type", "One-way")).append("\n");
+        details.append("Seat Preference: ").append(reservationDetails.optString("seat_preference", "Any")).append("\n");
+        details.append("Total Fare: R ").append(String.format("%.2f", reservationDetails.optDouble("total_fare", 0.0))).append("\n");
+        details.append("Amount Paid: R ").append(String.format("%.2f", reservationDetails.optDouble("amount_paid", 0.0))).append("\n");
+        details.append("Payment Due: R ").append(String.format("%.2f", reservationDetails.optDouble("payment_due", 0.0))).append("\n");
+        details.append("Status: ").append(reservationDetails.optString("reservation_status", "Pending")).append("\n");
+        details.append("Payment Status: ").append(reservationDetails.optString("payment_status", "Pending")).append("\n");
+
+        if (reservationDetails.has("reservation_date")) {
+            details.append("Reservation Date: ").append(reservationDetails.optString("reservation_date", "")).append("\n");
+        }
+
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
         alert.setTitle("Reservation Details");
-        alert.setHeaderText("Reservation: " + reservation.getReservationCode());
-        alert.setContentText(String.format(
-                "Customer: %s\nFlight: %s\nRoute: %s → %s\nClass: %s\nTotal Fare: R %.2f\nStatus: %s\nPayment: %s",
+        alert.setHeaderText("Complete Reservation Details");
+        alert.setContentText(details.toString());
+        alert.showAndWait();
+    }
+
+    private void showBasicReservationDetails(Reservation reservation) {
+        String details = String.format(
+                "Reservation: %s\n\nCustomer: %s\nFlight: %s\nRoute: %s → %s\nClass: %s\nTotal Fare: R %.2f\nStatus: %s\nPayment: %s",
+                reservation.getReservationCode(),
                 reservation.getCustomerName(),
                 reservation.getFlightCode(),
                 reservation.getDepartureCity(),
@@ -479,19 +646,50 @@ public class ManageReservationsController {
                 reservation.getTotalFare(),
                 reservation.getReservationStatus(),
                 reservation.getPaymentStatus()
-        ));
+        );
+
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle("Reservation Details");
+        alert.setHeaderText("Reservation: " + reservation.getReservationCode());
+        alert.setContentText(details);
         alert.showAndWait();
     }
 
     private void editReservation(Reservation reservation) {
-        TextInputDialog dialog = new TextInputDialog(reservation.getSeatClass());
+        ChoiceDialog<String> dialog = new ChoiceDialog<>(reservation.getSeatClass(),
+                FXCollections.observableArrayList("Economic", "Business", "First Class"));
         dialog.setTitle("Edit Reservation");
         dialog.setHeaderText("Edit Seat Class for " + reservation.getReservationCode());
-        dialog.setContentText("Enter new seat class:");
+        dialog.setContentText("Select new seat class:");
 
         dialog.showAndWait().ifPresent(newSeatClass -> {
-            updateStatus("Updating reservation...", "info");
-            updateStatus("Reservation updated successfully", "success");
+            if (!newSeatClass.equals(reservation.getSeatClass())) {
+                updateStatus("Updating reservation...", "info");
+
+                JSONObject updateData = new JSONObject();
+                updateData.put("seat_class", newSeatClass);
+
+                // You might want to update the fare based on the new seat class
+                // This would require additional logic to calculate the new fare
+
+                supabaseService.updateReservation(reservation.getReservationId().intValue(), updateData, userAuthToken)
+                        .thenAccept(updateResponse -> {
+                            Platform.runLater(() -> {
+                                if (updateResponse.statusCode() == 200 || updateResponse.statusCode() == 204) {
+                                    updateStatus("Reservation updated successfully", "success");
+                                    loadReservations(); // Refresh the table
+                                } else {
+                                    updateStatus("Failed to update reservation", "error");
+                                }
+                            });
+                        })
+                        .exceptionally(ex -> {
+                            Platform.runLater(() -> {
+                                updateStatus("Error updating reservation: " + ex.getMessage(), "error");
+                            });
+                            return null;
+                        });
+            }
         });
     }
 
@@ -514,11 +712,12 @@ public class ManageReservationsController {
                         .thenAccept(updateResponse -> {
                             Platform.runLater(() -> {
                                 showLoading(false);
-                                if (updateResponse.statusCode() == 200) {
+                                if (updateResponse.statusCode() == 200 || updateResponse.statusCode() == 204) {
                                     updateStatus("Reservation cancelled successfully", "success");
                                     loadReservations();
                                 } else {
                                     updateStatus("Failed to cancel reservation", "error");
+                                    System.err.println("Cancel response: " + updateResponse.body());
                                 }
                             });
                         })
@@ -534,30 +733,59 @@ public class ManageReservationsController {
     }
 
     private void printTicket(Reservation reservation) {
+        showLoading(true);
         updateStatus("Generating ticket for " + reservation.getReservationCode() + "...", "info");
-        new java.util.Timer().schedule(
-                new java.util.TimerTask() {
-                    @Override
-                    public void run() {
-                        Platform.runLater(() -> {
-                            updateStatus("Ticket printed successfully for " + reservation.getReservationCode(), "success");
-                        });
-                    }
-                },
-                2000
-        );
+
+        // Fetch ticket details from the database
+        supabaseService.getTicketByReservationId(reservation.getReservationId(), userAuthToken)
+                .thenAccept(ticketResponse -> {
+                    Platform.runLater(() -> {
+                        showLoading(false);
+
+                        if (ticketResponse.statusCode() == 200 || ticketResponse.statusCode() == 206) {
+                            try {
+                                JSONArray tickets = new JSONArray(ticketResponse.body());
+                                if (tickets.length() > 0) {
+                                    JSONObject ticket = tickets.getJSONObject(0);
+                                    String ticketNumber = ticket.optString("ticket_number", "N/A");
+                                    updateStatus("Ticket " + ticketNumber + " printed successfully", "success");
+
+                                    // Show ticket details
+                                    Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                                    alert.setTitle("Ticket Printed");
+                                    alert.setHeaderText("Ticket: " + ticketNumber);
+                                    alert.setContentText("Ticket for " + reservation.getReservationCode() + " has been generated successfully.");
+                                    alert.showAndWait();
+                                } else {
+                                    updateStatus("No ticket found for this reservation", "warning");
+                                }
+                            } catch (Exception e) {
+                                updateStatus("Error processing ticket: " + e.getMessage(), "error");
+                            }
+                        } else {
+                            updateStatus("No ticket available for this reservation", "warning");
+                        }
+                    });
+                })
+                .exceptionally(ex -> {
+                    Platform.runLater(() -> {
+                        showLoading(false);
+                        updateStatus("Error generating ticket: " + ex.getMessage(), "error");
+                    });
+                    return null;
+                });
     }
 
     // ==================== NAVIGATION METHODS ====================
 
     private void navigateToDashboard() {
         System.out.println("=== NAVIGATING TO DASHBOARD ===");
-        SceneManager.navigateToDashboard(btnDashboard.getScene());
+        SceneManager.navigateToDashboard(btnDashboard.getScene(), userAuthToken, userId, userEmail);
     }
 
     private void navigateToReservation() {
         System.out.println("=== NAVIGATING TO RESERVATION FORM ===");
-        SceneManager.navigateToReservationForm(btnReservation.getScene());
+        SceneManager.navigateToReservationForm(btnReservation.getScene(), userAuthToken, userId, userEmail);
     }
 
     private void navigateToManageReservations() {
@@ -567,17 +795,17 @@ public class ManageReservationsController {
 
     private void navigateToFeedback() {
         System.out.println("=== NAVIGATING TO FEEDBACK ===");
-        SceneManager.navigateToFeedback(btnFeedback.getScene());
+        SceneManager.navigateToFeedback(btnFeedback.getScene(), userAuthToken, userId, userEmail);
     }
 
     private void navigateToSupport() {
         System.out.println("=== NAVIGATING TO SUPPORT ===");
-        SceneManager.navigateToSupport(btnSupport.getScene());
+        SceneManager.navigateToSupport(btnSupport.getScene(), userAuthToken, userId, userEmail);
     }
 
     private void navigateToSettings() {
         System.out.println("=== NAVIGATING TO SETTINGS ===");
-        SceneManager.navigateToSettings(btnSettings.getScene());
+        SceneManager.navigateToSettings(btnSettings.getScene(), userAuthToken, userId, userEmail);
     }
 
     private void handleLogout() {
@@ -590,6 +818,7 @@ public class ManageReservationsController {
         btnRefresh.setDisable(show);
         btnExport.setDisable(show);
         searchButton.setDisable(show);
+        reservationsTable.setDisable(show);
     }
 
     private void updateStatus(String message, String type) {
@@ -600,6 +829,6 @@ public class ManageReservationsController {
 
     private void updatePaginationInfo() {
         int total = reservations.size();
-        paginationInfo.setText(String.format("Showing %d reservations", total));
+        paginationInfo.setText(String.format("Showing %d reservations (Page %d)", total, currentPage + 1));
     }
 }
